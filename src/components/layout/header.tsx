@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, ShoppingCart, Bell } from 'lucide-react';
+import { Package, ShoppingCart, Bell, User } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,17 @@ export function Header() {
           <nav className="flex items-center space-x-1">
             <Button variant="ghost" asChild>
                 <Link href="/admin">Admin</Link>
+            </Button>
+             <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              aria-label="Mi Cuenta"
+              asChild
+            >
+              <Link href="/account">
+                <User className="h-5 w-5" />
+              </Link>
             </Button>
             <Button
               variant="ghost"
