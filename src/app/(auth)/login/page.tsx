@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Package } from 'lucide-react';
 import { useSession } from '@/hooks/use-session';
 import { loginAction } from './actions';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const { toast } = useToast();
@@ -35,7 +35,8 @@ export default function LoginPage() {
             if (result.user.role === 'admin') {
                 router.push('/admin/dashboard');
             } else {
-                router.push('/shop');
+                // Usamos window.location.href para forzar una recarga y evitar problemas de hidratación.
+                window.location.href = '/shop';
             }
         } else {
             throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
