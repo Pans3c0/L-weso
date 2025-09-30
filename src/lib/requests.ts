@@ -10,8 +10,8 @@ type Customer = {
     referralCode: string; // Every customer is linked to a seller's code
 };
 
-// Mock customer data
-export const customers: Customer[] = [
+// Mock customer data - This is NOT exported anymore to comply with 'use server'
+const customers: Customer[] = [
     { id: 'customer_123', name: 'Juan Pérez', referralCode: 'tienda_admin' },
     { id: 'customer_456', name: 'Maria García', referralCode: 'tienda_admin' },
 ];
