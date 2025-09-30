@@ -34,8 +34,11 @@ export default function LoginPage() {
             // Redirección del lado del cliente
             if (result.user.role === 'admin') {
                 router.push('/admin/dashboard');
-            } else {
+            } else if (result.user.role === 'customer') {
                 router.push('/shop');
+            } else {
+                 // Fallback por si acaso, aunque no debería ocurrir.
+                router.push('/');
             }
         } else {
             throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
