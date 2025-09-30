@@ -40,7 +40,7 @@ export default function ShopPage() {
         setProducts([]);
         setIsLoadingProducts(false);
     }
-  }, [session, isLoadingSession]); // El efecto se vuelve a ejecutar si la sesión o su estado de carga cambian.
+  }, [session, isLoadingSession]);
 
   if (isLoadingSession) {
     return (
