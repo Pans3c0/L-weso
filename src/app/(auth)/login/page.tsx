@@ -23,10 +23,17 @@ export default function LoginPage() {
 
     // Mock authentication
     setTimeout(() => {
+      // Simulating admin login
       if (username === 'admin' && password === 'password') {
         toast({ title: 'Inicio de sesión exitoso', description: 'Bienvenido, admin.' });
         router.replace('/admin/products');
-      } else {
+      } 
+      // Simulating customer login
+      else if (username.length > 0 && password.length > 0) {
+        toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${username}` });
+        router.replace('/shop');
+      }
+      else {
         toast({
           title: 'Error de inicio de sesión',
           description: 'Nombre de usuario o contraseña incorrectos.',
@@ -41,11 +48,11 @@ export default function LoginPage() {
     <Card className="w-full max-w-sm">
       <form onSubmit={handleLogin}>
         <CardHeader className="text-center">
-            <Link href="/" className="flex items-center justify-center space-x-2 mb-4">
+            <div className="flex items-center justify-center space-x-2 mb-4">
                 <Package className="h-8 w-8 text-primary" />
-            </Link>
-          <CardTitle className="font-headline text-2xl">Admin Login</CardTitle>
-          <CardDescription>Accede al panel de administrador.</CardDescription>
+            </div>
+          <CardTitle className="font-headline text-2xl">Iniciar Sesión</CardTitle>
+          <CardDescription>Accede a tu cuenta de Mercado Vecinal.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -62,9 +69,9 @@ export default function LoginPage() {
             {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </Button>
           <p className="text-xs text-muted-foreground text-center">
-            ¿No eres admin?{' '}
+            ¿No tienes cuenta?{' '}
             <Link href="/register" className="underline hover:text-primary">
-              Regístrate como cliente
+              Regístrate aquí
             </Link>
           </p>
         </CardFooter>

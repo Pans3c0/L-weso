@@ -98,7 +98,7 @@ export function AdminSidebar() {
                 </div>
                 <div className="mt-auto p-4">
                     <Link
-                        href="/"
+                        href="/shop"
                         className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                     >
                         <Store className="h-4 w-4" />

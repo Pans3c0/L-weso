@@ -60,7 +60,7 @@ export default function CartPage() {
                 <h2 className="text-2xl font-semibold mb-2">Tu carrito está vacío</h2>
                 <p className="text-muted-foreground mb-6">Parece que aún no has añadido ningún producto.</p>
                 <Button asChild>
-                    <Link href="/">Empezar a comprar</Link>
+                    <Link href="/shop">Empezar a comprar</Link>
                 </Button>
             </CardContent>
         </Card>
