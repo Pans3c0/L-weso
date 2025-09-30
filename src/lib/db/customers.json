@@ -1,3 +1,4 @@
+
 [
   {
     "id": "customer_123",
@@ -9,24 +10,6 @@
     "id": "customer_456",
     "name": "Maria García",
     "username": "mariagarcia",
-    "referralCode": "tienda_admin"
-  },
-  {
-    "id": "customer_1759249059248",
-    "name": "Paco Ramirez",
-    "username": "paquito",
-    "referralCode": "tienda_admin"
-  },
-  {
-    "id": "customer_1759249316184",
-    "name": "paca paca",
-    "username": "paca",
-    "referralCode": "tienda_admin"
-  },
-  {
-    "id": "customer_1759249421528",
-    "name": "pepe pepe",
-    "username": "pepe",
     "referralCode": "tienda_admin"
   }
 ]
