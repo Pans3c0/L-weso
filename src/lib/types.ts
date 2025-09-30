@@ -26,4 +26,6 @@ export type PurchaseRequest = {
   createdAt: string;
   confirmationDate?: string;
   sellerNote?: string;
+  customerNote?: string; // For delay notifications
+  isRead?: boolean; // For client-side notification tracking
 };

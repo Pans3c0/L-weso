@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { ConfirmRequestDialog } from '@/components/admin/confirm-request-dialog';
-import { Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 async function fetchRequests(): Promise<PurchaseRequest[]> {
     const res = await fetch('/api/requests');
@@ -31,9 +31,14 @@ export default function AdminRequestsPage() {
   const [requests, setRequests] = React.useState<PurchaseRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = React.useState<PurchaseRequest | null>(null);
 
-  React.useEffect(() => {
-    fetchRequests().then(setRequests);
+  const fetchAndSetRequests = React.useCallback(async () => {
+    const data = await fetchRequests();
+    setRequests(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
   }, []);
+
+  React.useEffect(() => {
+    fetchAndSetRequests();
+  }, [fetchAndSetRequests]);
   
   const handleConfirmSuccess = (updatedRequest: PurchaseRequest) => {
     setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
@@ -69,7 +74,7 @@ export default function AdminRequestsPage() {
   };
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
-  const processedRequests = requests.filter(r => r.status !== 'pending').sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const processedRequests = requests.filter(r => r.status !== 'pending');
 
 
   return (
@@ -156,6 +161,7 @@ function RequestItem({
   getStatusIcon: (status: PurchaseRequest['status']) => React.ReactNode;
   onConfirmClick?: () => void;
 }) {
+  const placeholderImageUrl = 'https://placehold.co/64x64/F5F5F5/696969?text=?';
   return (
     <AccordionItem value={request.id}>
       <AccordionTrigger>
@@ -183,7 +189,7 @@ function RequestItem({
               <li key={item.product.id} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Image
-                    src={item.product.imageUrl || 'https://placehold.co/40x40/F5F5F5/696969?text=?'}
+                    src={item.product.imageUrl || placeholderImageUrl}
                     alt={item.product.name}
                     width={40}
                     height={40}
@@ -196,6 +202,19 @@ function RequestItem({
               </li>
             ))}
           </ul>
+          
+          {request.customerNote && (
+            <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/50 rounded-md flex items-start">
+              <AlertCircle className="h-5 w-5 mr-3 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-yellow-800 dark:text-yellow-300">
+                    Nota del Cliente (Retraso):
+                </p>
+                <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-400">"{request.customerNote}"</p>
+              </div>
+            </div>
+          )}
+
           {request.status === 'confirmed' && request.confirmationDate && (
             <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/50 rounded-md">
                 <p className="font-semibold text-green-800 dark:text-green-300">

@@ -48,10 +48,59 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     console.log(`Request ${requestId} confirmed for ${confirmationDate}.`);
 
     revalidatePath('/admin/requests');
+    revalidatePath('/notifications');
 
     return { success: true, updatedRequest: updated };
   } catch (error) {
     console.error(`Failed to confirm request ${requestId}:`, error);
     return { error: 'No se pudo confirmar la solicitud.' };
+  }
+}
+
+const NotifyDelaySchema = z.object({
+  requestId: z.string(),
+  customerNote: z.string(),
+});
+
+export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>) {
+  const parsedInput = NotifyDelaySchema.safeParse(input);
+  if (!parsedInput.success) {
+    return { error: 'Datos inválidos.' };
+  }
+
+  const { requestId, customerNote } = parsedInput.data;
+
+  const purchaseRequests = getPurchaseRequests();
+
+  try {
+    const request = purchaseRequests.find(r => r.id === requestId);
+    if (!request) {
+      return { error: 'Solicitud no encontrada.' };
+    }
+
+    if (request.status !== 'confirmed') {
+      return { error: 'Solo se pueden notificar retrasos en pedidos confirmados.' };
+    }
+
+    const updated: PurchaseRequest = {
+      ...request,
+      customerNote,
+    };
+
+    const success = updateRequest(updated);
+
+    if (!success) {
+      throw new Error('Failed to update request in data store.');
+    }
+    
+    console.log(`Delay notified for request ${requestId}.`);
+
+    revalidatePath('/admin/requests');
+    revalidatePath('/notifications');
+
+    return { success: true, updatedRequest: updated };
+  } catch (error) {
+    console.error(`Failed to notify delay for request ${requestId}:`, error);
+    return { error: 'No se pudo notificar el retraso.' };
   }
 }

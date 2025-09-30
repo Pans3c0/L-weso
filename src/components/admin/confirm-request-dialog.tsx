@@ -47,12 +47,18 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const form = useForm<ConfirmFormValues>({
     resolver: zodResolver(confirmSchema),
-    defaultValues: {
-      confirmationDate: undefined,
-      confirmationTime: '10:00',
-      sellerNote: '',
-    },
   });
+
+  React.useEffect(() => {
+    if (request) {
+        const now = new Date();
+        form.reset({
+            confirmationDate: now,
+            confirmationTime: format(now, 'HH:mm'),
+            sellerNote: '',
+        });
+    }
+  }, [request, form]);
   
   const isOpen = !!request;
 
@@ -77,7 +83,6 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
           description: `Has confirmado el pedido de ${request.customerName}.`,
         });
         onSuccess(result.updatedRequest);
-        form.reset();
       } else {
         throw new Error(result.error || 'Algo salió mal');
       }
@@ -134,7 +139,6 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
                           initialFocus
                         />
                       </PopoverContent>
