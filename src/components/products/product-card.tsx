@@ -22,7 +22,7 @@ export function ProductCard({ product }: { product: Product }) {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 3 }).format(amount);
   };
   
   const stockInKg = product.stockInGrams / 1000;
@@ -46,7 +46,7 @@ export function ProductCard({ product }: { product: Product }) {
         <CardTitle className="font-headline text-xl mb-1">{product.name}</CardTitle>
         <CardDescription className="text-muted-foreground text-sm mb-3 h-10">{product.description}</CardDescription>
         <div className="flex justify-between items-center text-sm">
-            <p className="text-foreground font-semibold">{formatCurrency(product.pricePerGram * 1000)} / kg</p>
+            <p className="text-foreground font-semibold">{formatCurrency(product.pricePerGram)} / g</p>
             <p className={`font-medium ${stockInKg < 1 ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {stockInKg.toFixed(1)} kg disp.
             </p>
