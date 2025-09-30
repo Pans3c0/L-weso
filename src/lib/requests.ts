@@ -78,7 +78,6 @@ export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
         return data || [];
     } catch (e) {
         console.error("Could not read requests file, returning empty array.", e);
-        // If reading fails, maybe initialize and return initial data? For now, empty.
         if (e.code === 'ENOENT') {
             await initializeRequestsFile();
             return initialRequests;
