@@ -30,10 +30,12 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
         const customer = customers.find(c => c.username === username);
 
         if (customer) {
-            const isJuanPerez = customer.username === 'juanperez' && password === 'password123';
-            const isOtherCustomer = customer.username !== 'juanperez' && password === 'password';
+            // Lógica de contraseña simplificada y corregida
+            const isValidPassword = 
+                (customer.username === 'juanperez' && password === 'password123') ||
+                (customer.username !== 'juanperez' && password === 'password');
 
-            if (isJuanPerez || isOtherCustomer) {
+            if (isValidPassword) {
                 const customerUser: SessionUser = { id: customer.id, name: customer.name, username: customer.username, role: 'customer' };
                 return { user: customerUser };
             }
