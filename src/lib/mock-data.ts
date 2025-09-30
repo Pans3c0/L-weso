@@ -1,3 +1,4 @@
+
 import type { Product, PurchaseRequest, Customer } from '@/lib/types';
 import { placeholderImages } from '@/lib/placeholder-images';
 
@@ -17,9 +18,9 @@ const oliveOilImage = imageMap.get('olive-oil')!;
 export const initialProducts: Product[] = [
   {
     id: 'prod_1',
-    name: 'Tomates Frescos',
-    description: 'Tomates jugosos y maduros, perfectos para ensaladas y salsas. Cosechados localmente.',
-    pricePerGram: 0.003,
+    name: 'Lemon Fresh',
+    description: 'Polen tierno, made in Spain.',
+    pricePerGram: 0.0045,
     stockInGrams: 25000,
     imageUrl: tomatoesImage.imageUrl,
     imageHint: tomatoesImage.imageHint,
@@ -27,9 +28,9 @@ export const initialProducts: Product[] = [
   },
   {
     id: 'prod_2',
-    name: 'Aguacates Hass',
-    description: 'Aguacates cremosos de la variedad Hass, ideales para guacamole o tostadas.',
-    pricePerGram: 0.006,
+    name: 'Horse Power',
+    description: 'Made in France, Tierno y buen tufo.',
+    pricePerGram: 0.0065,
     stockInGrams: 15000,
     imageUrl: avocadosImage.imageUrl,
     imageHint: avocadosImage.imageHint,
@@ -37,33 +38,23 @@ export const initialProducts: Product[] = [
   },
   {
     id: 'prod_3',
-    name: 'Pan de Masa Madre',
-    description: 'Pan de fermentación lenta con una corteza crujiente y una miga suave y aireada.',
-    pricePerGram: 0.01,
+    name: 'CR7',
+    description: 'Comer decente.',
+    pricePerGram: 0.0035,
     stockInGrams: 5000,
     imageUrl: breadImage.imageUrl,
     imageHint: breadImage.imageHint,
     keywords: 'pan, masa madre, artesanal, panaderia, crujiente',
   },
   {
-    id: 'prod_4',
-    name: 'Queso de Cabra',
-    description: 'Queso de cabra suave y untable, con un sabor ligeramente ácido. Producido en una granja cercana.',
-    pricePerGram: 0.025,
-    stockInGrams: 8000,
-    imageUrl: goatCheeseImage.imageUrl,
-    imageHint: goatCheeseImage.imageHint,
-    keywords: 'queso, cabra, cremoso, lacteo, granja',
-  },
-  {
-    id: 'prod_5',
-    name: 'Aceite de Oliva Extra Virgen',
-    description: 'Aceite de oliva de primera prensada en frío, con notas afrutadas y un final picante.',
-    pricePerGram: 0.02,
-    stockInGrams: 12000,
+    id: 'prod_1759228772828',
+    name: 'Ferrari',
+    description: 'Polen rubio de alta calidad.',
+    pricePerGram: 0.005,
+    stockInGrams: 10000,
     imageUrl: oliveOilImage.imageUrl,
-    imageHint: oliveOilImage.imageHint,
-    keywords: 'aceite, oliva, virgen extra, afrutado, cocina',
+    imageHint: 'olive oil',
+    keywords: 'Polen, rubio'
   }
 ];
 
@@ -81,22 +72,6 @@ export const customers: Customer[] = [
  * This is used to populate `requests.json` if it's empty.
  */
 export const initialRequests: PurchaseRequest[] = [
-    {
-        id: 'req_1719418800000',
-        customerId: 'customer_123',
-        customerName: 'Juan Pérez',
-        items: [
-            {
-                product: initialProducts[0], // Tomates
-                quantityInGrams: 500
-            },
-            {
-                product: initialProducts[2], // Pan
-                quantityInGrams: 250
-            }
-        ],
-        status: 'pending',
-        total: (500 * initialProducts[0].pricePerGram) + (250 * initialProducts[2].pricePerGram),
-        createdAt: new Date('2024-06-26T10:00:00Z').toISOString(),
-    }
+    // The list is intentionally left empty to start fresh.
 ];
+
