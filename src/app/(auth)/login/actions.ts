@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import { getAllCustomers } from '@/lib/customers';
 import type { SessionUser } from '@/lib/types';
-import { redirect } from 'next/navigation';
 
 const LoginSchema = z.object({
     username: z.string(),
@@ -31,11 +30,10 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
 
         if (customer) {
             let isValidPassword = false;
-            // Specific password for juanperez
+            // Specific password for juanperez, default for others
             if (customer.username === 'juanperez') {
                 isValidPassword = (password === 'password123');
             } else {
-                // Default password for all other customers
                 isValidPassword = (password === 'password');
             }
 

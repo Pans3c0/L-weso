@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { loginAction } from './actions';
 export default function LoginPage() {
   const { toast } = useToast();
   const { login } = useSession();
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,13 +31,13 @@ export default function LoginPage() {
             login(result.user); // Guardar la sesión
             toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${result.user.name}` });
 
-            // Redirección forzada para asegurar la carga correcta de la sesión en la nueva página.
+            // Redirección del lado del cliente usando el router de Next.js
             if (result.user.role === 'admin') {
-                window.location.href = '/admin/dashboard';
+                router.push('/admin/dashboard');
             } else if (result.user.role === 'customer') {
-                window.location.href = '/shop';
+                router.push('/shop');
             } else {
-                window.location.href = '/'; // Fallback a la raíz
+                router.push('/'); // Fallback
             }
         } else {
             throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
