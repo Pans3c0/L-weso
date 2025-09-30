@@ -72,8 +72,8 @@ export const initialProducts: Product[] = [
  * In a real application, this would be stored in a database.
  */
 export const customers: Customer[] = [
-    { id: 'customer_123', name: 'Juan Pérez', referralCode: 'tienda_admin' },
-    { id: 'customer_456', name: 'Maria García', referralCode: 'tienda_admin' },
+    { id: 'customer_123', name: 'Juan Pérez', username: 'juanperez', referralCode: 'tienda_admin' },
+    { id: 'customer_456', name: 'Maria García', username: 'mariagarcia', referralCode: 'tienda_admin' },
 ];
 
 /**

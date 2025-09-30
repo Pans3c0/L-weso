@@ -3,11 +3,19 @@
   {
     "id": "customer_123",
     "name": "Juan Pérez",
+    "username": "juanperez",
     "referralCode": "tienda_admin"
   },
   {
     "id": "customer_456",
     "name": "Maria García",
+    "username": "mariagarcia",
+    "referralCode": "tienda_admin"
+  },
+  {
+    "id": "customer_1759249059248",
+    "name": "Paco Ramirez",
+    "username": "pacoramirez",
     "referralCode": "tienda_admin"
   }
 ]

@@ -9,15 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Package } from 'lucide-react';
+import { getAllCustomers } from '@/lib/customers';
+import type { Customer } from '@/lib/types';
+
 
 // --- Cuentas de prueba ---
 // Admin:
 //   user: admin
 //   pass: password
-//
-// Cliente:
-//   user: juanperez
-//   pass: password123
 //
 // ADVERTENCIA: Nunca guardes credenciales directamente en el código en una aplicación real.
 // Esto es solo para fines de demostración. Usa un proveedor de autenticación como Firebase Auth.
@@ -29,12 +28,12 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     // Simulación de autenticación con retardo para mostrar el estado de carga
-    setTimeout(() => {
+    setTimeout(async () => {
       // 1. Comprobación de credenciales de Administrador
       if (username === 'admin' && password === 'password') {
         toast({ title: 'Inicio de sesión exitoso', description: 'Bienvenido, admin.' });
@@ -44,11 +43,24 @@ export default function LoginPage() {
       
       // 2. Comprobación de credenciales de Cliente (simulado)
       // En una app real, buscarías al usuario en una base de datos y compararías la contraseña hasheada.
+      // Por ahora, solo 'juanperez' tiene una contraseña fija para demostración.
       if (username === 'juanperez' && password === 'password123') {
         toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${username}` });
         router.replace('/shop');
         return;
       }
+      
+      // Para otros usuarios registrados, simulamos que la contraseña siempre es "password"
+      // ESTO ES INSEGURO Y SOLO PARA DEMOSTRACIÓN
+      const customers = await getAllCustomers();
+      const customer = customers.find(c => c.username === username);
+
+      if(customer && password === 'password') {
+        toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${customer.name}` });
+        router.replace('/shop');
+        return;
+      }
+
 
       // 3. Si ninguna credencial coincide
       toast({

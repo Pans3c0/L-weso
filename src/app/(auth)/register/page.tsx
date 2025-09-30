@@ -17,6 +17,7 @@ import { registerCustomerAction } from './actions';
 const registerSchema = z.object({
   referralCode: z.string().min(1, 'El código de referencia es obligatorio'),
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres'),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
 });
 
@@ -29,6 +30,7 @@ export default function RegisterPage() {
     defaultValues: {
       referralCode: '',
       name: '',
+      username: '',
       password: '',
     },
   });
@@ -91,6 +93,20 @@ export default function RegisterPage() {
                                 <FormLabel>Nombre Completo</FormLabel>
                                 <FormControl>
                                     <Input placeholder="Tu nombre y apellido" {...field} />
+                               
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="username"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nombre de Usuario</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Elige un nombre de usuario" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

@@ -33,5 +33,6 @@ export type PurchaseRequest = {
 export type Customer = {
     id: string;
     name: string;
+    username: string;
     referralCode: string; // Every customer is linked to a seller's code
 };
