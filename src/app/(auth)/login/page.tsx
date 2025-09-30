@@ -9,9 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Package } from 'lucide-react';
-import { getAllCustomers } from '@/lib/customers';
-import type { Customer } from '@/lib/types';
 import { useSession } from '@/hooks/use-session';
+import { loginAction } from './actions';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,37 +24,31 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // 1. Comprobación de credenciales de Administrador
-    if (username === 'admin' && password === 'password') {
-        login({ id: 'admin', name: 'Admin', username: 'admin', role: 'admin' });
-        toast({ title: 'Inicio de sesión exitoso', description: 'Bienvenido, admin.' });
-        router.replace('/admin/products');
-        return;
-    }
-      
-    // 2. Comprobación de credenciales de Cliente (simulado)
-    const customers = await getAllCustomers();
-    const customer = customers.find(c => c.username === username);
+    try {
+        const result = await loginAction({ username, password });
 
-    const isJuanPerez = customer && customer.username === 'juanperez' && password === 'password123';
-    const isOtherCustomer = customer && customer.username !== 'juanperez' && password === 'password';
+        if (result.user) {
+            login(result.user);
+            toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${result.user.name}` });
 
-    if (customer && (isJuanPerez || isOtherCustomer)) {
-        login({ id: customer.id, name: customer.name, username: customer.username, role: 'customer' });
-        toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${customer.name}` });
-        router.replace('/shop'); // <-- This was the missing line
-        return;
-    }
+            if (result.user.role === 'admin') {
+                router.replace('/admin/products');
+            } else {
+                router.replace('/shop');
+            }
+        } else {
+            throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
+        }
 
-    // 3. Si ninguna credencial coincide
-    setTimeout(() => {
-        toast({
+    } catch (error) {
+         toast({
             title: 'Error de inicio de sesión',
-            description: 'Nombre de usuario o contraseña incorrectos.',
+            description: error instanceof Error ? error.message : 'Ocurrió un error desconocido.',
             variant: 'destructive',
         });
+    } finally {
         setIsLoading(false);
-    }, 500);
+    }
   };
 
   return (
