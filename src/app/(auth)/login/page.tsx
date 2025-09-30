@@ -35,8 +35,7 @@ export default function LoginPage() {
             if (result.user.role === 'admin') {
                 router.push('/admin/dashboard');
             } else {
-                // Usamos window.location.href para forzar una recarga y evitar problemas de hidratación.
-                window.location.href = '/shop';
+                router.push('/shop');
             }
         } else {
             throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
