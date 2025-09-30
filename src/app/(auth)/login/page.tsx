@@ -25,7 +25,7 @@ export default function LoginPage() {
     setTimeout(() => {
       if (username === 'admin' && password === 'password') {
         toast({ title: 'Inicio de sesión exitoso', description: 'Bienvenido, admin.' });
-        router.push('/admin/products');
+        router.replace('/admin/products');
       } else {
         toast({
           title: 'Error de inicio de sesión',
