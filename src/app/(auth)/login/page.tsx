@@ -10,11 +10,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Package } from 'lucide-react';
 import { useSession } from '@/hooks/use-session';
 import { loginAction } from './actions';
-import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const { toast } = useToast();
-  const router = useRouter();
   const { login } = useSession();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -31,13 +29,13 @@ export default function LoginPage() {
             login(result.user); // Guardar la sesión
             toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${result.user.name}` });
 
-            // Redirección del lado del cliente post-login
+            // Redirección forzada para asegurar la carga correcta de la sesión en la nueva página.
             if (result.user.role === 'admin') {
-                router.push('/admin/dashboard');
+                window.location.href = '/admin/dashboard';
             } else if (result.user.role === 'customer') {
-                router.push('/shop');
+                window.location.href = '/shop';
             } else {
-                router.push('/'); // Fallback a la raíz
+                window.location.href = '/'; // Fallback a la raíz
             }
         } else {
             throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
