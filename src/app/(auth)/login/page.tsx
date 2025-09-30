@@ -34,18 +34,16 @@ export default function LoginPage() {
     }
       
     // 2. Comprobación de credenciales de Cliente (simulado)
-    // En una app real, buscarías al usuario en una base de datos y compararías la contraseña hasheada.
     const customers = await getAllCustomers();
     const customer = customers.find(c => c.username === username);
 
     const isJuanPerez = customer && customer.username === 'juanperez' && password === 'password123';
     const isOtherCustomer = customer && customer.username !== 'juanperez' && password === 'password';
 
-    if (isJuanPerez || isOtherCustomer) {
+    if (customer && (isJuanPerez || isOtherCustomer)) {
         login({ id: customer.id, name: customer.name, username: customer.username, role: 'customer' });
         toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${customer.name}` });
-        router.replace('/shop');
-        setIsLoading(false);
+        router.replace('/shop'); // <-- This was the missing line
         return;
     }
 
