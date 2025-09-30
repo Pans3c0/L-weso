@@ -23,13 +23,13 @@ export function AdminSidebar() {
     const navItems = [
         { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
         { href: "/admin/requests", icon: Bell, label: "Solicitudes" },
-        { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos", badge: "6" },
+        { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
         { href: "/admin/products", icon: Package, label: "Productos" },
         { href: "/admin/customers", icon: Users, label: "Clientes" },
         { href: "/admin/analytics", icon: LineChart, label: "Analíticas" },
     ];
     
-    const implementedRoutes = ["/admin/products", "/admin/requests"];
+    const implementedRoutes = ["/admin/products", "/admin/requests", "/admin/dashboard", "/admin/orders", "/admin/customers"];
 
     return (
         <div className="hidden border-r bg-background md:block">

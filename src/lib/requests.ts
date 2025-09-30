@@ -1,3 +1,5 @@
+'use server';
+
 import type { PurchaseRequest } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
@@ -5,12 +7,13 @@ import fs from 'fs-extra';
 type Customer = {
     id: string;
     name: string;
+    referralCode: string; // Every customer is linked to a seller's code
 };
 
 // Mock customer data
 export const customers: Customer[] = [
-    { id: 'customer_123', name: 'Juan Pérez' },
-    { id: 'customer_456', name: 'Maria García' },
+    { id: 'customer_123', name: 'Juan Pérez', referralCode: 'tienda_admin' },
+    { id: 'customer_456', name: 'Maria García', referralCode: 'tienda_admin' },
 ];
 
 const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
@@ -71,7 +74,7 @@ export function getPurchaseRequests(): PurchaseRequest[] {
     }
 }
 
-export function savePurchaseRequests(requests: PurchaseRequest[]): void {
+export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise<void> {
     try {
         fs.writeJsonSync(requestsFilePath, requests, { spaces: 2 });
     } catch (e) {
@@ -81,13 +84,18 @@ export function savePurchaseRequests(requests: PurchaseRequest[]): void {
 
 
 // Function to update a request (simulates database update)
-export const updateRequest = (updatedRequest: PurchaseRequest): boolean => {
+export const updateRequest = async (updatedRequest: PurchaseRequest): Promise<boolean> => {
     const requests = getPurchaseRequests();
     const index = requests.findIndex(req => req.id === updatedRequest.id);
     if (index !== -1) {
         requests[index] = updatedRequest;
-        savePurchaseRequests(requests);
+        await savePurchaseRequests(requests);
         return true;
     }
     return false;
 };
+
+export async function getCustomersByReferralCode(referralCode: string): Promise<Customer[]> {
+    // In a real app, this would query a database.
+    return customers.filter(c => c.referralCode === referralCode);
+}
