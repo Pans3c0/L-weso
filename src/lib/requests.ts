@@ -1,4 +1,6 @@
 import type { PurchaseRequest } from '@/lib/types';
+import path from 'path';
+import fs from 'fs-extra';
 
 type Customer = {
     id: string;
@@ -11,8 +13,10 @@ export const customers: Customer[] = [
     { id: 'customer_456', name: 'Maria García' },
 ];
 
-// In-memory store for purchase requests (for demonstration purposes)
-export let purchaseRequests: PurchaseRequest[] = [
+const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
+
+// Initial data for requests
+const initialRequests: PurchaseRequest[] = [
     {
         id: 'req_1719418800000',
         customerId: 'customer_123',
@@ -49,11 +53,40 @@ export let purchaseRequests: PurchaseRequest[] = [
     }
 ];
 
+// Ensure the directory exists
+fs.ensureDirSync(path.dirname(requestsFilePath));
+
+// Initialize requests.json if it doesn't exist
+if (!fs.existsSync(requestsFilePath)) {
+    fs.writeJsonSync(requestsFilePath, initialRequests, { spaces: 2 });
+}
+
+
+export function getPurchaseRequests(): PurchaseRequest[] {
+    try {
+        return fs.readJsonSync(requestsFilePath);
+    } catch (e) {
+        console.error("Could not read requests file, returning empty array.", e);
+        return [];
+    }
+}
+
+export function savePurchaseRequests(requests: PurchaseRequest[]): void {
+    try {
+        fs.writeJsonSync(requestsFilePath, requests, { spaces: 2 });
+    } catch (e) {
+        console.error("Failed to save requests to file.", e);
+    }
+}
+
+
 // Function to update a request (simulates database update)
-export const updateRequest = (updatedRequest: PurchaseRequest) => {
-    const index = purchaseRequests.findIndex(req => req.id === updatedRequest.id);
+export const updateRequest = (updatedRequest: PurchaseRequest): boolean => {
+    const requests = getPurchaseRequests();
+    const index = requests.findIndex(req => req.id === updatedRequest.id);
     if (index !== -1) {
-        purchaseRequests[index] = updatedRequest;
+        requests[index] = updatedRequest;
+        savePurchaseRequests(requests);
         return true;
     }
     return false;

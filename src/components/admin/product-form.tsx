@@ -18,7 +18,7 @@ const productSchema = z.object({
   description: z.string().min(10, 'La descripción es obligatoria'),
   pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
   stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
-  imageUrl: z.string().url('Debe ser una URL válida o estar vacío').or(z.literal('')),
+  imageUrl: z.string().url('Debe ser una URL válida o estar vacío').optional().or(z.literal('')),
   imageHint: z.string().optional(),
   keywords: z.string().optional(),
 });
@@ -51,6 +51,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     const finalData: Product = {
         ...data,
         id: product?.id || '', // ID will be set by parent component for new products
+        imageUrl: data.imageUrl || '',
     }
     onSave(finalData);
     toast({ title: 'Producto guardado', description: `El producto "${data.name}" ha sido guardado.` });

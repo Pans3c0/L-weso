@@ -5,7 +5,7 @@ export type Product = {
   pricePerGram: number;
   stockInGrams: number;
   imageUrl: string;
-  imageHint: string;
+  imageHint?: string | null;
   keywords?: string;
 };
 

@@ -1,4 +1,6 @@
 import type { Product } from '@/lib/types';
+import path from 'path';
+import fs from 'fs-extra';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const imageMap = new Map(PlaceHolderImages.map(img => [img.id, img]));
@@ -9,7 +11,7 @@ const breadImage = imageMap.get('bread')!;
 const goatCheeseImage = imageMap.get('goat-cheese')!;
 const oliveOilImage = imageMap.get('olive-oil')!;
 
-export const products: Product[] = [
+const initialProducts: Product[] = [
   {
     id: 'prod_1',
     name: 'Tomates Frescos',
@@ -61,3 +63,38 @@ export const products: Product[] = [
     keywords: 'aceite, oliva, virgen extra, afrutado, cocina',
   }
 ];
+
+const productsFilePath = path.resolve(process.cwd(), 'src/lib/db/products.json');
+
+// Ensure the directory exists
+fs.ensureDirSync(path.dirname(productsFilePath));
+
+// Initialize products.json if it doesn't exist
+if (!fs.existsSync(productsFilePath)) {
+  fs.writeJsonSync(productsFilePath, initialProducts, { spaces: 2 });
+}
+
+// In-memory cache for products
+let products: Product[] = fs.readJsonSync(productsFilePath);
+
+export function getAllProducts(): Product[] {
+  // Re-read from file in development to catch manual changes
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      products = fs.readJsonSync(productsFilePath);
+    } catch (e) {
+      console.error("Could not read products file, using in-memory cache.", e);
+    }
+  }
+  return products;
+}
+
+export function saveProducts(updatedProducts: Product[]): void {
+  try {
+    fs.writeJsonSync(productsFilePath, updatedProducts, { spaces: 2 });
+    // Update in-memory cache
+    products = updatedProducts;
+  } catch (e) {
+    console.error("Failed to save products to file.", e);
+  }
+}

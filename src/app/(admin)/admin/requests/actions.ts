@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { purchaseRequests, updateRequest } from '@/lib/requests';
+import { getPurchaseRequests, updateRequest } from '@/lib/requests';
 import type { PurchaseRequest } from '@/lib/types';
 
 const ConfirmRequestSchema = z.object({
@@ -17,6 +17,8 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
   }
 
   const { requestId, confirmationDate, sellerNote } = parsedInput.data;
+  
+  const purchaseRequests = getPurchaseRequests();
 
   try {
     const request = purchaseRequests.find(r => r.id === requestId);

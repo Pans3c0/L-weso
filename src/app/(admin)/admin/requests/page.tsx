@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { purchaseRequests as initialRequests } from '@/lib/requests';
+import { getPurchaseRequests } from '@/lib/requests';
 import type { PurchaseRequest } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,12 @@ import { ConfirmRequestDialog } from '@/components/admin/confirm-request-dialog'
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 
 export default function AdminRequestsPage() {
-  const [requests, setRequests] = React.useState<PurchaseRequest[]>(initialRequests);
+  const [requests, setRequests] = React.useState<PurchaseRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = React.useState<PurchaseRequest | null>(null);
+
+  React.useEffect(() => {
+    setRequests(getPurchaseRequests());
+  }, []);
 
   const handleConfirmSuccess = (updatedRequest: PurchaseRequest) => {
     setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
@@ -56,7 +60,7 @@ export default function AdminRequestsPage() {
   };
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
-  const processedRequests = requests.filter(r => r.status !== 'pending');
+  const processedRequests = requests.filter(r => r.status !== 'pending').sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
 
   return (
@@ -69,7 +73,7 @@ export default function AdminRequestsPage() {
           <CardTitle>Nuevas Solicitudes</CardTitle>
           <CardDescription>
             {pendingRequests.length > 0
-              ? 'Tienes nuevas solicitudes pendientes de revisión.'
+              ? `Tienes ${pendingRequests.length} ${pendingRequests.length === 1 ? 'nueva solicitud pendiente' : 'nuevas solicitudes pendientes'} de revisión.`
               : 'No hay solicitudes pendientes.'}
           </CardDescription>
         </CardHeader>

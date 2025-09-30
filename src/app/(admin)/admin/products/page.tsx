@@ -22,22 +22,32 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { products as initialProducts } from '@/lib/data';
+import { getAllProducts, saveProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
 import { ProductForm } from '@/components/admin/product-form';
 
 export default function AdminProductsPage() {
-  const [products, setProducts] = React.useState<Product[]>(initialProducts);
+  const [products, setProducts] = React.useState<Product[]>([]);
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | undefined>(undefined);
 
+  React.useEffect(() => {
+    // This is a client component, but we can fetch server data initially.
+    // For simplicity, we're using a client-side fetch pattern here.
+    // In a real-world app, you might fetch this in a server component and pass it down.
+    setProducts(getAllProducts());
+  }, []);
+
   const handleProductSave = (product: Product) => {
+    let updatedProducts;
     if (editingProduct) {
-      setProducts(products.map(p => p.id === product.id ? product : p));
+      updatedProducts = products.map(p => p.id === product.id ? product : p);
     } else {
       const newProduct = { ...product, id: `prod_${Date.now()}` };
-      setProducts([...products, newProduct]);
+      updatedProducts = [...products, newProduct];
     }
+    saveProducts(updatedProducts);
+    setProducts(updatedProducts);
     setIsSheetOpen(false);
     setEditingProduct(undefined);
   };
@@ -103,7 +113,7 @@ export default function AdminProductsPage() {
                       alt={product.name}
                       className="aspect-square rounded-md object-cover"
                       height="64"
-                      src={product.imageUrl}
+                      src={product.imageUrl || 'https://placehold.co/64x64/F5F5F5/696969?text=?'}
                       width="64"
                       data-ai-hint={product.imageHint}
                     />

@@ -1,7 +1,8 @@
-import { products } from '@/lib/data';
+import { getAllProducts } from '@/lib/data';
 import { ProductCard } from '@/components/products/product-card';
 
 export default function HomePage() {
+  const products = getAllProducts();
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-12">

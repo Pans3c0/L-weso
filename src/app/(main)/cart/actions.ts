@@ -1,8 +1,8 @@
 'use server';
 
 import { z } from 'zod';
-import { purchaseRequests, customers } from '@/lib/requests';
-import type { CartItem, PurchaseRequest, Product } from '@/lib/types';
+import { getPurchaseRequests, savePurchaseRequests, customers } from '@/lib/requests';
+import type { CartItem, PurchaseRequest } from '@/lib/types';
 
 // Simplified product schema for validation
 const ProductSchema = z.object({
@@ -11,8 +11,8 @@ const ProductSchema = z.object({
   description: z.string(),
   pricePerGram: z.number(),
   stockInGrams: z.number(),
-  imageUrl: z.string(),
-  imageHint: z.string(),
+  imageUrl: z.string().optional().nullable(),
+  imageHint: z.string().optional().nullable(),
   keywords: z.string().optional(),
 });
 
@@ -56,9 +56,10 @@ export async function submitPurchaseRequestAction(input: {
       status: 'pending',
       createdAt: new Date().toISOString(),
     };
-
-    // In a real app, this would be a database insert.
-    purchaseRequests.unshift(newRequest); 
+    
+    const allRequests = getPurchaseRequests();
+    allRequests.unshift(newRequest);
+    savePurchaseRequests(allRequests);
     
     console.log('New purchase request submitted:', newRequest);
     
