@@ -1,7 +1,7 @@
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { NotificationsProvider } from "@/hooks/use-notifications";
-import { SessionProvider } from "@/hooks/use-session";
+import { CartProvider } from "@/hooks/use-cart";
 
 export default function MainLayout({
   children,
@@ -9,7 +9,7 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SessionProvider>
+    <CartProvider>
       <NotificationsProvider>
         <div className="flex flex-col min-h-screen">
           <Header />
@@ -17,6 +17,6 @@ export default function MainLayout({
           <Footer />
         </div>
       </NotificationsProvider>
-    </SessionProvider>
+    </CartProvider>
   );
 }
