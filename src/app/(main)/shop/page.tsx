@@ -8,7 +8,8 @@ import { useSession } from '@/hooks/use-session';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function ShopPage() {
   const [products, setProducts] = React.useState<Product[]>([]);
@@ -64,21 +65,30 @@ export default function ShopPage() {
       </div>
 
       {session ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
-          {isLoadingProducts ? (
-            Array.from({ length: 8 }).map((_, i) => (
-              <CardSkeleton key={i} />
-            ))
-          ) : products && products.length > 0 ? (
-            products.map(product => (
-              <ProductCard key={product.id} product={product} />
-            ))
-          ) : (
-            <div className="col-span-full text-center text-muted-foreground">
-              No se encontraron productos en este momento.
+        <>
+            <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300">
+                <Info className="h-4 w-4 !text-blue-600 dark:!text-blue-400" />
+                <AlertTitle className="font-semibold">¿Cómo funcionan tus pedidos?</AlertTitle>
+                <AlertDescription>
+                    Cuando envías una solicitud de compra, se guarda asociada a tu ID de usuario ({session.id}). Solo tú podrás ver tus pedidos y su estado en la sección "Notificaciones". La persistencia se simula guardando los datos en archivos en el servidor.
+                </AlertDescription>
+            </Alert>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+            {isLoadingProducts ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                <CardSkeleton key={i} />
+                ))
+            ) : products && products.length > 0 ? (
+                products.map(product => (
+                <ProductCard key={product.id} product={product} />
+                ))
+            ) : (
+                <div className="col-span-full text-center text-muted-foreground">
+                No se encontraron productos en este momento.
+                </div>
+            )}
             </div>
-          )}
-        </div>
+        </>
       ) : (
         <Card className="max-w-lg mx-auto text-center py-12 px-6">
             <CardContent>
