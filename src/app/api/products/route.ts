@@ -3,7 +3,7 @@ import { getAllProducts } from '@/lib/data';
 
 export async function GET() {
   try {
-    const products = getAllProducts();
+    const products = await getAllProducts();
     // In a real application, you would fetch this data from a database.
     return NextResponse.json(products);
   } catch (error) {
