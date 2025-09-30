@@ -10,6 +10,18 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Package } from 'lucide-react';
 
+// --- Cuentas de prueba ---
+// Admin:
+//   user: admin
+//   pass: password
+//
+// Cliente:
+//   user: juanperez
+//   pass: password123
+//
+// ADVERTENCIA: Nunca guardes credenciales directamente en el código en una aplicación real.
+// Esto es solo para fines de demostración. Usa un proveedor de autenticación como Firebase Auth.
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -21,26 +33,31 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock authentication
+    // Simulación de autenticación con retardo para mostrar el estado de carga
     setTimeout(() => {
-      // Simulating admin login
+      // 1. Comprobación de credenciales de Administrador
       if (username === 'admin' && password === 'password') {
         toast({ title: 'Inicio de sesión exitoso', description: 'Bienvenido, admin.' });
         router.replace('/admin/products');
-      } 
-      // Simulating customer login
-      else if (username.length > 0 && password.length > 0) {
+        return;
+      }
+      
+      // 2. Comprobación de credenciales de Cliente (simulado)
+      // En una app real, buscarías al usuario en una base de datos y compararías la contraseña hasheada.
+      if (username === 'juanperez' && password === 'password123') {
         toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${username}` });
         router.replace('/shop');
+        return;
       }
-      else {
-        toast({
-          title: 'Error de inicio de sesión',
-          description: 'Nombre de usuario o contraseña incorrectos.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      }
+
+      // 3. Si ninguna credencial coincide
+      toast({
+        title: 'Error de inicio de sesión',
+        description: 'Nombre de usuario o contraseña incorrectos.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+
     }, 1000);
   };
 
