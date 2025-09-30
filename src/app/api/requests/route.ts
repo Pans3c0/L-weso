@@ -3,7 +3,7 @@ import { getPurchaseRequests } from '@/lib/requests';
 
 export async function GET() {
   try {
-    const requests = getPurchaseRequests();
+    const requests = await getPurchaseRequests();
     return NextResponse.json(requests);
   } catch (error) {
     console.error('API Error fetching requests:', error);

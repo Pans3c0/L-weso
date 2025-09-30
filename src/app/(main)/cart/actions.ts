@@ -57,9 +57,9 @@ export async function submitPurchaseRequestAction(input: {
       createdAt: new Date().toISOString(),
     };
     
-    const allRequests = getPurchaseRequests();
+    const allRequests = await getPurchaseRequests();
     allRequests.unshift(newRequest);
-    savePurchaseRequests(allRequests);
+    await savePurchaseRequests(allRequests);
     
     console.log('New purchase request submitted:', newRequest);
     

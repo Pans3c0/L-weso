@@ -13,7 +13,7 @@ import { PackageCheck, Clock } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 
 async function getConfirmedOrders(): Promise<PurchaseRequest[]> {
-  const allRequests = getPurchaseRequests();
+  const allRequests = await getPurchaseRequests();
   // Filter for confirmed orders and sort them by confirmation date
   return allRequests
     .filter((req) => req.status === 'confirmed' && req.confirmationDate)

@@ -19,7 +19,7 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
 
   const { requestId, confirmationDate, sellerNote } = parsedInput.data;
   
-  const purchaseRequests = getPurchaseRequests();
+  const purchaseRequests = await getPurchaseRequests();
 
   try {
     const request = purchaseRequests.find(r => r.id === requestId);
@@ -38,7 +38,7 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
       sellerNote,
     };
 
-    const success = updateRequest(updated);
+    const success = await updateRequest(updated);
 
     if (!success) {
       throw new Error('Failed to update request in data store.');
@@ -70,7 +70,7 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
 
   const { requestId, customerNote } = parsedInput.data;
 
-  const purchaseRequests = getPurchaseRequests();
+  const purchaseRequests = await getPurchaseRequests();
 
   try {
     const request = purchaseRequests.find(r => r.id === requestId);
@@ -87,7 +87,7 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
       customerNote,
     };
 
-    const success = updateRequest(updated);
+    const success = await updateRequest(updated);
 
     if (!success) {
       throw new Error('Failed to update request in data store.');

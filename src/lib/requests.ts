@@ -65,7 +65,7 @@ if (!fs.existsSync(requestsFilePath)) {
 }
 
 
-export function getPurchaseRequests(): PurchaseRequest[] {
+export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
     try {
         return fs.readJsonSync(requestsFilePath);
     } catch (e) {
@@ -76,7 +76,7 @@ export function getPurchaseRequests(): PurchaseRequest[] {
 
 export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise<void> {
     try {
-        fs.writeJsonSync(requestsFilePath, requests, { spaces: 2 });
+        await fs.writeJson(requestsFilePath, requests, { spaces: 2 });
     } catch (e) {
         console.error("Failed to save requests to file.", e);
     }
@@ -84,8 +84,8 @@ export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise
 
 
 // Function to update a request (simulates database update)
-export const updateRequest = async (updatedRequest: PurchaseRequest): Promise<boolean> => {
-    const requests = getPurchaseRequests();
+export async function updateRequest(updatedRequest: PurchaseRequest): Promise<boolean> {
+    const requests = await getPurchaseRequests();
     const index = requests.findIndex(req => req.id === updatedRequest.id);
     if (index !== -1) {
         requests[index] = updatedRequest;
