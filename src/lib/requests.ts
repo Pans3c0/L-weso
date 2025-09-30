@@ -1,10 +1,11 @@
 'use server';
 
-import type { PurchaseRequest, Customer } from '@/lib/types';
+import type { PurchaseRequest } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 import { initialRequests } from '@/lib/mock-data';
-import { customers } from '@/lib/mock-data';
+import { getAllCustomers } from './customers';
+
 
 // Path to the JSON file acting as the database for purchase requests.
 const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
@@ -92,7 +93,7 @@ export async function updateRequest(updatedRequest: PurchaseRequest): Promise<bo
  * @param referralCode - The seller's referral code to filter customers by.
  * @returns A promise resolving to an array of Customer objects.
  */
-export async function getCustomersByReferralCode(referralCode: string): Promise<Customer[]> {
-    // This is a mock implementation. It filters an in-memory array.
-    return Promise.resolve(customers.filter(c => c.referralCode === referralCode));
+export async function getCustomersByReferralCode(referralCode: string) {
+    const customers = await getAllCustomers();
+    return customers.filter(c => c.referralCode === referralCode);
 }

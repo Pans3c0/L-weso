@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -11,37 +12,50 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Package } from 'lucide-react';
+import { registerCustomerAction } from './actions';
 
 const registerSchema = z.object({
   referralCode: z.string().min(6, 'El código debe tener al menos 6 caracteres'),
-  username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres'),
+  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
 });
 
 export default function RegisterPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       referralCode: '',
-      username: '',
+      name: '',
       password: '',
     },
   });
 
-  function onSubmit(values: z.infer<typeof registerSchema>) {
+  async function onSubmit(values: z.infer<typeof registerSchema>) {
     setIsLoading(true);
-    console.log(values);
-    // Mock registration
-    setTimeout(() => {
+    try {
+      const result = await registerCustomerAction(values);
+      if (result.success) {
         toast({
-            title: '¡Registro exitoso!',
-            description: 'Tu cuenta ha sido creada. Ahora puedes explorar los productos.',
+          title: '¡Registro exitoso!',
+          description: 'Tu cuenta ha sido creada. Serás redirigido.',
         });
+        // Redirect to home or login after a short delay
+        setTimeout(() => router.push('/'), 2000);
+      } else {
+        throw new Error(result.error || 'Ocurrió un error desconocido.');
+      }
+    } catch (error) {
+      toast({
+        title: 'Error de registro',
+        description: error instanceof Error ? error.message : 'No se pudo completar el registro.',
+        variant: 'destructive',
+      });
+    } finally {
         setIsLoading(false);
-        form.reset();
-    }, 1500);
+    }
   }
 
   return (
@@ -63,7 +77,7 @@ export default function RegisterPage() {
                             <FormItem>
                                 <FormLabel>Código de Referencia</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ingresa tu código" {...field} />
+                                    <Input placeholder="Ingresa el código de tu vendedor" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -71,12 +85,12 @@ export default function RegisterPage() {
                     />
                     <FormField
                         control={form.control}
-                        name="username"
+                        name="name"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Nombre de Usuario</FormLabel>
+                                <FormLabel>Nombre Completo</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Elige un nombre de usuario" {...field} />
+                                    <Input placeholder="Tu nombre y apellido" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -101,9 +115,9 @@ export default function RegisterPage() {
                         {isLoading ? 'Registrando...' : 'Registrarse'}
                     </Button>
                     <p className="text-xs text-muted-foreground text-center">
-                        ¿Ya tienes cuenta de admin?{' '}
+                        ¿Eres vendedor?{' '}
                         <Link href="/login" className="underline hover:text-primary">
-                            Inicia sesión
+                            Inicia sesión aquí
                         </Link>
                     </p>
                 </CardFooter>

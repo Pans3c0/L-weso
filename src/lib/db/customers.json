@@ -1,0 +1,13 @@
+
+[
+  {
+    "id": "customer_123",
+    "name": "Juan Pérez",
+    "referralCode": "tienda_admin"
+  },
+  {
+    "id": "customer_456",
+    "name": "Maria García",
+    "referralCode": "tienda_admin"
+  }
+]

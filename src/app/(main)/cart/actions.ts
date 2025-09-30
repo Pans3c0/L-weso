@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { getPurchaseRequests, savePurchaseRequests } from '@/lib/requests';
 import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-import { customers } from '@/lib/mock-data';
+import { getAllCustomers } from '@/lib/customers';
 
 /**
  * Schema for validating a product object within a cart.
@@ -56,6 +56,7 @@ export async function submitPurchaseRequestAction(input: {
   const { customerId, items } = parsedInput.data;
 
   try {
+    const customers = await getAllCustomers();
     const customer = customers.find(c => c.id === customerId);
     if (!customer) {
       return { error: 'Cliente no encontrado.' };
@@ -81,7 +82,7 @@ export async function submitPurchaseRequestAction(input: {
     
     // Revalidate paths to update the UI for administrators.
     revalidatePath('/admin/requests');
-    revalidatePath('/admin-sidebar'); // To update the pending count badge
+    revalidatePath('/admin/customers');
 
     return { success: true, requestId: newRequest.id };
 
