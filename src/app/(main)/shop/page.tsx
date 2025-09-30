@@ -4,10 +4,12 @@ import * as React from 'react';
 import type { Product } from '@/lib/types';
 import { ProductCard } from '@/components/products/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSession } from '@/hooks/use-session';
 
 export default function ShopPage() {
   const [products, setProducts] = React.useState<Product[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const { session } = useSession();
 
   React.useEffect(() => {
     async function fetchProducts() {
@@ -30,7 +32,9 @@ export default function ShopPage() {
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-12">
-        <h1 className="font-headline text-4xl md:text-5xl font-bold text-foreground">Nuestros Productos</h1>
+        <h1 className="font-headline text-4xl md:text-5xl font-bold text-foreground">
+            {session ? `Bienvenido, ${session.name}`: 'Nuestros Productos'}
+        </h1>
         <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
           Productos frescos y de calidad, directamente de productores locales a tu mesa.
         </p>
