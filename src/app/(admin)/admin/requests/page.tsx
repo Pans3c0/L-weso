@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { getPurchaseRequests } from '@/lib/requests';
 import type { PurchaseRequest } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,14 +17,24 @@ import Image from 'next/image';
 import { ConfirmRequestDialog } from '@/components/admin/confirm-request-dialog';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
 
+async function fetchRequests(): Promise<PurchaseRequest[]> {
+    const res = await fetch('/api/requests');
+    if (!res.ok) {
+        console.error('Failed to fetch requests');
+        return [];
+    }
+    return res.json();
+}
+
+
 export default function AdminRequestsPage() {
   const [requests, setRequests] = React.useState<PurchaseRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = React.useState<PurchaseRequest | null>(null);
 
   React.useEffect(() => {
-    setRequests(getPurchaseRequests());
+    fetchRequests().then(setRequests);
   }, []);
-
+  
   const handleConfirmSuccess = (updatedRequest: PurchaseRequest) => {
     setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
     setSelectedRequest(null);
@@ -174,7 +183,7 @@ function RequestItem({
               <li key={item.product.id} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Image
-                    src={item.product.imageUrl}
+                    src={item.product.imageUrl || 'https://placehold.co/40x40/F5F5F5/696969?text=?'}
                     alt={item.product.name}
                     width={40}
                     height={40}
@@ -187,10 +196,10 @@ function RequestItem({
               </li>
             ))}
           </ul>
-          {request.status === 'confirmed' && (
+          {request.status === 'confirmed' && request.confirmationDate && (
             <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/50 rounded-md">
                 <p className="font-semibold text-green-800 dark:text-green-300">
-                    Confirmado para: {format(new Date(request.confirmationDate!), "eeee, d 'de' MMMM 'a las' HH:mm", { locale: es })}
+                    Confirmado para: {format(new Date(request.confirmationDate), "eeee, d 'de' MMMM 'a las' HH:mm", { locale: es })}
                 </p>
                 {request.sellerNote && <p className="mt-1 text-sm text-green-700 dark:text-green-400">Nota: "{request.sellerNote}"</p>}
             </div>

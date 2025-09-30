@@ -34,6 +34,8 @@ interface ProductFormProps {
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const { toast } = useToast();
   const [isImproving, setIsImproving] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -47,14 +49,15 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     },
   });
 
-  const onSubmit = (data: ProductFormValues) => {
+  const onSubmit = async (data: ProductFormValues) => {
+    setIsSaving(true);
     const finalData: Product = {
         ...data,
         id: product?.id || '', // ID will be set by parent component for new products
         imageUrl: data.imageUrl || '',
     }
-    onSave(finalData);
-    toast({ title: 'Producto guardado', description: `El producto "${data.name}" ha sido guardado.` });
+    await onSave(finalData);
+    setIsSaving(false);
   };
   
   const handleImproveDescription = async () => {
@@ -155,8 +158,11 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           )}
         />
         <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-            <Button type="submit">Guardar Producto</Button>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSaving}>Cancelar</Button>
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Guardar Producto
+            </Button>
         </div>
       </form>
     </Form>

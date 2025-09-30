@@ -22,35 +22,54 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { getAllProducts, saveProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
 import { ProductForm } from '@/components/admin/product-form';
+import { saveProductAction, deleteProductAction } from './actions';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminProductsPage() {
+  const { toast } = useToast();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | undefined>(undefined);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  const fetchProducts = async () => {
+    const res = await fetch('/api/products');
+    const data = await res.json();
+    setProducts(data);
+  };
 
   React.useEffect(() => {
-    // This is a client component, but we can fetch server data initially.
-    // For simplicity, we're using a client-side fetch pattern here.
-    // In a real-world app, you might fetch this in a server component and pass it down.
-    setProducts(getAllProducts());
+    fetchProducts();
   }, []);
 
-  const handleProductSave = (product: Product) => {
-    let updatedProducts;
-    if (editingProduct) {
-      updatedProducts = products.map(p => p.id === product.id ? product : p);
-    } else {
-      const newProduct = { ...product, id: `prod_${Date.now()}` };
-      updatedProducts = [...products, newProduct];
-    }
-    saveProducts(updatedProducts);
-    setProducts(updatedProducts);
+  const handleProductSave = async (product: Product) => {
+    await saveProductAction(product);
+    await fetchProducts();
     setIsSheetOpen(false);
     setEditingProduct(undefined);
+    toast({ title: 'Producto guardado', description: `El producto "${product.name}" ha sido guardado.` });
   };
+  
+  const handleDelete = async (productId: string) => {
+    setIsDeleting(true);
+    await deleteProductAction(productId);
+    await fetchProducts();
+    setIsDeleting(false);
+    toast({ title: 'Producto eliminado', description: 'El producto ha sido eliminado correctamente.' });
+  }
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
@@ -61,7 +80,7 @@ export default function AdminProductsPage() {
     setEditingProduct(undefined);
     setIsSheetOpen(true);
   }
-
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   };
@@ -128,19 +147,44 @@ export default function AdminProductsPage() {
                     {formatCurrency(product.pricePerGram * 1000)}
                   </TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleEdit(product)}>Editar</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <AlertDialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleEdit(product)}>Editar</DropdownMenuItem>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem className="text-destructive">
+                              Eliminar
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Esto eliminará permanentemente
+                            el producto.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction
+                            disabled={isDeleting}
+                            onClick={() => handleDelete(product.id)}
+                            className="bg-destructive hover:bg-destructive/90"
+                          >
+                            {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}

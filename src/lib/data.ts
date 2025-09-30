@@ -1,9 +1,9 @@
 import type { Product } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { placeholderImages } from '@/lib/placeholder-images';
 
-const imageMap = new Map(PlaceHolderImages.map(img => [img.id, img]));
+const imageMap = new Map(placeholderImages.map(img => [img.id, img]));
 
 const tomatoesImage = imageMap.get('tomatoes')!;
 const avocadosImage = imageMap.get('avocados')!;
@@ -74,26 +74,22 @@ if (!fs.existsSync(productsFilePath)) {
   fs.writeJsonSync(productsFilePath, initialProducts, { spaces: 2 });
 }
 
-// In-memory cache for products
-let products: Product[] = fs.readJsonSync(productsFilePath);
-
 export function getAllProducts(): Product[] {
-  // Re-read from file in development to catch manual changes
-  if (process.env.NODE_ENV === 'development') {
-    try {
-      products = fs.readJsonSync(productsFilePath);
-    } catch (e) {
-      console.error("Could not read products file, using in-memory cache.", e);
+  try {
+    // In dev, always read from file to get latest changes. In prod, cache in memory.
+    if (process.env.NODE_ENV === 'development') {
+      return fs.readJsonSync(productsFilePath);
     }
+    return fs.readJsonSync(productsFilePath); // for now, read always
+  } catch (e) {
+    console.error("Could not read products file, returning initial data.", e);
+    return initialProducts;
   }
-  return products;
 }
 
 export function saveProducts(updatedProducts: Product[]): void {
   try {
     fs.writeJsonSync(productsFilePath, updatedProducts, { spaces: 2 });
-    // Update in-memory cache
-    products = updatedProducts;
   } catch (e) {
     console.error("Failed to save products to file.", e);
   }

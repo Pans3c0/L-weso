@@ -1,0 +1,52 @@
+[
+  {
+    "id": "prod_1",
+    "name": "Tomates Frescos",
+    "description": "Tomates jugosos y maduros, perfectos para ensaladas y salsas. Cosechados localmente.",
+    "pricePerGram": 0.003,
+    "stockInGrams": 25000,
+    "imageUrl": "https://images.unsplash.com/photo-1683008952375-410ae668e6b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmcmVzaCUyMHRvbWF0b2VzfGVufDB8fHx8MTc1OTEzNTAyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+    "imageHint": "fresh tomatoes",
+    "keywords": "tomate, rojo, ensalada, fresco, verdura"
+  },
+  {
+    "id": "prod_2",
+    "name": "Aguacates Hass",
+    "description": "Aguacates cremosos de la variedad Hass, ideales para guacamole o tostadas.",
+    "pricePerGram": 0.006,
+    "stockInGrams": 15000,
+    "imageUrl": "https://images.unsplash.com/photo-1664568218050-8068915c3b40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyaXBlJTIwYXZvY2Fkb3N8ZW58MHx8fHwxNzU5MjI2MzcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "imageHint": "ripe avocados",
+    "keywords": "aguacate, hass, cremoso, guacamole, fruta"
+  },
+  {
+    "id": "prod_3",
+    "name": "Pan de Masa Madre",
+    "description": "Pan de fermentación lenta con una corteza crujiente y una miga suave y aireada.",
+    "pricePerGram": 0.01,
+    "stockInGrams": 5000,
+    "imageUrl": "https://images.unsplash.com/photo-1618890512438-19730450f731?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcnRpc2FuYWwlMjBicmVhZHxlbnwwfHx8fDE3NTkyMTI2MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    "imageHint": "artisanal bread",
+    "keywords": "pan, masa madre, artesanal, panaderia, crujiente"
+  },
+  {
+    "id": "prod_4",
+    "name": "Queso de Cabra",
+    "description": "Queso de cabra suave y untable, con un sabor ligeramente ácido. Producido en una granja cercana.",
+    "pricePerGram": 0.025,
+    "stockInGrams": 8000,
+    "imageUrl": "https://images.unsplash.com/photo-1617713807246-9b9e55ef560e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnb2F0JTIwY2hlZXNlfGVufDB8fHx8MTc1OTE2NDUyMHww&ixlib=rb-4.1.0&q=80&w=1080",
+    "imageHint": "goat cheese",
+    "keywords": "queso, cabra, cremoso, lacteo, granja"
+  },
+  {
+    "id": "prod_5",
+    "name": "Aceite de Oliva Extra Virgen",
+    "description": "Aceite de oliva de primera prensada en frío, con notas afrutadas y un final picante.",
+    "pricePerGram": 0.02,
+    "stockInGrams": 12000,
+    "imageUrl": "https://images.unsplash.com/photo-1629274128491-36edfdc0d8cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxvbGl2ZSUyMG9pbHxlbnwwfHx8fDE3NTkxNDU4NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    "imageHint": "olive oil",
+    "keywords": "aceite, oliva, virgen extra, afrutado, cocina"
+  }
+]

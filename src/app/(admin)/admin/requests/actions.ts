@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { getPurchaseRequests, updateRequest } from '@/lib/requests';
 import type { PurchaseRequest } from '@/lib/types';
+import { revalidatePath } from 'next/cache';
 
 const ConfirmRequestSchema = z.object({
   requestId: z.string(),
@@ -45,6 +46,8 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     
     // In a real app, you would send a notification to the customer here.
     console.log(`Request ${requestId} confirmed for ${confirmationDate}.`);
+
+    revalidatePath('/admin/requests');
 
     return { success: true, updatedRequest: updated };
   } catch (error) {
