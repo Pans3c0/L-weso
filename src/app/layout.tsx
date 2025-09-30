@@ -3,7 +3,6 @@ import './globals.css';
 import { Providers } from './providers';
 import { cn } from '@/lib/utils';
 import { SessionProvider } from '@/hooks/use-session';
-import MainLayout from './(main)/layout';
 
 export const metadata: Metadata = {
   title: 'Mercado Vecinal',
@@ -25,7 +24,7 @@ export default function RootLayout({
       <body className={cn('font-body antialiased min-h-screen bg-background')}>
         <SessionProvider>
           <Providers>
-            <MainLayout>{children}</MainLayout>
+            {children}
           </Providers>
         </SessionProvider>
       </body>
