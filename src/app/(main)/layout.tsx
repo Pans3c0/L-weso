@@ -1,6 +1,7 @@
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { NotificationsProvider } from "@/hooks/use-notifications";
+import { SessionProvider } from "@/hooks/use-session";
 
 export default function MainLayout({
   children,
@@ -8,12 +9,14 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   return (
-    <NotificationsProvider>
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </div>
-    </NotificationsProvider>
+    <SessionProvider>
+      <NotificationsProvider>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
+      </NotificationsProvider>
+    </SessionProvider>
   );
 }

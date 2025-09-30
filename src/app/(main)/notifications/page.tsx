@@ -8,9 +8,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { format, isPast } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Bell, Clock, CheckCircle, XCircle, Hourglass, TrafficCone } from 'lucide-react';
+import { Bell, Clock, CheckCircle, XCircle, Hourglass, TrafficCone, Loader2 } from 'lucide-react';
 import { notifyDelayAction } from '@/app/(admin)/admin/requests/actions';
 import { useNotifications } from '@/hooks/use-notifications';
+import { useSession } from '@/hooks/use-session';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,14 +23,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 
 export default function NotificationsPage() {
-  const { requests, isLoading, error, refetch } = useNotifications('customer_123');
+  const { session, isLoading: isSessionLoading } = useSession();
+  const { requests, isLoading: isNotificationsLoading, error, refetch } = useNotifications(session?.id);
   const { toast } = useToast();
   const [delayingRequest, setDelayingRequest] = React.useState<PurchaseRequest | null>(null);
   const [delayReason, setDelayReason] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isSessionLoading && !session) {
+      redirect('/login');
+    }
+  }, [session, isSessionLoading]);
 
   const getStatusVariant = (status: PurchaseRequest['status']) => {
     switch (status) {
@@ -83,6 +93,8 @@ export default function NotificationsPage() {
         setDelayReason('');
     }
   }
+  
+  const isLoading = isSessionLoading || isNotificationsLoading;
 
   return (
     <>
@@ -92,10 +104,24 @@ export default function NotificationsPage() {
           Mis Notificaciones
         </h1>
 
-        {isLoading && <p>Cargando notificaciones...</p>}
+        {isLoading && (
+            <div className="flex justify-center items-center min-h-[50vh]">
+                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+        )}
         {error && <p className="text-destructive">{error}</p>}
         
-        {!isLoading && !error && requests.length === 0 && (
+        {!isLoading && !error && !session && (
+             <Card className="text-center py-20">
+                <CardContent>
+                <Bell className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                <h2 className="text-2xl font-semibold mb-2">Página protegida</h2>
+                <p className="text-muted-foreground mb-6">Debes <Link href="/login" className="underline">iniciar sesión</Link> para ver tus notificaciones.</p>
+                </CardContent>
+          </Card>
+        )}
+
+        {!isLoading && !error && session && requests.length === 0 && (
           <Card className="text-center py-20">
             <CardContent>
               <Bell className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
@@ -105,7 +131,7 @@ export default function NotificationsPage() {
           </Card>
         )}
 
-        {!isLoading && requests.length > 0 && (
+        {!isLoading && session && requests.length > 0 && (
           <div className="space-y-6">
             {requests.map(req => (
               <Card key={req.id}>

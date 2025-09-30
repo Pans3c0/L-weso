@@ -12,10 +12,12 @@ import { useToast } from '@/hooks/use-toast';
 import { KeyRound, User } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
+import { useSession } from '@/hooks/use-session';
+import { redirect } from 'next/navigation';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, 'La contraseña actual es obligatoria.'),
-  newPassword: z.string().min(1, 'La nueva contraseña es obligatoria.'),
+  newPassword: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres.'),
   confirmPassword: z.string().min(1, 'Debes confirmar la nueva contraseña.'),
 }).refine(data => data.newPassword === data.confirmPassword, {
   message: 'Las nuevas contraseñas no coinciden.',
@@ -26,14 +28,8 @@ type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 export default function AccountPage() {
   const { toast } = useToast();
+  const { session, isLoading: isSessionLoading } = useSession();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  // Hardcoded user data for simulation purposes
-  const currentUser = {
-    username: 'juanperez',
-    password: 'password123',
-    name: 'Juan Pérez',
-  };
 
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -43,13 +39,23 @@ export default function AccountPage() {
       confirmPassword: '',
     },
   });
+  
+  React.useEffect(() => {
+    if (!isSessionLoading && !session) {
+      redirect('/login');
+    }
+  }, [session, isSessionLoading]);
+
 
   const onSubmit = (values: PasswordFormValues) => {
     setIsSubmitting(true);
-
+    
     // Simulate API call
     setTimeout(() => {
-      if (values.currentPassword !== currentUser.password) {
+      // This is a simulation. In a real app, you'd check against a hashed password.
+      const simulatedOldPassword = session?.username === 'juanperez' ? 'password123' : 'password';
+
+      if (values.currentPassword !== simulatedOldPassword) {
         toast({
           title: 'Error',
           description: 'La contraseña actual es incorrecta.',
@@ -58,7 +64,7 @@ export default function AccountPage() {
         form.setError('currentPassword', { message: 'La contraseña actual es incorrecta.' });
       } else {
         // In a real app, you would make an API call here to update the password.
-        console.log('Simulating password change for user:', currentUser.username);
+        console.log('Simulating password change for user:', session?.username);
         console.log('New password would be:', values.newPassword);
         
         toast({
@@ -70,6 +76,14 @@ export default function AccountPage() {
       setIsSubmitting(false);
     }, 1000);
   };
+  
+  if (isSessionLoading || !session) {
+    return (
+        <div className="flex justify-center items-center min-h-[50vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 max-w-2xl">
@@ -86,11 +100,11 @@ export default function AccountPage() {
         <CardContent className="space-y-4">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Nombre de Usuario</p>
-            <p className="text-lg">{currentUser.username}</p>
+            <p className="text-lg">{session.username}</p>
           </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
-            <p className="text-lg">{currentUser.name}</p>
+            <p className="text-lg">{session.name}</p>
           </div>
         </CardContent>
       </Card>

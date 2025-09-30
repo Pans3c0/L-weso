@@ -36,3 +36,10 @@ export type Customer = {
     username: string;
     referralCode: string; // Every customer is linked to a seller's code
 };
+
+export type SessionUser = {
+  id: string;
+  name: string;
+  username: string;
+  role: 'admin' | 'customer';
+};

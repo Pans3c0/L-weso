@@ -7,16 +7,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, ShoppingCart } from 'lucide-react';
+import { Trash2, ShoppingCart, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { submitPurchaseRequestAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useSession } from '@/hooks/use-session';
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
+  const { session, isLoading: isSessionLoading } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatCurrency = (amount: number) => {
@@ -26,10 +27,18 @@ export default function CartPage() {
   const canFulfillOrder = cartItems.every(item => item.quantityInGrams <= item.product.stockInGrams);
 
   const handleSubmitRequest = async () => {
+    if (!session) {
+      toast({
+        title: 'Error de autenticación',
+        description: 'Debes iniciar sesión para enviar una solicitud.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // In a real app, you'd get the customerId from the session
-      const result = await submitPurchaseRequestAction({ customerId: 'customer_123', items: cartItems });
+      const result = await submitPurchaseRequestAction({ customerId: session.id, items: cartItems });
       if (result.success) {
         toast({
           title: 'Solicitud Enviada',
@@ -49,6 +58,14 @@ export default function CartPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isSessionLoading) {
+    return (
+        <div className="flex justify-center items-center min-h-[50vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -144,7 +161,7 @@ export default function CartPage() {
                 <Button 
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90" 
                   size="lg" 
-                  disabled={!canFulfillOrder || isSubmitting}
+                  disabled={!canFulfillOrder || isSubmitting || !session}
                   onClick={handleSubmitRequest}
                 >
                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -152,6 +169,14 @@ export default function CartPage() {
                 </Button>
               </CardFooter>
             </Card>
+            {!session && (
+                 <Alert variant="default" className="mt-4">
+                    <AlertTitle>¡Inicia sesión!</AlertTitle>
+                    <AlertDescription>
+                        <Link href="/login" className='underline'>Inicia sesión</Link> o <Link href="/register" className='underline'>regístrate</Link> para poder enviar tu solicitud de compra.
+                    </AlertDescription>
+                </Alert>
+            )}
           </div>
         </div>
       )}

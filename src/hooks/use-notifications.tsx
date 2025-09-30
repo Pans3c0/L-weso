@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { PurchaseRequest } from '@/lib/types';
+import { useSession } from './use-session';
 
 interface NotificationsContextType {
   requests: PurchaseRequest[];
@@ -27,12 +28,20 @@ async function fetchRequestsForCustomer(customerId: string): Promise<PurchaseReq
 }
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
+  const { session, isLoading: isSessionLoading } = useSession();
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [customerId] = useState('customer_123'); // Mock customer ID
+  
+  const customerId = session?.id;
 
   const refetch = useCallback(async () => {
+    if (!customerId) {
+        setRequests([]);
+        setIsLoading(false);
+        return;
+    };
+
     setIsLoading(true);
     setError(null);
     try {
@@ -47,6 +56,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refetch();
+    
+    // Set up an interval to periodically refetch the count
+    const intervalId = setInterval(refetch, 30000); // Poll every 30 seconds
+
+    // Clean up the interval when the component is unmounted
+    return () => clearInterval(intervalId);
+
   }, [refetch]);
 
   const notificationCount = requests.filter(req => req.status === 'confirmed' && !req.isRead).length;
@@ -54,7 +70,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const contextValue = {
     requests,
     notificationCount,
-    isLoading,
+    isLoading: isSessionLoading || isLoading,
     error,
     refetch
   };
@@ -66,11 +82,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useNotifications(customerId: string) {
+export function useNotifications(customerId?: string) {
     const context = useContext(NotificationsContext);
     if (context === undefined) {
       throw new Error('useNotifications must be used within a NotificationsProvider');
     }
-    // The customerId argument is kept for future use, but for now, the provider handles it.
+    // The customerId argument is now optional as the provider gets it from the session.
     return context;
 }
