@@ -10,6 +10,7 @@ import {
   LineChart,
   Package2,
   Store,
+  Bell,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -21,14 +22,14 @@ export function AdminSidebar() {
 
     const navItems = [
         { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
+        { href: "/admin/requests", icon: Bell, label: "Solicitudes" },
         { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos", badge: "6" },
         { href: "/admin/products", icon: Package, label: "Productos" },
         { href: "/admin/customers", icon: Users, label: "Clientes" },
         { href: "/admin/analytics", icon: LineChart, label: "Analíticas" },
     ];
     
-    // For this app, only products is implemented
-    const implementedRoutes = ["/admin/products"];
+    const implementedRoutes = ["/admin/products", "/admin/requests"];
 
     return (
         <div className="hidden border-r bg-background md:block">
@@ -42,7 +43,7 @@ export function AdminSidebar() {
                 <div className="flex-1">
                     <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                         {navItems.map(item => {
-                            const isActive = pathname === item.href;
+                            const isActive = pathname.startsWith(item.href);
                             const isImplemented = implementedRoutes.includes(item.href);
 
                             return (
