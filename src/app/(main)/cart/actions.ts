@@ -4,13 +4,7 @@ import { z } from 'zod';
 import { getPurchaseRequests, savePurchaseRequests } from '@/lib/requests';
 import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-
-// Mock customer data, moved here from lib/requests.ts
-const customers = [
-    { id: 'customer_123', name: 'Juan Pérez', referralCode: 'tienda_admin' },
-    { id: 'customer_456', name: 'Maria García', referralCode: 'tienda_admin' },
-];
-
+import { customers } from '@/lib/mock-data';
 
 // Simplified product schema for validation
 const ProductSchema = z.object({
