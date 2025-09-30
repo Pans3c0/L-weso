@@ -40,14 +40,21 @@ interface ConfirmRequestDialogProps {
   request: PurchaseRequest | null;
   onOpenChange: (open: boolean) => void;
   onSuccess: (updatedRequest: PurchaseRequest) => void;
+<<<<<<< HEAD
   isEditing?: boolean;
 }
 
 export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditing = false }: ConfirmRequestDialogProps) {
+=======
+}
+
+export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: ConfirmRequestDialogProps) {
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const form = useForm<ConfirmFormValues>({
     resolver: zodResolver(confirmSchema),
+<<<<<<< HEAD
   });
 
   React.useEffect(() => {
@@ -60,6 +67,14 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditi
         });
     }
   }, [request, form]);
+=======
+    defaultValues: {
+      confirmationDate: undefined,
+      confirmationTime: '10:00',
+      sellerNote: '',
+    },
+  });
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   
   const isOpen = !!request;
 
@@ -76,23 +91,38 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditi
         requestId: request.id,
         confirmationDate: combinedDateTime.toISOString(),
         sellerNote: data.sellerNote,
+<<<<<<< HEAD
         isEditing: isEditing, // Pass the flag to the action
+=======
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
       });
 
       if (result.success && result.updatedRequest) {
         toast({
+<<<<<<< HEAD
           title: isEditing ? 'Pedido Actualizado' : 'Solicitud Confirmada',
           description: isEditing 
             ? `Has actualizado el pedido de ${request.customerName}.`
             : `Has confirmado el pedido de ${request.customerName}.`,
         });
         onSuccess(result.updatedRequest);
+=======
+          title: 'Solicitud Confirmada',
+          description: `Has confirmado el pedido de ${request.customerName}.`,
+        });
+        onSuccess(result.updatedRequest);
+        form.reset();
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
       } else {
         throw new Error(result.error || 'Algo salió mal');
       }
     } catch (error) {
       toast({
+<<<<<<< HEAD
         title: 'Error al guardar',
+=======
+        title: 'Error al confirmar',
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
         description: error instanceof Error ? error.message : 'Inténtalo de nuevo.',
         variant: 'destructive',
       });
@@ -101,17 +131,27 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditi
     }
   };
 
+<<<<<<< HEAD
   const title = isEditing ? 'Editar Pedido' : 'Confirmar Solicitud';
   const description = isEditing 
     ? `Ajusta la fecha, hora o nota para el pedido de ${request?.customerName}.`
     : `Establece la fecha y hora de recogida/entrega para el pedido de ${request?.customerName}.`;
 
+=======
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
+<<<<<<< HEAD
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
+=======
+          <DialogTitle>Confirmar Solicitud</DialogTitle>
+          <DialogDescription>
+            Establece la fecha y hora de recogida/entrega para el pedido de {request?.customerName}.
+          </DialogDescription>
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -146,8 +186,13 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditi
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
+<<<<<<< HEAD
                           initialFocus
                           disabled={(date) => isEditing ? false : date < new Date(new Date().setHours(0,0,0,0))}
+=======
+                          disabled={(date) => date < new Date() || date < new Date('1900-01-01')}
+                          initialFocus
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
                         />
                       </PopoverContent>
                     </Popover>
@@ -188,7 +233,11 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditi
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+<<<<<<< HEAD
                 {isEditing ? 'Guardar Cambios' : 'Confirmar Solicitud'}
+=======
+                Confirmar Solicitud
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
               </Button>
             </DialogFooter>
           </form>

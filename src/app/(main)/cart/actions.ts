@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+<<<<<<< HEAD
 import { getPurchaseRequests, savePurchaseRequests } from '@/lib/requests';
 import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
@@ -10,12 +11,19 @@ import { getAllCustomers } from '@/lib/customers';
  * Schema for validating a product object within a cart.
  * Simplified to what's necessary for creating a purchase request.
  */
+=======
+import { purchaseRequests, customers } from '@/lib/requests';
+import type { CartItem, PurchaseRequest, Product } from '@/lib/types';
+
+// Simplified product schema for validation
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 const ProductSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string(),
   pricePerGram: z.number(),
   stockInGrams: z.number(),
+<<<<<<< HEAD
   imageUrl: z.string().optional().nullable(),
   imageHint: z.string().optional().nullable(),
   keywords: z.string().optional(),
@@ -24,11 +32,20 @@ const ProductSchema = z.object({
 /**
  * Schema for validating a single item in the cart.
  */
+=======
+  imageUrl: z.string(),
+  imageHint: z.string(),
+  keywords: z.string().optional(),
+});
+
+
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 const CartItemSchema = z.object({
   product: ProductSchema,
   quantityInGrams: z.number().positive(),
 });
 
+<<<<<<< HEAD
 /**
  * Schema for validating the input for submitting a new purchase request.
  */
@@ -43,6 +60,13 @@ const PurchaseRequestSchema = z.object({
  * @param input - An object containing the customer ID and the array of cart items.
  * @returns An object indicating success with the new request ID, or an error object.
  */
+=======
+const PurchaseRequestSchema = z.object({
+  customerId: z.string(),
+  items: z.array(CartItemSchema),
+});
+
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 export async function submitPurchaseRequestAction(input: {
   customerId: string;
   items: CartItem[];
@@ -56,7 +80,10 @@ export async function submitPurchaseRequestAction(input: {
   const { customerId, items } = parsedInput.data;
 
   try {
+<<<<<<< HEAD
     const customers = await getAllCustomers();
+=======
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
     const customer = customers.find(c => c.id === customerId);
     if (!customer) {
       return { error: 'Cliente no encontrado.' };
@@ -73,6 +100,7 @@ export async function submitPurchaseRequestAction(input: {
       status: 'pending',
       createdAt: new Date().toISOString(),
     };
+<<<<<<< HEAD
     
     const allRequests = await getPurchaseRequests();
     allRequests.unshift(newRequest);
@@ -84,6 +112,14 @@ export async function submitPurchaseRequestAction(input: {
     revalidatePath('/admin/requests');
     revalidatePath('/admin/customers');
 
+=======
+
+    // In a real app, this would be a database insert.
+    purchaseRequests.unshift(newRequest); 
+    
+    console.log('New purchase request submitted:', newRequest);
+    
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
     return { success: true, requestId: newRequest.id };
 
   } catch (error) {

@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+<<<<<<< HEAD
 import { getPurchaseRequestById, updateRequest } from '@/lib/requests';
 import type { PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
@@ -8,10 +9,16 @@ import { revalidatePath } from 'next/cache';
 /**
  * Schema for validating the input for the confirmation action.
  */
+=======
+import { purchaseRequests, updateRequest } from '@/lib/requests';
+import type { PurchaseRequest } from '@/lib/types';
+
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 const ConfirmRequestSchema = z.object({
   requestId: z.string(),
   confirmationDate: z.string().datetime(),
   sellerNote: z.string().optional(),
+<<<<<<< HEAD
   isEditing: z.boolean().optional(), // Add isEditing flag
 });
 
@@ -22,20 +29,32 @@ const ConfirmRequestSchema = z.object({
  * @param input - The details for the confirmation, including request ID, date, and an optional note.
  * @returns A success object with the updated request or an error object.
  */
+=======
+});
+
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestSchema>) {
   const parsedInput = ConfirmRequestSchema.safeParse(input);
   if (!parsedInput.success) {
     return { error: 'Datos de confirmación inválidos.' };
   }
 
+<<<<<<< HEAD
   const { requestId, confirmationDate, sellerNote, isEditing } = parsedInput.data;
   
   try {
     const request = await getPurchaseRequestById(requestId);
+=======
+  const { requestId, confirmationDate, sellerNote } = parsedInput.data;
+
+  try {
+    const request = purchaseRequests.find(r => r.id === requestId);
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
     if (!request) {
       return { error: 'Solicitud no encontrada.' };
     }
 
+<<<<<<< HEAD
     // Allow updates only on pending requests OR if we are explicitly editing a confirmed one
     if (request.status !== 'pending' && !isEditing) {
       return { error: 'Esta solicitud ya ha sido procesada.' };
@@ -48,10 +67,20 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     const updated: PurchaseRequest = {
       ...request,
       status: 'confirmed', // Keep status as confirmed
+=======
+    if (request.status !== 'pending') {
+      return { error: 'Esta solicitud ya ha sido procesada.' };
+    }
+
+    const updated: PurchaseRequest = {
+      ...request,
+      status: 'confirmed',
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
       confirmationDate,
       sellerNote,
     };
 
+<<<<<<< HEAD
     await updateRequest(updated);
     
     // In a real app, you would send a notification (e.g., email, push) to the customer here.
@@ -119,5 +148,20 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
   } catch (error) {
     console.error(`Failed to notify delay for request ${requestId}:`, error);
     return { error: 'No se pudo notificar el retraso.' };
+=======
+    const success = updateRequest(updated);
+
+    if (!success) {
+      throw new Error('Failed to update request in data store.');
+    }
+    
+    // In a real app, you would send a notification to the customer here.
+    console.log(`Request ${requestId} confirmed for ${confirmationDate}.`);
+
+    return { success: true, updatedRequest: updated };
+  } catch (error) {
+    console.error(`Failed to confirm request ${requestId}:`, error);
+    return { error: 'No se pudo confirmar la solicitud.' };
+>>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   }
 }
