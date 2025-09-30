@@ -19,21 +19,25 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
     const { username, password } = parsedInput.data;
     
     try {
-        // 1. Comprobación de credenciales de Administrador
+        // 1. Admin Check
         if (username === 'admin' && password === 'password') {
             const adminUser: SessionUser = { id: 'admin', name: 'Admin', username: 'admin', role: 'admin' };
             return { user: adminUser };
         }
         
-        // 2. Comprobación de credenciales de Cliente
+        // 2. Customer Check
         const customers = await getAllCustomers();
         const customer = customers.find(c => c.username === username);
 
         if (customer) {
-            // Lógica de contraseña simplificada y corregida
-            const isValidPassword = 
-                (customer.username === 'juanperez' && password === 'password123') ||
-                (customer.username !== 'juanperez' && password === 'password');
+            let isValidPassword = false;
+            // Specific password for juanperez
+            if (customer.username === 'juanperez') {
+                isValidPassword = (password === 'password123');
+            } else {
+                // Default password for all other customers
+                isValidPassword = (password === 'password');
+            }
 
             if (isValidPassword) {
                 const customerUser: SessionUser = { id: customer.id, name: customer.name, username: customer.username, role: 'customer' };
@@ -41,7 +45,7 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
             }
         }
         
-        // Si no se encontró ningún usuario o la contraseña es incorrecta
+        // If no user was found or password was incorrect
         return { user: null, error: 'Nombre de usuario o contraseña incorrectos.' };
         
     } catch (error) {
