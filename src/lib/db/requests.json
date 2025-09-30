@@ -1,5 +1,30 @@
 [
   {
+    "id": "req_1759246467236",
+    "customerId": "customer_123",
+    "customerName": "Juan Pérez",
+    "items": [
+      {
+        "product": {
+          "id": "prod_1759228772828",
+          "name": "Ferrari",
+          "description": "hola buenos dias",
+          "pricePerGram": 5,
+          "stockInGrams": 100,
+          "imageUrl": "",
+          "imageHint": "",
+          "keywords": "Polen, rubio"
+        },
+        "quantityInGrams": 5
+      }
+    ],
+    "total": 25,
+    "status": "confirmed",
+    "createdAt": "2025-09-30T15:34:27.236Z",
+    "confirmationDate": "2025-09-30T15:55:40.279Z",
+    "sellerNote": "fjffjf"
+  },
+  {
     "id": "req_1759229329893",
     "customerId": "customer_123",
     "customerName": "Juan Pérez",

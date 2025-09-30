@@ -12,17 +12,40 @@ import {
   Store,
   Bell,
 } from "lucide-react";
-
+import * as React from 'react';
+import type { PurchaseRequest } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 
 export function AdminSidebar() {
     const pathname = usePathname()
+    const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
+
+    React.useEffect(() => {
+        async function fetchPendingRequests() {
+            try {
+                const res = await fetch('/api/requests');
+                if (res.ok) {
+                    const requests: PurchaseRequest[] = await res.json();
+                    const pendingCount = requests.filter(r => r.status === 'pending').length;
+                    setPendingRequestsCount(pendingCount);
+                }
+            } catch (error) {
+                console.error("Failed to fetch pending requests count", error);
+            }
+        }
+        
+        fetchPendingRequests();
+        // Set up an interval to refetch the count periodically
+        const intervalId = setInterval(fetchPendingRequests, 30000); // every 30 seconds
+
+        return () => clearInterval(intervalId);
+    }, []);
 
     const navItems = [
         { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
-        { href: "/admin/requests", icon: Bell, label: "Solicitudes" },
+        { href: "/admin/requests", icon: Bell, label: "Solicitudes", badge: pendingRequestsCount > 0 ? pendingRequestsCount : null },
         { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
         { href: "/admin/products", icon: Package, label: "Productos" },
         { href: "/admin/customers", icon: Users, label: "Clientes" },
@@ -59,7 +82,7 @@ export function AdminSidebar() {
                                 >
                                     <item.icon className="h-4 w-4" />
                                     {item.label}
-                                    {item.badge && <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{item.badge}</Badge>}
+                                    {item.badge ? <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{item.badge}</Badge> : null}
                                 </Link>
                             )
                         })}
