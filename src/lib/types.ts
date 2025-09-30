@@ -29,3 +29,9 @@ export type PurchaseRequest = {
   customerNote?: string; // For delay notifications
   isRead?: boolean; // For client-side notification tracking
 };
+
+export type Customer = {
+    id: string;
+    name: string;
+    referralCode: string; // Every customer is linked to a seller's code
+};

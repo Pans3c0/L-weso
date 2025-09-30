@@ -6,7 +6,10 @@ import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { customers } from '@/lib/mock-data';
 
-// Simplified product schema for validation
+/**
+ * Schema for validating a product object within a cart.
+ * Simplified to what's necessary for creating a purchase request.
+ */
 const ProductSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -18,17 +21,28 @@ const ProductSchema = z.object({
   keywords: z.string().optional(),
 });
 
-
+/**
+ * Schema for validating a single item in the cart.
+ */
 const CartItemSchema = z.object({
   product: ProductSchema,
   quantityInGrams: z.number().positive(),
 });
 
+/**
+ * Schema for validating the input for submitting a new purchase request.
+ */
 const PurchaseRequestSchema = z.object({
   customerId: z.string(),
-  items: z.array(CartItemSchema),
+  items: z.array(CartItemSchema).min(1, "El carrito no puede estar vacío."),
 });
 
+/**
+ * Server Action: Submits a new purchase request from a customer's cart.
+ * This function creates a new request record with a 'pending' status.
+ * @param input - An object containing the customer ID and the array of cart items.
+ * @returns An object indicating success with the new request ID, or an error object.
+ */
 export async function submitPurchaseRequestAction(input: {
   customerId: string;
   items: CartItem[];
@@ -63,10 +77,11 @@ export async function submitPurchaseRequestAction(input: {
     allRequests.unshift(newRequest);
     await savePurchaseRequests(allRequests);
     
-    console.log('New purchase request submitted:', newRequest);
+    console.log('New purchase request submitted:', newRequest.id);
     
+    // Revalidate paths to update the UI for administrators.
     revalidatePath('/admin/requests');
-    revalidatePath('/notifications');
+    revalidatePath('/admin-sidebar'); // To update the pending count badge
 
     return { success: true, requestId: newRequest.id };
 

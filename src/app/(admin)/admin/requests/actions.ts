@@ -1,16 +1,26 @@
 'use server';
 
 import { z } from 'zod';
-import { getPurchaseRequests, updateRequest } from '@/lib/requests';
+import { getPurchaseRequestById, updateRequest } from '@/lib/requests';
 import type { PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
+/**
+ * Schema for validating the input for the confirmation action.
+ */
 const ConfirmRequestSchema = z.object({
   requestId: z.string(),
   confirmationDate: z.string().datetime(),
   sellerNote: z.string().optional(),
 });
 
+/**
+ * Server Action: Confirms a pending purchase request.
+ * This action finds the request, updates its status to 'confirmed',
+ * and saves the new state. It also revalidates relevant paths.
+ * @param input - The details for the confirmation, including request ID, date, and an optional note.
+ * @returns A success object with the updated request or an error object.
+ */
 export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestSchema>) {
   const parsedInput = ConfirmRequestSchema.safeParse(input);
   if (!parsedInput.success) {
@@ -19,10 +29,8 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
 
   const { requestId, confirmationDate, sellerNote } = parsedInput.data;
   
-  const purchaseRequests = await getPurchaseRequests();
-
   try {
-    const request = purchaseRequests.find(r => r.id === requestId);
+    const request = await getPurchaseRequestById(requestId);
     if (!request) {
       return { error: 'Solicitud no encontrada.' };
     }
@@ -38,18 +46,15 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
       sellerNote,
     };
 
-    const success = await updateRequest(updated);
-
-    if (!success) {
-      throw new Error('Failed to update request in data store.');
-    }
+    await updateRequest(updated);
     
-    // In a real app, you would send a notification to the customer here.
+    // In a real app, you would send a notification (e.g., email, push) to the customer here.
     console.log(`Request ${requestId} confirmed for ${confirmationDate}.`);
 
+    // Revalidate paths to update UI across the app
     revalidatePath('/admin/requests');
-    revalidatePath('/notifications');
     revalidatePath('/admin/orders');
+    revalidatePath('/notifications'); // For the customer
 
     return { success: true, updatedRequest: updated };
   } catch (error) {
@@ -58,11 +63,20 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
   }
 }
 
+/**
+ * Schema for validating the input for the delay notification action.
+ */
 const NotifyDelaySchema = z.object({
   requestId: z.string(),
-  customerNote: z.string(),
+  customerNote: z.string().min(1, "La nota no puede estar vacía."),
 });
 
+/**
+ * Server Action: Allows a customer to notify the seller about a delay.
+ * This action adds a `customerNote` to a confirmed request.
+ * @param input - Contains the request ID and the note from the customer.
+ * @returns A success object with the updated request or an error object.
+ */
 export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>) {
   const parsedInput = NotifyDelaySchema.safeParse(input);
   if (!parsedInput.success) {
@@ -71,10 +85,8 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
 
   const { requestId, customerNote } = parsedInput.data;
 
-  const purchaseRequests = await getPurchaseRequests();
-
   try {
-    const request = purchaseRequests.find(r => r.id === requestId);
+    const request = await getPurchaseRequestById(requestId);
     if (!request) {
       return { error: 'Solicitud no encontrada.' };
     }
@@ -88,18 +100,14 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
       customerNote,
     };
 
-    const success = await updateRequest(updated);
-
-    if (!success) {
-      throw new Error('Failed to update request in data store.');
-    }
+    await updateRequest(updated);
     
+    // In a real app, this might trigger a notification to the seller's dashboard or device.
     console.log(`Delay notified for request ${requestId}.`);
 
-    revalidatePath('/admin/requests');
-    revalidatePath('/notifications');
+    // Revalidate paths to ensure UI is up-to-date for both admin and customer.
     revalidatePath('/admin/orders');
-
+    revalidatePath('/notifications');
 
     return { success: true, updatedRequest: updated };
   } catch (error) {

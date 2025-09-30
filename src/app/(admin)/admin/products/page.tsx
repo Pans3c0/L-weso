@@ -41,23 +41,33 @@ import {
 export default function AdminProductsPage() {
   const { toast } = useToast();
   const [products, setProducts] = React.useState<Product[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | undefined>(undefined);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
-  const fetchProducts = async () => {
-    const res = await fetch('/api/products');
-    const data = await res.json();
-    setProducts(data);
-  };
+  const fetchProducts = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/products');
+      if (!res.ok) throw new Error('Failed to fetch products');
+      const data = await res.json();
+      setProducts(data);
+    } catch (error) {
+      console.error(error);
+      toast({ title: 'Error', description: 'No se pudieron cargar los productos.', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
   React.useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const handleProductSave = async (product: Product) => {
     await saveProductAction(product);
-    await fetchProducts();
+    await fetchProducts(); // Refetch to get the latest list
     setIsSheetOpen(false);
     setEditingProduct(undefined);
     toast({ title: 'Producto guardado', description: `El producto "${product.name}" ha sido guardado.` });
@@ -66,7 +76,7 @@ export default function AdminProductsPage() {
   const handleDelete = async (productId: string) => {
     setIsDeleting(true);
     await deleteProductAction(productId);
-    await fetchProducts();
+    await fetchProducts(); // Refetch to update the list
     setIsDeleting(false);
     toast({ title: 'Producto eliminado', description: 'El producto ha sido eliminado correctamente.' });
   }
@@ -93,7 +103,7 @@ export default function AdminProductsPage() {
           <SheetTrigger asChild>
             <Button size="sm" className="h-8 gap-1" onClick={handleAddNew}>
               <PlusCircle className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+              <span className="sr-only sm:not-sr-only sm:whitespace-rap">
                 Añadir Producto
               </span>
             </Button>
@@ -125,69 +135,79 @@ export default function AdminProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map(product => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.imageUrl || 'https://placehold.co/64x64/F5F5F5/696969?text=?'}
-                      width="64"
-                      data-ai-hint={product.imageHint}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.stockInGrams > 0 ? 'outline' : 'destructive'}>
-                      {product.stockInGrams / 1000} kg
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {formatCurrency(product.pricePerGram)}
-                  </TableCell>
-                  <TableCell>
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleEdit(product)}>Editar</DropdownMenuItem>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem className="text-destructive">
-                              Eliminar
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Esto eliminará permanentemente
-                            el producto.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            disabled={isDeleting}
-                            onClick={() => handleDelete(product.id)}
-                            className="bg-destructive hover:bg-destructive/90"
-                          >
-                            {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">Cargando productos...</TableCell>
                 </TableRow>
-              ))}
+              ) : products.length === 0 ? (
+                 <TableRow>
+                  <TableCell colSpan={5} className="text-center">No se encontraron productos.</TableCell>
+                </TableRow>
+              ) : (
+                products.map(product => (
+                  <TableRow key={product.id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Image
+                        alt={product.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={product.imageUrl || 'https://placehold.co/64x64/F5F5F5/696969?text=?'}
+                        width="64"
+                        data-ai-hint={product.imageHint}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>
+                      <Badge variant={product.stockInGrams > 0 ? 'outline' : 'destructive'}>
+                        {product.stockInGrams / 1000} kg
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {formatCurrency(product.pricePerGram)}
+                    </TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => handleEdit(product)}>Editar</DropdownMenuItem>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem className="text-destructive">
+                                Eliminar
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Esto eliminará permanentemente
+                              el producto.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              disabled={isDeleting}
+                              onClick={() => handleDelete(product.id)}
+                              className="bg-destructive hover:bg-destructive/90"
+                            >
+                              {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

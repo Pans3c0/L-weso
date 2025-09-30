@@ -19,12 +19,15 @@ import { cn } from "@/lib/utils";
 
 
 export function AdminSidebar() {
-    const pathname = usePathname()
+    const pathname = usePathname();
     const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
 
     React.useEffect(() => {
+        // This function fetches the count of pending requests to display in the sidebar badge.
         async function fetchPendingRequests() {
             try {
+                // We fetch all requests and then filter on the client-side for this component.
+                // For a large-scale app, an API endpoint that returns only the count would be more efficient.
                 const res = await fetch('/api/requests');
                 if (res.ok) {
                     const requests: PurchaseRequest[] = await res.json();
@@ -37,9 +40,11 @@ export function AdminSidebar() {
         }
         
         fetchPendingRequests();
-        // Set up an interval to refetch the count periodically
-        const intervalId = setInterval(fetchPendingRequests, 30000); // every 30 seconds
+        
+        // Set up an interval to periodically refetch the count, keeping the UI fresh.
+        const intervalId = setInterval(fetchPendingRequests, 30000); // Poll every 30 seconds
 
+        // Clean up the interval when the component is unmounted to prevent memory leaks.
         return () => clearInterval(intervalId);
     }, []);
 
@@ -52,6 +57,7 @@ export function AdminSidebar() {
         { href: "/admin/analytics", icon: LineChart, label: "Analíticas" },
     ];
     
+    // A list of routes that are actually implemented to avoid dead links.
     const implementedRoutes = ["/admin/products", "/admin/requests", "/admin/dashboard", "/admin/orders", "/admin/customers"];
 
     return (
@@ -76,13 +82,15 @@ export function AdminSidebar() {
                                     className={cn(
                                         "flex items-center gap-3 rounded-lg px-3 py-2 transition-all",
                                         isActive ? "bg-muted text-primary" : "text-muted-foreground hover:text-primary",
-                                        !isImplemented && "opacity-50 cursor-not-allowed"
+                                        !isImplemented && "opacity-50 cursor-not-allowed" // Style disabled links
                                     )}
                                     onClick={(e) => !isImplemented && e.preventDefault()}
                                 >
                                     <item.icon className="h-4 w-4" />
                                     {item.label}
-                                    {item.badge ? <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{item.badge}</Badge> : null}
+                                    {item.badge != null && item.badge > 0 && (
+                                        <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">{item.badge}</Badge>
+                                    )}
                                 </Link>
                             )
                         })}

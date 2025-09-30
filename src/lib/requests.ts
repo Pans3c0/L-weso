@@ -1,19 +1,18 @@
 'use server';
 
-import type { PurchaseRequest } from '@/lib/types';
+import type { PurchaseRequest, Customer } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
-import { initialRequests, customers } from '@/lib/mock-data';
+import { initialRequests } from '@/lib/mock-data';
+import { customers } from '@/lib/mock-data';
 
-
-type Customer = {
-    id: string;
-    name: string;
-    referralCode: string; // Every customer is linked to a seller's code
-};
-
+// Path to the JSON file acting as the database for purchase requests.
 const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
 
+/**
+ * Initializes the requests data file if it doesn't exist.
+ * This ensures the application has seed data on its first run.
+ */
 async function initializeRequestsFile() {
   try {
     await fs.ensureDir(path.dirname(requestsFilePath));
@@ -26,24 +25,41 @@ async function initializeRequestsFile() {
   }
 }
 
-// Call initialization
+// Initialize the file on server start.
 initializeRequestsFile();
 
+/**
+ * Retrieves all purchase requests from the data source.
+ * @returns A promise that resolves to an array of PurchaseRequest objects.
+ */
 export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
     try {
         await fs.ensureFile(requestsFilePath);
         const data = await fs.readJson(requestsFilePath);
         return data || [];
     } catch (e) {
-        console.error("Could not read requests file, returning empty array.", e);
-        if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
-            await initializeRequestsFile();
-            return initialRequests;
-        }
-        return [];
+        console.error("Could not read requests file, returning fallback data.", e);
+        return initialRequests;
     }
 }
 
+/**
+ * Retrieves a single purchase request by its ID.
+ * @param requestId - The ID of the request to find.
+ * @returns A promise resolving to the PurchaseRequest or null if not found.
+ */
+export async function getPurchaseRequestById(requestId: string): Promise<PurchaseRequest | null> {
+    const requests = await getPurchaseRequests();
+    return requests.find(req => req.id === requestId) || null;
+}
+
+
+/**
+ * Saves the entire list of purchase requests to the data source.
+ * Note: This overwrites the existing file.
+ * @param requests - The full array of requests to save.
+ * @returns A promise that resolves when the file is written.
+ */
 export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise<void> {
     try {
         await fs.writeJson(requestsFilePath, requests, { spaces: 2 });
@@ -53,7 +69,12 @@ export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise
 }
 
 
-// Function to update a request (simulates database update)
+/**
+ * Updates a single purchase request in the data source.
+ * It finds the request by ID and replaces it with the updated version.
+ * @param updatedRequest - The purchase request object with new data.
+ * @returns A promise resolving to true if successful, false otherwise.
+ */
 export async function updateRequest(updatedRequest: PurchaseRequest): Promise<boolean> {
     const requests = await getPurchaseRequests();
     const index = requests.findIndex(req => req.id === updatedRequest.id);
@@ -65,7 +86,13 @@ export async function updateRequest(updatedRequest: PurchaseRequest): Promise<bo
     return false;
 };
 
+/**
+ * Finds customers associated with a specific referral code.
+ * In a real app, this would query a database.
+ * @param referralCode - The seller's referral code to filter customers by.
+ * @returns A promise resolving to an array of Customer objects.
+ */
 export async function getCustomersByReferralCode(referralCode: string): Promise<Customer[]> {
-    // In a real app, this would query a database.
+    // This is a mock implementation. It filters an in-memory array.
     return Promise.resolve(customers.filter(c => c.referralCode === referralCode));
 }
