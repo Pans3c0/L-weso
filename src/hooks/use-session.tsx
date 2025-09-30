@@ -27,14 +27,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     try {
       const storedSession = localStorage.getItem(SESSION_KEY);
       if (storedSession) {
         setSession(JSON.parse(storedSession));
+      } else {
+        setSession(null);
       }
     } catch (error) {
       console.error("Failed to parse session from localStorage", error);
       localStorage.removeItem(SESSION_KEY);
+      setSession(null);
     } finally {
         setIsLoading(false);
     }
