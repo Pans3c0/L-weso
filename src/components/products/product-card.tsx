@@ -26,13 +26,14 @@ export function ProductCard({ product }: { product: Product }) {
   };
   
   const stockInKg = product.stockInGrams / 1000;
+  const placeholderImageUrl = 'https://picsum.photos/seed/placeholder/600/400';
 
   return (
     <Card className="flex flex-col overflow-hidden h-full transition-shadow duration-300 hover:shadow-xl">
       <CardHeader className="p-0">
         <div className="aspect-[3/2] relative w-full">
           <Image
-            src={product.imageUrl}
+            src={product.imageUrl || placeholderImageUrl}
             alt={product.name}
             fill
             className="object-cover"
@@ -60,7 +61,7 @@ export function ProductCard({ product }: { product: Product }) {
               onChange={(e) => setQuantity(e.target.value)}
               className="pr-10"
               min="1"
-              step="10"
+              step="1"
               aria-label="Cantidad en gramos"
             />
             <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground">g</span>

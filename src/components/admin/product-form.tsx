@@ -18,7 +18,7 @@ const productSchema = z.object({
   description: z.string().min(10, 'La descripción es obligatoria'),
   pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
   stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
-  imageUrl: z.string().url('Debe ser una URL de imagen válida'),
+  imageUrl: z.string().url('Debe ser una URL válida o estar vacío').or(z.literal('')),
   imageHint: z.string().optional(),
   keywords: z.string().optional(),
 });
@@ -147,7 +147,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>URL de la Imagen</FormLabel>
+              <FormLabel>URL de la Imagen (Opcional)</FormLabel>
               <FormControl><Input {...field} /></FormControl>
               <FormMessage />
             </FormItem>
