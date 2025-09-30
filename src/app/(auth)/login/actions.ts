@@ -18,48 +18,32 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
 
     const { username, password } = parsedInput.data;
     
-    let redirectTo: string | null = null;
-    let userToLogin: SessionUser | null = null;
-    let loginError: string | null = null;
-    
     try {
         // 1. Comprobación de credenciales de Administrador
         if (username === 'admin' && password === 'password') {
-            userToLogin = { id: 'admin', name: 'Admin', username: 'admin', role: 'admin' };
-            redirectTo = '/admin/dashboard';
-        } else {
-            // 2. Comprobación de credenciales de Cliente
-            const customers = await getAllCustomers();
-            const customer = customers.find(c => c.username === username);
+            const adminUser: SessionUser = { id: 'admin', name: 'Admin', username: 'admin', role: 'admin' };
+            return { user: adminUser };
+        }
+        
+        // 2. Comprobación de credenciales de Cliente
+        const customers = await getAllCustomers();
+        const customer = customers.find(c => c.username === username);
 
-            if (customer) {
-                const isJuanPerez = customer.username === 'juanperez' && password === 'password123';
-                const isOtherCustomer = customer.username !== 'juanperez' && password === 'password';
+        if (customer) {
+            const isJuanPerez = customer.username === 'juanperez' && password === 'password123';
+            const isOtherCustomer = customer.username !== 'juanperez' && password === 'password';
 
-                if (isJuanPerez || isOtherCustomer) {
-                    userToLogin = { id: customer.id, name: customer.name, username: customer.username, role: 'customer' };
-                    redirectTo = '/shop';
-                }
+            if (isJuanPerez || isOtherCustomer) {
+                const customerUser: SessionUser = { id: customer.id, name: customer.name, username: customer.username, role: 'customer' };
+                return { user: customerUser };
             }
         }
         
-        if (!userToLogin) {
-            loginError = 'Nombre de usuario o contraseña incorrectos.';
-        }
+        // Si no se encontró ningún usuario o la contraseña es incorrecta
+        return { user: null, error: 'Nombre de usuario o contraseña incorrectos.' };
         
     } catch (error) {
         console.error('Login action failed:', error);
-        loginError = 'Ocurrió un error en el servidor.';
+        return { user: null, error: 'Ocurrió un error en el servidor.' };
     }
-
-    // --- Redirección y retorno ---
-    // La redirección debe ocurrir fuera del bloque try/catch.
-    if (redirectTo && userToLogin) {
-        // Aunque el redirect detiene la ejecución, necesitamos devolver algo para satisfacer TypeScript.
-        // Pero esta línea nunca se alcanzará si la redirección tiene éxito.
-        redirect(redirectTo);
-    }
-    
-    // Si llegamos aquí, significa que hubo un error o no se redirigió.
-    return { user: null, error: loginError || 'Error desconocido' };
 }
