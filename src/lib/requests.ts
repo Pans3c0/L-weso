@@ -59,7 +59,8 @@ const initialRequests: PurchaseRequest[] = [
 async function initializeRequestsFile() {
   try {
     await fs.ensureDir(path.dirname(requestsFilePath));
-    if (!(await fs.pathExists(requestsFilePath))) {
+    const exists = await fs.pathExists(requestsFilePath);
+    if (!exists) {
       await fs.writeJson(requestsFilePath, initialRequests, { spaces: 2 });
     }
   } catch (error) {
@@ -72,13 +73,16 @@ initializeRequestsFile();
 
 export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
     try {
-        // Ensure file exists before reading
-        if (!(await fs.pathExists(requestsFilePath))) {
-            await initializeRequestsFile();
-        }
-        return await fs.readJson(requestsFilePath);
+        await fs.ensureFile(requestsFilePath);
+        const data = await fs.readJson(requestsFilePath);
+        return data || [];
     } catch (e) {
         console.error("Could not read requests file, returning empty array.", e);
+        // If reading fails, maybe initialize and return initial data? For now, empty.
+        if (e.code === 'ENOENT') {
+            await initializeRequestsFile();
+            return initialRequests;
+        }
         return [];
     }
 }
@@ -106,5 +110,5 @@ export async function updateRequest(updatedRequest: PurchaseRequest): Promise<bo
 
 export async function getCustomersByReferralCode(referralCode: string): Promise<Customer[]> {
     // In a real app, this would query a database.
-    return customers.filter(c => c.referralCode === referralCode);
+    return Promise.resolve(customers.filter(c => c.referralCode === referralCode));
 }

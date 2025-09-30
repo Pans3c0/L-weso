@@ -17,7 +17,7 @@ async function getConfirmedOrders(): Promise<PurchaseRequest[]> {
   // Filter for confirmed orders and sort them by confirmation date
   return allRequests
     .filter((req) => req.status === 'confirmed' && req.confirmationDate)
-    .sort((a, b) => new Date(a.confirmationDate!).getTime() - new Date(b.confirmationDate!).getTime());
+    .sort((a, b) => new Date(b.confirmationDate!).getTime() - new Date(a.confirmationDate!).getTime());
 }
 
 export default async function OrdersPage() {
