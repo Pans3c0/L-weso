@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/types';
@@ -151,8 +151,11 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>URL de la Imagen (Opcional)</FormLabel>
-              <FormControl><Input {...field} /></FormControl>
+              <FormLabel>URL de la Imagen</FormLabel>
+              <FormControl><Input placeholder="https://ejemplo.com/imagen.jpg" {...field} /></FormControl>
+              <FormDescription>
+                Pega aquí el enlace a una imagen del producto que esté en internet.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
