@@ -56,18 +56,27 @@ const initialRequests: PurchaseRequest[] = [
     }
 ];
 
-// Ensure the directory exists
-fs.ensureDirSync(path.dirname(requestsFilePath));
-
-// Initialize requests.json if it doesn't exist
-if (!fs.existsSync(requestsFilePath)) {
-    fs.writeJsonSync(requestsFilePath, initialRequests, { spaces: 2 });
+async function initializeRequestsFile() {
+  try {
+    await fs.ensureDir(path.dirname(requestsFilePath));
+    if (!(await fs.pathExists(requestsFilePath))) {
+      await fs.writeJson(requestsFilePath, initialRequests, { spaces: 2 });
+    }
+  } catch (error) {
+    console.error('Failed to initialize requests.json', error);
+  }
 }
 
+// Call initialization
+initializeRequestsFile();
 
 export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
     try {
-        return fs.readJsonSync(requestsFilePath);
+        // Ensure file exists before reading
+        if (!(await fs.pathExists(requestsFilePath))) {
+            await initializeRequestsFile();
+        }
+        return await fs.readJson(requestsFilePath);
     } catch (e) {
         console.error("Could not read requests file, returning empty array.", e);
         return [];

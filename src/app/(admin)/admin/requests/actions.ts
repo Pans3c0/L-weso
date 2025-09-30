@@ -49,6 +49,7 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
 
     revalidatePath('/admin/requests');
     revalidatePath('/notifications');
+    revalidatePath('/admin/orders');
 
     return { success: true, updatedRequest: updated };
   } catch (error) {
@@ -97,6 +98,8 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
 
     revalidatePath('/admin/requests');
     revalidatePath('/notifications');
+    revalidatePath('/admin/orders');
+
 
     return { success: true, updatedRequest: updated };
   } catch (error) {

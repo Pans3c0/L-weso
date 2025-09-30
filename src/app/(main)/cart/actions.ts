@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { getPurchaseRequests, savePurchaseRequests, customers } from '@/lib/requests';
 import type { CartItem, PurchaseRequest } from '@/lib/types';
+import { revalidatePath } from 'next/cache';
 
 // Simplified product schema for validation
 const ProductSchema = z.object({
@@ -63,6 +64,9 @@ export async function submitPurchaseRequestAction(input: {
     
     console.log('New purchase request submitted:', newRequest);
     
+    revalidatePath('/admin/requests');
+    revalidatePath('/notifications');
+
     return { success: true, requestId: newRequest.id };
 
   } catch (error) {
