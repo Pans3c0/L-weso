@@ -32,45 +32,46 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulación de autenticación con retardo para mostrar el estado de carga
-    setTimeout(async () => {
-      // 1. Comprobación de credenciales de Administrador
-      if (username === 'admin' && password === 'password') {
+    // 1. Comprobación de credenciales de Administrador
+    if (username === 'admin' && password === 'password') {
         toast({ title: 'Inicio de sesión exitoso', description: 'Bienvenido, admin.' });
         router.replace('/admin/products');
         return;
-      }
+    }
       
-      // 2. Comprobación de credenciales de Cliente (simulado)
-      // En una app real, buscarías al usuario en una base de datos y compararías la contraseña hasheada.
-      // Por ahora, solo 'juanperez' tiene una contraseña fija para demostración.
-      if (username === 'juanperez' && password === 'password123') {
-        toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${username}` });
-        router.replace('/shop');
-        return;
-      }
-      
-      // Para otros usuarios registrados, simulamos que la contraseña siempre es "password"
-      // ESTO ES INSEGURO Y SOLO PARA DEMOSTRACIÓN
-      const customers = await getAllCustomers();
-      const customer = customers.find(c => c.username === username);
-
-      if(customer && password === 'password') {
-        toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${customer.name}` });
-        router.replace('/shop');
-        return;
-      }
-
-
-      // 3. Si ninguna credencial coincide
-      toast({
-        title: 'Error de inicio de sesión',
-        description: 'Nombre de usuario o contraseña incorrectos.',
-        variant: 'destructive',
-      });
+    // 2. Comprobación de credenciales de Cliente (simulado)
+    // En una app real, buscarías al usuario en una base de datos y compararías la contraseña hasheada.
+    // Por ahora, solo 'juanperez' tiene una contraseña fija para demostración.
+    if (username === 'juanperez' && password === 'password123') {
+      toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${username}` });
+      router.replace('/shop');
       setIsLoading(false);
+      return;
+    }
+    
+    // Para otros usuarios registrados, simulamos que la contraseña siempre es "password"
+    // ESTO ES INSEGURO Y SOLO PARA DEMOSTRACIÓN
+    const customers = await getAllCustomers();
+    const customer = customers.find(c => c.username === username);
 
-    }, 1000);
+    if(customer && password === 'password') {
+      toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${customer.name}` });
+      router.replace('/shop');
+      setIsLoading(false);
+      return;
+    }
+
+
+    // 3. Si ninguna credencial coincide
+    // Añadimos un pequeño retardo para simular una llamada de red y para que el mensaje de error no sea instantáneo
+    setTimeout(() => {
+        toast({
+            title: 'Error de inicio de sesión',
+            description: 'Nombre de usuario o contraseña incorrectos.',
+            variant: 'destructive',
+        });
+        setIsLoading(false);
+    }, 500);
   };
 
   return (
