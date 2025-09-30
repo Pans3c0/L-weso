@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { getAllCustomers } from '@/lib/customers';
 import type { SessionUser } from '@/lib/types';
+import { redirect } from 'next/navigation';
 
 const LoginSchema = z.object({
     username: z.string(),
@@ -20,7 +21,8 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
     // 1. Comprobación de credenciales de Administrador
     if (username === 'admin' && password === 'password') {
         const adminUser: SessionUser = { id: 'admin', name: 'Admin', username: 'admin', role: 'admin' };
-        return { user: adminUser };
+        redirect('/admin/products');
+        return { user: adminUser }; // El redirect no detiene la ejecución, pero es bueno retornarlo.
     }
 
     // 2. Comprobación de credenciales de Cliente
@@ -38,6 +40,7 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
 
         if (isJuanPerez || isOtherCustomer) {
             const customerUser: SessionUser = { id: customer.id, name: customer.name, username: customer.username, role: 'customer' };
+            redirect('/shop');
             return { user: customerUser };
         }
 

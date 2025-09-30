@@ -13,7 +13,6 @@ import { useSession } from '@/hooks/use-session';
 import { loginAction } from './actions';
 
 export default function LoginPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const { login } = useSession();
   const [username, setUsername] = useState('');
@@ -29,13 +28,10 @@ export default function LoginPage() {
 
         if (result.user) {
             login(result.user);
-            toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${result.user.name}` });
-
-            if (result.user.role === 'admin') {
-                router.replace('/admin/products');
-            } else {
-                router.replace('/shop');
-            }
+            // La redirección ahora es manejada por el server action.
+            // Esto solo es un respaldo en caso de que la redirección del servidor falle por alguna razón.
+            // El usuario ya tiene la sesión, por lo que una recarga de página lo llevaría al lugar correcto.
+             toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${result.user.name}` });
         } else {
             throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
         }
