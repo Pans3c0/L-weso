@@ -17,8 +17,8 @@ export default function ShopPage() {
   const { session, isLoading: isLoadingSession } = useSession();
 
   React.useEffect(() => {
-    // Solo carga los productos si hay una sesión de usuario activa.
-    if (session) {
+    // Solo carga los productos si hay una sesión de usuario activa y ya ha sido cargada.
+    if (!isLoadingSession && session) {
       async function fetchProducts() {
         setIsLoadingProducts(true);
         try {
@@ -35,12 +35,12 @@ export default function ShopPage() {
         }
       }
       fetchProducts();
-    } else {
+    } else if (!isLoadingSession && !session) {
         // Si no hay sesión, nos aseguramos de que no haya productos y no esté cargando.
         setProducts([]);
         setIsLoadingProducts(false);
     }
-  }, [session]); // El efecto se vuelve a ejecutar si la sesión cambia.
+  }, [session, isLoadingSession]); // El efecto se vuelve a ejecutar si la sesión o su estado de carga cambian.
 
   if (isLoadingSession) {
     return (

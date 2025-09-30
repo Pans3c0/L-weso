@@ -28,17 +28,16 @@ export default function LoginPage() {
         const result = await loginAction({ username, password });
 
         if (result.user) {
-            login(result.user);
+            login(result.user); // Guardar la sesión
             toast({ title: 'Inicio de sesión exitoso', description: `Bienvenido, ${result.user.name}` });
 
-            // Redirección del lado del cliente
+            // Redirección del lado del cliente post-login
             if (result.user.role === 'admin') {
                 router.push('/admin/dashboard');
             } else if (result.user.role === 'customer') {
                 router.push('/shop');
             } else {
-                 // Fallback por si acaso, aunque no debería ocurrir.
-                router.push('/');
+                router.push('/'); // Fallback a la raíz
             }
         } else {
             throw new Error(result.error || 'Nombre de usuario o contraseña incorrectos.');
