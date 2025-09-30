@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "tomatoes",
+      "description": "A pile of fresh red tomatoes",
+      "imageUrl": "https://images.unsplash.com/photo-1683008952375-410ae668e6b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmcmVzaCUyMHRvbWF0b2VzfGVufDB8fHx8MTc1OTEzNTAyOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fresh tomatoes"
+    },
+    {
+      "id": "avocados",
+      "description": "Halved avocados showing the seed",
+      "imageUrl": "https://images.unsplash.com/photo-1664568218050-8068915c3b40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyaXBlJTIwYXZvY2Fkb3N8ZW58MHx8fHwxNzU5MjI2MzcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "ripe avocados"
+    },
+    {
+      "id": "bread",
+      "description": "A loaf of artisanal sourdough bread",
+      "imageUrl": "https://images.unsplash.com/photo-1618890512438-19730450f731?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcnRpc2FuYWwlMjBicmVhZHxlbnwwfHx8fDE3NTkyMTI2MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "artisanal bread"
+    },
+    {
+      "id": "goat-cheese",
+      "description": "A wheel of soft goat cheese",
+      "imageUrl": "https://images.unsplash.com/photo-1617713807246-9b9e55ef560e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxnb2F0JTIwY2hlZXNlfGVufDB8fHx8MTc1OTE2NDUyMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "goat cheese"
+    },
+    {
+      "id": "olive-oil",
+      "description": "A bottle of extra virgin olive oil",
+      "imageUrl": "https://images.unsplash.com/photo-1629274128491-36edfdc0d8cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxvbGl2ZSUyMG9pbHxlbnwwfHx8fDE3NTkxNDU4NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "olive oil"
+    }
+  ]
 }
