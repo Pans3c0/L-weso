@@ -44,14 +44,14 @@ export function Header() {
         <Link href="/shop" className="mr-6 flex items-center space-x-2">
           <Package className="h-6 w-6 text-primary" />
           <span className="font-bold font-headline sm:inline-block">
-            Mercado Vecinal
+            L-weso
           </span>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="flex items-center space-x-1">
              {session?.role === 'admin' && (
                 <Button variant="ghost" asChild>
-                    <Link href="/admin">Admin</Link>
+                    <Link href="/admin">Boss</Link>
                 </Button>
              )}
 

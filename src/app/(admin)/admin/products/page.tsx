@@ -121,12 +121,12 @@ export default function AdminProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  <span className="sr-only">Imagen</span>
+                <TableHead className="w-[64px] sm:w-[100px]">
+                  Imagen
                 </TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Stock</TableHead>
-                <TableHead className="hidden md:table-cell">
+                <TableHead className="hidden sm:table-cell">
                   Precio/g
                 </TableHead>
                 <TableHead>
@@ -146,7 +146,7 @@ export default function AdminProductsPage() {
               ) : (
                 products.map(product => (
                   <TableRow key={product.id}>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell>
                       <Image
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
@@ -162,7 +162,7 @@ export default function AdminProductsPage() {
                         {product.stockInGrams / 1000} kg
                       </Badge>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
+                    <TableCell className="hidden sm:table-cell">
                       {formatCurrency(product.pricePerGram)}
                     </TableCell>
                     <TableCell>

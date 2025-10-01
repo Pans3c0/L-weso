@@ -5,8 +5,8 @@ import { cn } from '@/lib/utils';
 import { SessionProvider } from '@/hooks/use-session';
 
 export const metadata: Metadata = {
-  title: 'Mercado Vecinal',
-  description: 'Tu mercado local, en línea.',
+  title: 'L-weso',
+  description: 'Tu barrio de confianza.',
 };
 
 export default function RootLayout({
