@@ -50,7 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (quantityInGrams > product.stockInGrams) {
         toast({
             title: 'Stock insuficiente',
-            description: `Solo quedan ${product.stockInGrams / 1000} kg de ${product.name}.`,
+            description: `Solo quedan ${product.stockInGrams} g de ${product.name}.`,
             variant: 'destructive'
         });
         return prevItems;
@@ -61,7 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (newQuantity > product.stockInGrams) {
             toast({
                 title: 'Stock insuficiente',
-                description: `No puedes añadir más. Solo quedan ${product.stockInGrams / 1000} kg de ${product.name}.`,
+                description: `No puedes añadir más. Solo quedan ${product.stockInGrams} g de ${product.name}.`,
                 variant: 'destructive'
             });
             return prevItems;
@@ -77,7 +77,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
     toast({
         title: 'Producto añadido',
-        description: `${(quantityInGrams / 1000).toFixed(2)} kg de ${product.name} añadidos al carrito.`,
+        description: `${quantityInGrams} g de ${product.name} añadidos al carrito.`,
     });
   }, [toast]);
 
@@ -87,7 +87,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (itemToUpdate && quantityInGrams > itemToUpdate.product.stockInGrams) {
           toast({
               title: 'Stock insuficiente',
-              description: `Solo quedan ${itemToUpdate.product.stockInGrams / 1000} kg.`,
+              description: `Solo quedan ${itemToUpdate.product.stockInGrams} g.`,
               variant: 'destructive'
           });
           return prevItems;

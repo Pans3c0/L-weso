@@ -152,7 +152,7 @@ export default function NotificationsPage() {
                 <CardContent>
                   <ul className="text-sm text-muted-foreground mb-4">
                     {req.items.map(item => (
-                      <li key={item.product.id}>{item.product.name} ({(item.quantityInGrams/1000).toFixed(2)} kg)</li>
+                      <li key={item.product.id}>{item.product.name} ({item.quantityInGrams} g)</li>
                     ))}
                   </ul>
 

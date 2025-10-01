@@ -46,7 +46,7 @@ export default function AdminRequestsPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
   };
   
   const getStatusVariant = (status: PurchaseRequest['status']) => {
@@ -198,7 +198,7 @@ function RequestItem({
                   />
                   <span>{item.product.name}</span>
                 </div>
-                <span>{(item.quantityInGrams / 1000).toFixed(3)} kg</span>
+                <span>{item.quantityInGrams} g</span>
               </li>
             ))}
           </ul>

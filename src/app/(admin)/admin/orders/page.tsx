@@ -114,7 +114,7 @@ function OrderCard({ order }: { order: PurchaseRequest }) {
                     {order.items.map(item => (
                         <li key={item.product.id} className="flex justify-between">
                             <span>{item.product.name}</span>
-                            <span className="font-mono">{(item.quantityInGrams/1000).toFixed(3)} kg</span>
+                            <span className="font-mono">{item.quantityInGrams} g</span>
                         </li>
                     ))}
                 </ul>

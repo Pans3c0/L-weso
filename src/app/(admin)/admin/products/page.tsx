@@ -92,7 +92,7 @@ export default function AdminProductsPage() {
   }
   
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 3 }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
   };
 
   return (
@@ -125,7 +125,7 @@ export default function AdminProductsPage() {
                   Imagen
                 </TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Stock</TableHead>
+                <TableHead>Stock (g)</TableHead>
                 <TableHead className="hidden sm:table-cell">
                   Precio/g
                 </TableHead>
@@ -159,7 +159,7 @@ export default function AdminProductsPage() {
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>
                       <Badge variant={product.stockInGrams > 0 ? 'outline' : 'destructive'}>
-                        {product.stockInGrams / 1000} kg
+                        {product.stockInGrams} g
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">

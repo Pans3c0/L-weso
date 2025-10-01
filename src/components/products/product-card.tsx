@@ -22,10 +22,9 @@ export function ProductCard({ product }: { product: Product }) {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 3 }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
   };
   
-  const stockInKg = product.stockInGrams / 1000;
   const placeholderImageUrl = 'https://picsum.photos/seed/placeholder/600/400';
 
   return (
@@ -47,8 +46,8 @@ export function ProductCard({ product }: { product: Product }) {
         <CardDescription className="text-muted-foreground text-sm mb-3 h-10">{product.description}</CardDescription>
         <div className="flex justify-between items-center text-sm">
             <p className="text-foreground font-semibold">{formatCurrency(product.pricePerGram)} / g</p>
-            <p className={`font-medium ${stockInKg < 1 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {stockInKg.toFixed(1)} kg disp.
+            <p className={`font-medium ${product.stockInGrams < 100 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {product.stockInGrams} g disp.
             </p>
         </div>
       </CardContent>
