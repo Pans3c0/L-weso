@@ -1,43 +1,42 @@
-
 [
   {
-    "id": "prod_1",
     "name": "Lemon Fresh",
     "description": "Polen tierno, made in Spain.",
-    "pricePerGram": 0.0045,
+    "pricePerGram": 5,
     "stockInGrams": 25000,
     "imageUrl": "https://images.unsplash.com/photo-1683008952375-410ae668e6b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmcmVzaCUyMHRvbWF0b2VzfGVufDB8fHx8MTc1OTEzNTAyOXww&ixlib=rb-4.1.0&q=80&w=1080",
     "imageHint": "fresh tomatoes",
-    "keywords": "tomate, rojo, ensalada, fresco, verdura"
+    "keywords": "tomate, rojo, ensalada, fresco, verdura",
+    "id": "prod_1"
   },
   {
-    "id": "prod_2",
     "name": "Horse Power",
     "description": "Made in France, Tierno y buen tufo.",
-    "pricePerGram": 0.0065,
+    "pricePerGram": 6.5,
     "stockInGrams": 15000,
     "imageUrl": "https://images.unsplash.com/photo-1664568218050-8068915c3b40?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyaXBlJTIwYXZvY2Fkb3N8ZW58MHx8fHwxNzU5MjI2MzcwfDA&ixlib=rb-4.1.0&q=80&w=1080",
     "imageHint": "ripe avocados",
-    "keywords": "hass, cremoso, fruta"
+    "keywords": "hass, cremoso, fruta",
+    "id": "prod_2"
   },
   {
-    "id": "prod_3",
     "name": "CR7",
     "description": "Comer decente.",
-    "pricePerGram": 0.0035,
+    "pricePerGram": 3.5,
     "stockInGrams": 5000,
     "imageUrl": "https://images.unsplash.com/photo-1618890512438-19730450f731?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhcnRpc2FuYWwlMjBicmVhZHxlbnwwfHx8fDE3NTkyMTI2MTN8MA&ixlib=rb-4.1.0&q=80&w=1080",
     "imageHint": "artisanal bread",
-    "keywords": "pan, masa madre, artesanal, panaderia, crujiente"
+    "keywords": "pan, masa madre, artesanal, panaderia, crujiente",
+    "id": "prod_3"
   },
   {
-    "id": "prod_1759228772828",
     "name": "Ferrari",
     "description": "Polen rubio de alta calidad.",
-    "pricePerGram": 0.005,
+    "pricePerGram": 4.7,
     "stockInGrams": 10000,
     "imageUrl": "https://images.unsplash.com/photo-1629274128491-36edfdc0d8cb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxvbGl2ZSUyMG9pbHxlbnwwfHx8fDE3NTkxNDU4NDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
     "imageHint": "olive oil",
-    "keywords": "Polen, rubio"
+    "keywords": "Polen, rubio",
+    "id": "prod_1759228772828"
   }
 ]

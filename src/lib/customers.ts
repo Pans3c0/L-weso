@@ -51,3 +51,14 @@ export async function saveCustomers(updatedCustomers: Customer[]): Promise<void>
     console.error("Failed to save customers to file.", e);
   }
 }
+
+/**
+ * Finds customers associated with a specific referral code.
+ * In a real app, this would query a database.
+ * @param referralCode - The seller's referral code to filter customers by.
+ * @returns A promise resolving to an array of Customer objects.
+ */
+export async function getCustomersByReferralCode(referralCode: string) {
+    const customers = await getAllCustomers();
+    return customers.filter(c => c.referralCode === referralCode);
+}

@@ -4,8 +4,6 @@ import type { PurchaseRequest } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 import { initialRequests } from '@/lib/mock-data';
-import { getAllCustomers } from './customers';
-
 
 // Path to the JSON file acting as the database for purchase requests.
 const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
@@ -86,14 +84,3 @@ export async function updateRequest(updatedRequest: PurchaseRequest): Promise<bo
     }
     return false;
 };
-
-/**
- * Finds customers associated with a specific referral code.
- * In a real app, this would query a database.
- * @param referralCode - The seller's referral code to filter customers by.
- * @returns A promise resolving to an array of Customer objects.
- */
-export async function getCustomersByReferralCode(referralCode: string) {
-    const customers = await getAllCustomers();
-    return customers.filter(c => c.referralCode === referralCode);
-}

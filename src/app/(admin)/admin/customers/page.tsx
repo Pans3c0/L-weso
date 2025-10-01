@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCustomersByReferralCode } from "@/lib/requests";
+import { getCustomersByReferralCode } from "@/lib/customers";
 import { Users } from 'lucide-react';
 
 
