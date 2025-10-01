@@ -10,7 +10,7 @@ import { useCart } from '@/hooks/use-cart';
 import { PlusCircle } from 'lucide-react';
 
 export function ProductCard({ product }: { product: Product }) {
-  const [quantity, setQuantity] = useState('100');
+  const [quantity, setQuantity] = useState('2');
   const { addToCart } = useCart();
 
   const handleAddToCart = (e: React.FormEvent) => {
@@ -47,7 +47,7 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="flex justify-between items-center text-sm">
             <p className="text-foreground font-semibold">{formatCurrency(product.pricePerGram)} / g</p>
             <p className={`font-medium ${product.stockInGrams < 100 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {product.stockInGrams} g disp.
+                {product.stockInGrams > 0 ? "Disponible" : "Agotado"}
             </p>
         </div>
       </CardContent>
