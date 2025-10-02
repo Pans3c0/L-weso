@@ -13,10 +13,9 @@ const customersFilePath = path.resolve(process.cwd(), 'src/lib/db/customers.json
  */
 async function initializeCustomersFile() {
   try {
-    await fs.ensureDir(path.dirname(customersFilePath));
     const exists = await fs.pathExists(customersFilePath);
     if (!exists) {
-      await fs.writeJson(customersFilePath, initialCustomers, { spaces: 2 });
+      await fs.outputJson(customersFilePath, initialCustomers, { spaces: 2 });
     }
   } catch (error) {
     console.error('Failed to initialize customers.json', error);
@@ -25,13 +24,12 @@ async function initializeCustomersFile() {
 
 /**
  * Retrieves all customers from the data source.
- * It now ensures the file is initialized before reading.
  * @returns A promise that resolves to an array of Customer objects.
  */
 export async function getAllCustomers(): Promise<Customer[]> {
-  await initializeCustomersFile(); // Ensure file exists before reading
   try {
-    const data = await fs.readJson(customersFilePath);
+    await initializeCustomersFile(); // Ensure file exists before reading
+    const data = await fs.readJson(customersFilePath, { throws: false });
     return data || [];
   } catch (e) {
     console.error("Could not read customers file, returning initial data.", e);
@@ -44,9 +42,8 @@ export async function getAllCustomers(): Promise<Customer[]> {
  * @param updatedCustomers - The full array of customers to save.
  */
 export async function saveCustomers(updatedCustomers: Customer[]): Promise<void> {
-  await initializeCustomersFile(); // Ensure file exists before writing
   try {
-    await fs.writeJson(customersFilePath, updatedCustomers, { spaces: 2 });
+    await fs.outputJson(customersFilePath, updatedCustomers, { spaces: 2 });
   } catch (e) {
     console.error("Failed to save customers to file.", e);
   }

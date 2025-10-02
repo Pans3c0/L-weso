@@ -14,10 +14,9 @@ const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json')
  */
 async function initializeRequestsFile() {
   try {
-    await fs.ensureDir(path.dirname(requestsFilePath));
     const exists = await fs.pathExists(requestsFilePath);
     if (!exists) {
-      await fs.writeJson(requestsFilePath, initialRequests, { spaces: 2 });
+      await fs.outputJson(requestsFilePath, initialRequests, { spaces: 2 });
     }
   } catch (error) {
     console.error('Failed to initialize requests.json', error);
@@ -29,9 +28,9 @@ async function initializeRequestsFile() {
  * @returns A promise that resolves to an array of PurchaseRequest objects.
  */
 export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
-    await initializeRequestsFile(); // Ensure file exists before reading
     try {
-        const data = await fs.readJson(requestsFilePath);
+        await initializeRequestsFile(); // Ensure file exists before reading
+        const data = await fs.readJson(requestsFilePath, { throws: false });
         return data || [];
     } catch (e) {
         console.error("Could not read requests file, returning fallback data.", e);
@@ -57,9 +56,8 @@ export async function getPurchaseRequestById(requestId: string): Promise<Purchas
  * @returns A promise that resolves when the file is written.
  */
 export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise<void> {
-    await initializeRequestsFile(); // Ensure file exists before writing
     try {
-        await fs.writeJson(requestsFilePath, requests, { spaces: 2 });
+        await fs.outputJson(requestsFilePath, requests, { spaces: 2 });
     } catch (e) {
         console.error("Failed to save requests to file.", e);
     }
