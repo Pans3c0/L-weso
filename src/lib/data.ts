@@ -11,7 +11,6 @@ const productsFilePath = path.resolve(process.cwd(), 'src/lib/db/products.json')
 /**
  * Initializes the products data file.
  * If the `products.json` file doesn't exist, it creates it with initial seed data.
- * This ensures the application has data to work with on first run.
  */
 async function initializeProductsFile() {
   try {
@@ -25,22 +24,18 @@ async function initializeProductsFile() {
   }
 }
 
-// Initialize the file when the server starts.
-initializeProductsFile();
-
 /**
  * Retrieves all products from the data source.
+ * It now ensures the file is initialized before reading.
  * @returns A promise that resolves to an array of Product objects.
  */
 export async function getAllProducts(): Promise<Product[]> {
+  await initializeProductsFile(); // Ensure file exists before reading
   try {
-    // Ensure the file exists before trying to read it.
-    await fs.ensureFile(productsFilePath);
     const data = await fs.readJson(productsFilePath);
     return data || [];
   } catch (e) {
     console.error("Could not read products file, returning initial data.", e);
-    // If reading fails, return the default mock data as a fallback.
     return initialProducts;
   }
 }
@@ -52,10 +47,10 @@ export async function getAllProducts(): Promise<Product[]> {
  * @returns A promise that resolves when the file has been written.
  */
 export async function saveProducts(updatedProducts: Product[]): Promise<void> {
+  await initializeProductsFile(); // Ensure file exists before writing
   try {
     await fs.writeJson(productsFilePath, updatedProducts, { spaces: 2 });
   } catch (e) {
     console.error("Failed to save products to file.", e);
-    // In a real app, you might want to throw the error to be handled by the caller.
   }
 }

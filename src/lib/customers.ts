@@ -23,15 +23,14 @@ async function initializeCustomersFile() {
   }
 }
 
-initializeCustomersFile();
-
 /**
  * Retrieves all customers from the data source.
+ * It now ensures the file is initialized before reading.
  * @returns A promise that resolves to an array of Customer objects.
  */
 export async function getAllCustomers(): Promise<Customer[]> {
+  await initializeCustomersFile(); // Ensure file exists before reading
   try {
-    await fs.ensureFile(customersFilePath);
     const data = await fs.readJson(customersFilePath);
     return data || [];
   } catch (e) {
@@ -45,6 +44,7 @@ export async function getAllCustomers(): Promise<Customer[]> {
  * @param updatedCustomers - The full array of customers to save.
  */
 export async function saveCustomers(updatedCustomers: Customer[]): Promise<void> {
+  await initializeCustomersFile(); // Ensure file exists before writing
   try {
     await fs.writeJson(customersFilePath, updatedCustomers, { spaces: 2 });
   } catch (e) {

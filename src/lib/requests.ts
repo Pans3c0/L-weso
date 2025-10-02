@@ -24,16 +24,13 @@ async function initializeRequestsFile() {
   }
 }
 
-// Initialize the file on server start.
-initializeRequestsFile();
-
 /**
  * Retrieves all purchase requests from the data source.
  * @returns A promise that resolves to an array of PurchaseRequest objects.
  */
 export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
+    await initializeRequestsFile(); // Ensure file exists before reading
     try {
-        await fs.ensureFile(requestsFilePath);
         const data = await fs.readJson(requestsFilePath);
         return data || [];
     } catch (e) {
@@ -60,6 +57,7 @@ export async function getPurchaseRequestById(requestId: string): Promise<Purchas
  * @returns A promise that resolves when the file is written.
  */
 export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise<void> {
+    await initializeRequestsFile(); // Ensure file exists before writing
     try {
         await fs.writeJson(requestsFilePath, requests, { spaces: 2 });
     } catch (e) {
