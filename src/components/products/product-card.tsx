@@ -46,7 +46,7 @@ export function ProductCard({ product }: { product: Product }) {
         <CardDescription className="text-muted-foreground text-sm mb-3 h-10">{product.description}</CardDescription>
         <div className="flex justify-between items-center text-sm">
             <p className="text-foreground font-semibold">{formatCurrency(product.pricePerGram)} / g</p>
-            <p className={`font-medium ${product.stockInGrams < 100 ? 'text-destructive' : 'text-muted-foreground'}`}>
+             <p className={`font-medium ${product.stockInGrams > 0 ? 'text-green-600' : 'text-destructive'}`}>
                 {product.stockInGrams > 0 ? "Disponible" : "Agotado"}
             </p>
         </div>
@@ -65,7 +65,7 @@ export function ProductCard({ product }: { product: Product }) {
             />
             <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground">g</span>
           </div>
-          <Button type="submit" size="icon" className="bg-primary hover:bg-primary/90" aria-label="Añadir al carrito">
+          <Button type="submit" size="icon" className="bg-primary hover:bg-primary/90" aria-label="Añadir al carrito" disabled={product.stockInGrams === 0}>
             <PlusCircle className="h-5 w-5 text-primary-foreground" />
           </Button>
         </form>

@@ -46,38 +46,34 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.product.id === product.id);
+      const totalStock = product.stockInGrams;
       
-      if (quantityInGrams > product.stockInGrams) {
+      const potentialQuantity = (existingItem ? existingItem.quantityInGrams : 0) + quantityInGrams;
+
+      if (potentialQuantity > totalStock) {
         toast({
             title: 'Stock insuficiente',
-            description: `Solo quedan ${product.stockInGrams} g de ${product.name}.`,
+            description: `Solo quedan ${totalStock}g de ${product.name} en total.`,
             variant: 'destructive'
         });
-        return prevItems;
+        return prevItems; // Do not update cart
       }
 
       if (existingItem) {
-        const newQuantity = existingItem.quantityInGrams + quantityInGrams;
-        if (newQuantity > product.stockInGrams) {
-            toast({
-                title: 'Stock insuficiente',
-                description: `No puedes añadir más. Solo quedan ${product.stockInGrams} g de ${product.name}.`,
-                variant: 'destructive'
-            });
-            return prevItems;
-        }
+        // Product is already in cart, just update quantity
         return prevItems.map(item =>
           item.product.id === product.id
-            ? { ...item, quantityInGrams: newQuantity }
+            ? { ...item, quantityInGrams: item.quantityInGrams + quantityInGrams }
             : item
         );
       }
       
+      // Product is not in cart, add it
       return [...prevItems, { product, quantityInGrams }];
     });
     toast({
         title: 'Producto añadido',
-        description: `${quantityInGrams} g de ${product.name} añadidos al carrito.`,
+        description: `${quantityInGrams}g de ${product.name} añadidos al carrito.`,
     });
   }, [toast]);
 

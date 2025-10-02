@@ -83,12 +83,16 @@ export default async function OrdersPage() {
 function OrderCard({ order }: { order: PurchaseRequest }) {
     const isPast = new Date(order.confirmationDate!) < new Date();
     
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    };
+
     return (
         <div className="border p-4 rounded-lg bg-card">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center">
                 <div>
                     <p className="font-semibold text-lg">{order.customerName}</p>
-                    <p className="text-sm text-muted-foreground">Pedido #{order.id.slice(-6)}</p>
+                    <p className="text-sm text-muted-foreground">Pedido #{order.id.slice(-6)} | <span className="font-bold">{formatCurrency(order.total)}</span></p>
                 </div>
                 <div className="mt-2 sm:mt-0 text-left sm:text-right">
                     <Badge variant={isPast ? 'secondary' : 'default'} className="flex items-center w-fit">

@@ -20,7 +20,7 @@ export const initialProducts: Product[] = [
     id: 'prod_1',
     name: 'Lemon Fresh',
     description: 'Polen tierno, made in Spain.',
-    pricePerGram: 0.0045,
+    pricePerGram: 5,
     stockInGrams: 25000,
     imageUrl: tomatoesImage.imageUrl,
     imageHint: tomatoesImage.imageHint,
@@ -30,7 +30,7 @@ export const initialProducts: Product[] = [
     id: 'prod_2',
     name: 'Horse Power',
     description: 'Made in France, Tierno y buen tufo.',
-    pricePerGram: 0.0065,
+    pricePerGram: 6.5,
     stockInGrams: 15000,
     imageUrl: avocadosImage.imageUrl,
     imageHint: avocadosImage.imageHint,
@@ -40,7 +40,7 @@ export const initialProducts: Product[] = [
     id: 'prod_3',
     name: 'CR7',
     description: 'Comer decente.',
-    pricePerGram: 0.0035,
+    pricePerGram: 3.5,
     stockInGrams: 5000,
     imageUrl: breadImage.imageUrl,
     imageHint: breadImage.imageHint,
@@ -50,7 +50,7 @@ export const initialProducts: Product[] = [
     id: 'prod_1759228772828',
     name: 'Ferrari',
     description: 'Polen rubio de alta calidad.',
-    pricePerGram: 0.005,
+    pricePerGram: 4.7,
     stockInGrams: 10000,
     imageUrl: oliveOilImage.imageUrl,
     imageHint: 'olive oil',
@@ -63,8 +63,8 @@ export const initialProducts: Product[] = [
  * In a real application, this would be stored in a database.
  */
 export const customers: Customer[] = [
-    { id: 'customer_123', name: 'Juan Pérez', username: 'juanperez', referralCode: 'tienda_admin' },
-    { id: 'customer_456', name: 'Maria García', username: 'mariagarcia', referralCode: 'tienda_admin' },
+    { id: 'customer_123', name: 'Juan Pérez', username: 'juanperez', referralCode: 'tienda_admin', password: 'password123' },
+    { id: 'customer_456', name: 'Maria García', username: 'mariagarcia', referralCode: 'tienda_admin', password: 'password' },
 ];
 
 /**
@@ -74,4 +74,3 @@ export const customers: Customer[] = [
 export const initialRequests: PurchaseRequest[] = [
     // The list is intentionally left empty to start fresh.
 ];
-
