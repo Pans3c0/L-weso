@@ -11,6 +11,7 @@ import {
   Package2,
   Store,
   Bell,
+  KeyRound,
 } from "lucide-react";
 import * as React from 'react';
 import type { PurchaseRequest } from "@/lib/types";
@@ -47,10 +48,11 @@ export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
         { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
         { href: "/admin/products", icon: Package, label: "Productos" },
         { href: "/admin/customers", icon: Users, label: "Clientes" },
+        { href: "/admin/referrals", icon: KeyRound, label: "Códigos de Referencia" },
         { href: "/admin/analytics", icon: LineChart, label: "Analíticas" },
     ];
     
-    const implementedRoutes = ["/admin/products", "/admin/requests", "/admin/dashboard", "/admin/orders", "/admin/customers"];
+    const implementedRoutes = ["/admin/products", "/admin/requests", "/admin/dashboard", "/admin/orders", "/admin/customers", "/admin/referrals"];
 
     return (
         <div className="flex h-full max-h-screen flex-col gap-2">
