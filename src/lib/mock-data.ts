@@ -1,15 +1,4 @@
-
 import type { Product, PurchaseRequest, Customer } from '@/lib/types';
-import { placeholderImages } from '@/lib/placeholder-images';
-
-// A simple map to easily access placeholder images by their ID.
-const imageMap = new Map(placeholderImages.map(img => [img.id, img]));
-
-const tomatoesImage = imageMap.get('tomatoes')!;
-const avocadosImage = imageMap.get('avocados')!;
-const breadImage = imageMap.get('bread')!;
-const goatCheeseImage = imageMap.get('goat-cheese')!;
-const oliveOilImage = imageMap.get('olive-oil')!;
 
 /**
  * Initial seed data for products.
@@ -22,8 +11,8 @@ export const initialProducts: Product[] = [
     description: 'Polen tierno, made in Spain.',
     pricePerGram: 5,
     stockInGrams: 25000,
-    imageUrl: tomatoesImage.imageUrl,
-    imageHint: tomatoesImage.imageHint,
+    imageUrl: '/images/tomate.jpg',
+    imageHint: 'fresh tomatoes',
     keywords: 'tomate, rojo, ensalada, fresco, verdura',
   },
   {
@@ -32,8 +21,8 @@ export const initialProducts: Product[] = [
     description: 'Made in France, Tierno y buen tufo.',
     pricePerGram: 6.5,
     stockInGrams: 15000,
-    imageUrl: avocadosImage.imageUrl,
-    imageHint: avocadosImage.imageHint,
+    imageUrl: '/images/aguacate.jpg',
+    imageHint: 'ripe avocados',
     keywords: 'aguacate, hass, cremoso, guacamole, fruta',
   },
   {
@@ -42,8 +31,8 @@ export const initialProducts: Product[] = [
     description: 'Comer decente.',
     pricePerGram: 3.5,
     stockInGrams: 5000,
-    imageUrl: breadImage.imageUrl,
-    imageHint: breadImage.imageHint,
+    imageUrl: '/images/pan.jpg',
+    imageHint: 'artisanal bread',
     keywords: 'pan, masa madre, artesanal, panaderia, crujiente',
   },
   {
@@ -52,7 +41,7 @@ export const initialProducts: Product[] = [
     description: 'Polen rubio de alta calidad.',
     pricePerGram: 4.7,
     stockInGrams: 10000,
-    imageUrl: oliveOilImage.imageUrl,
+    imageUrl: '/images/aceite.jpg',
     imageHint: 'olive oil',
     keywords: 'Polen, rubio'
   }

@@ -8,10 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCart } from '@/hooks/use-cart';
 import { PlusCircle } from 'lucide-react';
+import { useSession } from '@/hooks/use-session';
 
 export function ProductCard({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState('2');
   const { addToCart } = useCart();
+  const { session } = useSession();
 
   const handleAddToCart = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +27,7 @@ export function ProductCard({ product }: { product: Product }) {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
   };
   
-  const placeholderImageUrl = 'https://picsum.photos/seed/placeholder/600/400';
+  const placeholderImageUrl = '/images/placeholder.svg';
 
   return (
     <Card className="flex flex-col overflow-hidden h-full transition-shadow duration-300 hover:shadow-xl">
@@ -51,25 +53,27 @@ export function ProductCard({ product }: { product: Product }) {
             </p>
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
-        <form onSubmit={handleAddToCart} className="flex items-center w-full gap-2">
-          <div className="relative flex-grow">
-            <Input
-              type="number"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              className="pr-10"
-              min="1"
-              step="1"
-              aria-label="Cantidad en gramos"
-            />
-            <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground">g</span>
-          </div>
-          <Button type="submit" size="icon" className="bg-primary hover:bg-primary/90" aria-label="Añadir al carrito" disabled={product.stockInGrams === 0}>
-            <PlusCircle className="h-5 w-5 text-primary-foreground" />
-          </Button>
-        </form>
-      </CardFooter>
+      {session && (
+        <CardFooter className="p-4 pt-0">
+          <form onSubmit={handleAddToCart} className="flex items-center w-full gap-2">
+            <div className="relative flex-grow">
+              <Input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="pr-10"
+                min="1"
+                step="1"
+                aria-label="Cantidad en gramos"
+              />
+              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-muted-foreground">g</span>
+            </div>
+            <Button type="submit" size="icon" className="bg-primary hover:bg-primary/90" aria-label="Añadir al carrito" disabled={product.stockInGrams === 0}>
+              <PlusCircle className="h-5 w-5 text-primary-foreground" />
+            </Button>
+          </form>
+        </CardFooter>
+      )}
     </Card>
   );
 }
