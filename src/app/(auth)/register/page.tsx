@@ -47,7 +47,12 @@ export default function RegisterPage() {
         // Redirect to login page after successful registration
         router.push('/login');
       } else {
-        throw new Error(result.error || 'Ocurrió un error desconocido.');
+        // Use a more specific error message from the server action
+        form.setError('referralCode', {
+            type: 'manual',
+            message: result.error || 'No se pudo completar el registro.',
+        });
+        throw new Error(result.error);
       }
     } catch (error) {
       toast({
