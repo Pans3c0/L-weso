@@ -4,12 +4,14 @@
     "id": "customer_123",
     "name": "Juan Pérez",
     "username": "juanperez",
-    "referralCode": "tienda_admin"
+    "referralCode": "tienda_admin",
+    "password": "password123"
   },
   {
     "id": "customer_456",
-    "name": "Marias García",
+    "name": "Maria García",
     "username": "mariagarcia",
-    "referralCode": "tienda_admin"
+    "referralCode": "tienda_admin",
+    "password": "password"
   }
 ]

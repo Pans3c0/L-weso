@@ -35,6 +35,7 @@ export type Customer = {
     name: string;
     username: string;
     referralCode: string; // Every customer is linked to a seller's code
+    password?: string; // Storing password locally (for simulation)
 };
 
 export type SessionUser = {

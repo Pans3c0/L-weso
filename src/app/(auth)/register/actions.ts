@@ -9,7 +9,6 @@ const RegisterCustomerSchema = z.object({
   name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
   username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres'),
   referralCode: z.string().min(1, 'El código de referencia es obligatorio'),
-  // Password is not saved, but validated
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
 });
 
@@ -26,7 +25,7 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
     return { error: 'Datos de registro inválidos.' };
   }
 
-  const { name, username, referralCode } = parsedInput.data;
+  const { name, username, referralCode, password } = parsedInput.data;
 
   // In a real app, you would have a list of valid referral codes in a database.
   // Here, we'll just check against the hardcoded admin code for simplicity.
@@ -48,6 +47,7 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
       name,
       username,
       referralCode,
+      password, // Save the password
     };
     
     const updatedCustomers = [...allCustomers, newCustomer];

@@ -28,19 +28,9 @@ export async function loginAction(input: z.infer<typeof LoginSchema>): Promise<{
         const customers = await getAllCustomers();
         const customer = customers.find(c => c.username === username);
 
-        if (customer) {
-            let isValidPassword = false;
-            // Specific password for juanperez, default for others
-            if (customer.username === 'juanperez') {
-                isValidPassword = (password === 'password123');
-            } else {
-                isValidPassword = (password === 'password');
-            }
-
-            if (isValidPassword) {
-                const customerUser: SessionUser = { id: customer.id, name: customer.name, username: customer.username, role: 'customer' };
-                return { user: customerUser };
-            }
+        if (customer && customer.password === password) {
+            const customerUser: SessionUser = { id: customer.id, name: customer.name, username: customer.username, role: 'customer' };
+            return { user: customerUser };
         }
         
         // If no user was found or password was incorrect
