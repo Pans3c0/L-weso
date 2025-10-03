@@ -5,11 +5,6 @@ import webpush from 'web-push';
 import path from 'path';
 import fs from 'fs-extra';
 
-// This ensures that environment variables from .env file are loaded
-// especially for non-Next.js contexts like scripts or server actions run standalone.
-// Note: Next.js automatically handles .env for its server/client builds.
-// This is now handled at the execution context level (e.g., docker run -e)
-
 const subscriptionsFilePath = path.resolve(process.cwd(), 'src/lib/db/subscriptions.json');
 
 // VAPID keys should be stored in environment variables
@@ -17,11 +12,14 @@ const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 
 if (vapidPublicKey && vapidPrivateKey) {
+    console.log('VAPID keys loaded successfully. Push notifications are configured.');
     webpush.setVapidDetails(
         'mailto:example@your-domain.com', // Replace with your contact email
         vapidPublicKey,
         vapidPrivateKey
     );
+} else {
+    console.warn('VAPID keys not found in environment variables. Push notifications will be disabled.');
 }
 
 /**
@@ -30,6 +28,11 @@ if (vapidPublicKey && vapidPrivateKey) {
  */
 async function getSubscriptions(): Promise<Record<string, PushSubscription>> {
     try {
+        const fileExists = await fs.pathExists(subscriptionsFilePath);
+        if (!fileExists) {
+            await fs.outputJson(subscriptionsFilePath, {}, { spaces: 2 });
+            return {};
+        }
         const data = await fs.readJson(subscriptionsFilePath, { throws: false });
         if (!data) {
             await fs.outputJson(subscriptionsFilePath, {}, { spaces: 2 });
