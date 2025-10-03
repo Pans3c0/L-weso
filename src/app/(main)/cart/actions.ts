@@ -71,7 +71,7 @@ export async function submitPurchaseRequestAction(input: {
     allRequests.unshift(newRequest);
     await savePurchaseRequests(allRequests);
     
-    // Notify the seller that a new request has been submitted
+    // Notificacion al vendedor
     await sendPushNotification(sellerId, {
       title: '¡Nueva solicitud de compra!',
       body: `Has recibido una nueva solicitud de ${customer.name} por un total de ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total)}.`,

@@ -59,7 +59,7 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     if (!isEditing) {
        await sendPushNotification(request.customerId, {
         title: '¡Tu pedido ha sido confirmado!',
-        body: `Tu pedido #${request.id.slice(-6)} está listo para ser recogido/entregado.`,
+        body: `Tu pedido de ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(request.total)} ha sido confirmado.`,
         url: '/notifications'
       });
     }
