@@ -22,10 +22,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-<<<<<<< HEAD
-=======
-import { getAllProducts, saveProducts } from '@/lib/data';
->>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
 import type { Product } from '@/lib/types';
 import { ProductForm } from '@/components/admin/product-form';
 import { saveProductAction, deleteProductAction } from './actions';
@@ -43,19 +39,14 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function AdminProductsPage() {
-<<<<<<< HEAD
   const { toast } = useToast();
   const { session } = useSession();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-=======
-  const [products, setProducts] = React.useState<Product[]>([]);
->>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
   const [editingProduct, setEditingProduct] = React.useState<Product | undefined>(undefined);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
-<<<<<<< HEAD
   const fetchProducts = React.useCallback(async () => {
     if (!session?.sellerId) return;
     setIsLoading(true);
@@ -92,25 +83,6 @@ export default function AdminProductsPage() {
     
     await saveProductAction(productToSave);
     await fetchProducts(); 
-=======
-  React.useEffect(() => {
-    // This is a client component, but we can fetch server data initially.
-    // For simplicity, we're using a client-side fetch pattern here.
-    // In a real-world app, you might fetch this in a server component and pass it down.
-    setProducts(getAllProducts());
-  }, []);
-
-  const handleProductSave = (product: Product) => {
-    let updatedProducts;
-    if (editingProduct) {
-      updatedProducts = products.map(p => p.id === product.id ? product : p);
-    } else {
-      const newProduct = { ...product, id: `prod_${Date.now()}` };
-      updatedProducts = [...products, newProduct];
-    }
-    saveProducts(updatedProducts);
-    setProducts(updatedProducts);
->>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
     setIsSheetOpen(false);
     setEditingProduct(undefined);
     toast({ title: 'Producto guardado', description: `El producto "${productData.name}" ha sido guardado.` });
@@ -178,48 +150,10 @@ export default function AdminProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-<<<<<<< HEAD
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin" />
-=======
-              {products.map(product => (
-                <TableRow key={product.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={product.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={product.imageUrl || 'https://placehold.co/64x64/F5F5F5/696969?text=?'}
-                      width="64"
-                      data-ai-hint={product.imageHint}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.stockInGrams > 0 ? 'outline' : 'destructive'}>
-                      {product.stockInGrams / 1000} kg
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {formatCurrency(product.pricePerGram * 1000)}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleEdit(product)}>Editar</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
->>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
                   </TableCell>
                 </TableRow>
               ) : products.length === 0 ? (

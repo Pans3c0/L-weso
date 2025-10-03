@@ -3,7 +3,7 @@
 import type { Customer } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
-import { customers as initialCustomers } from '@/lib/mock-data';
+import { initialCustomers } from '@/lib/mock-data';
 
 const customersFilePath = path.resolve(process.cwd(), 'src/lib/db/customers.json');
 
@@ -14,7 +14,7 @@ const customersFilePath = path.resolve(process.cwd(), 'src/lib/db/customers.json
  */
 export async function getAllCustomers(sellerId?: string): Promise<Customer[]> {
   try {
-    const fileExists = await fs.pathorEexists(customersFilePath);
+    const fileExists = await fs.pathExists(customersFilePath);
     let allCustomers: Customer[];
     if (!fileExists) {
       await fs.outputJson(customersFilePath, initialCustomers, { spaces: 2 });

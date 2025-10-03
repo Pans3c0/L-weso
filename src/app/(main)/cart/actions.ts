@@ -1,15 +1,10 @@
 'use server';
 
 import { z } from 'zod';
-<<<<<<< HEAD
 import { getPurchaseRequests, savePurchaseRequests } from '@/lib/requests';
 import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { getAllCustomers } from '@/lib/customers';
-=======
-import { getPurchaseRequests, savePurchaseRequests, customers } from '@/lib/requests';
-import type { CartItem, PurchaseRequest } from '@/lib/types';
->>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
 
 const ProductSchema = z.object({
   id: z.string(),
@@ -71,7 +66,6 @@ export async function submitPurchaseRequestAction(input: {
       createdAt: new Date().toISOString(),
     };
     
-<<<<<<< HEAD
     const allRequests = await getPurchaseRequests();
     allRequests.unshift(newRequest);
     await savePurchaseRequests(allRequests);
@@ -79,14 +73,6 @@ export async function submitPurchaseRequestAction(input: {
     revalidatePath(`/admin/requests`); // Revalidate for the specific seller
     revalidatePath(`/admin/customers`);
 
-=======
-    const allRequests = getPurchaseRequests();
-    allRequests.unshift(newRequest);
-    savePurchaseRequests(allRequests);
-    
-    console.log('New purchase request submitted:', newRequest);
-    
->>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
     return { success: true, requestId: newRequest.id };
 
   } catch (error) {

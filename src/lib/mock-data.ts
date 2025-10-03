@@ -1,4 +1,4 @@
-import type { Product, PurchaseRequest, Customer, Seller } from '@/lib/types';
+import type { Product, PurchaseRequest, Customer, Seller, ReferralCode } from '@/lib/types';
 
 /**
  * Initial seed data for sellers.
@@ -42,7 +42,7 @@ export const initialProducts: Product[] = [
  * Mock data for customers.
  * In a real application, this would be stored in a database.
  */
-export const customers: Customer[] = [
+export const initialCustomers: Customer[] = [
     { id: 'customer_123', sellerId: 'seller_1', name: 'Juan Pérez', username: 'juanperez', referralCode: 'tienda_admin', password: 'password123' },
 ];
 
@@ -57,6 +57,6 @@ export const initialRequests: PurchaseRequest[] = [
 /**
  * Initial seed data for referral codes.
  */
-export const initialReferralCodes = [
+export const initialReferralCodes: ReferralCode[] = [
     { code: 'REF-INIT1', sellerId: 'seller_1' }
 ];

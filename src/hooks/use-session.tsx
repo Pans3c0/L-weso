@@ -1,15 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import type { SessionUser } from '@/lib/types';
 
-type UserRole = 'admin' | 'customer';
-
-interface SessionUser {
-  id: string;
-  name: string;
-  username: string;
-  role: UserRole;
-}
 
 interface SessionContextType {
   session: SessionUser | null;
@@ -46,8 +39,15 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback((user: SessionUser) => {
     try {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-      setSession(user);
+      const userToSave: SessionUser = {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        role: user.role,
+        sellerId: user.sellerId, // Ensure sellerId is explicitly saved
+      };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(userToSave));
+      setSession(userToSave);
     } catch (error) {
       console.error("Failed to save session to localStorage", error);
     }
