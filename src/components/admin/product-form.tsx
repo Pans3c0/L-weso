@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/types';
 import { uploadImageAction } from '@/app/(admin)/admin/products/actions';
-import { improveDescriptionAction } from '@/ai/actions/improve-product-description';
-import { Loader2, Upload, Sparkles } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Loader2, Upload } from 'lucide-react';
 
 const productSchema = z.object({
   name: z.string().min(3, 'El nombre es obligatorio'),
@@ -33,9 +31,7 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
-  const { toast } = useToast();
   const [isSaving, setIsSaving] = React.useState(false);
-  const [isImproving, setIsImproving] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string | null>(product?.imageUrl || null);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -51,9 +47,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       imageHint: product?.imageHint || '',
     },
   });
-  
-  const currentName = useWatch({ control: form.control, name: 'name' });
-  const currentDescription = useWatch({ control: form.control, name: 'description' });
 
   React.useEffect(() => {
     form.reset({
@@ -100,35 +93,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }
   };
 
-  const handleImproveDescription = async () => {
-    setIsImproving(true);
-    try {
-      const result = await improveDescriptionAction({
-        productName: currentName,
-        currentDescription: currentDescription,
-      });
-
-      if (result.success && result.improvedDescription) {
-        form.setValue('description', result.improvedDescription, { shouldValidate: true });
-        toast({
-          title: 'Descripción Mejorada',
-          description: 'La IA ha generado una nueva descripción para tu producto.',
-        });
-      } else {
-        throw new Error(result.error || 'No se pudo mejorar la descripción.');
-      }
-    } catch (e) {
-      toast({
-        title: 'Error de IA',
-        description: (e as Error).message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsImproving(false);
-    }
-  };
-
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4 overflow-y-auto max-h-[calc(100vh-10rem)] pr-4">
@@ -174,16 +138,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             <FormItem>
               <div className='flex justify-between items-center'>
                 <FormLabel>Descripción</FormLabel>
-                 <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={handleImproveDescription}
-                    disabled={isImproving || !currentName}
-                  >
-                    {isImproving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                    Mejorar con IA
-                  </Button>
               </div>
               <FormControl><Textarea className="min-h-[120px]" {...field} /></FormControl>
               <FormMessage />
