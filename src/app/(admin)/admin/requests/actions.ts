@@ -1,7 +1,11 @@
 'use server';
 
 import { z } from 'zod';
+<<<<<<< HEAD
 import { getPurchaseRequestById, updateRequest } from '@/lib/requests';
+=======
+import { getPurchaseRequests, updateRequest } from '@/lib/requests';
+>>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
 import type { PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { sendPushNotification } from '@/lib/push';
@@ -29,8 +33,15 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     return { error: 'Datos de confirmación inválidos.' };
   }
 
+<<<<<<< HEAD
   const { requestId, confirmationDate, sellerNote, isEditing } = parsedInput.data;
   
+=======
+  const { requestId, confirmationDate, sellerNote } = parsedInput.data;
+  
+  const purchaseRequests = getPurchaseRequests();
+
+>>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
   try {
     const request = await getPurchaseRequestById(requestId);
     if (!request) {

@@ -1,6 +1,10 @@
 'use client';
 
 import * as React from 'react';
+<<<<<<< HEAD
+=======
+import { getPurchaseRequests } from '@/lib/requests';
+>>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
 import type { PurchaseRequest } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +24,7 @@ import { useSession } from '@/hooks/use-session';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminRequestsPage() {
+<<<<<<< HEAD
   const { session } = useSession();
   const { toast } = useToast();
   const [requests, setRequests] = React.useState<PurchaseRequest[]>([]);
@@ -46,6 +51,15 @@ export default function AdminRequestsPage() {
     fetchAndSetRequests();
   }, [fetchAndSetRequests]);
   
+=======
+  const [requests, setRequests] = React.useState<PurchaseRequest[]>([]);
+  const [selectedRequest, setSelectedRequest] = React.useState<PurchaseRequest | null>(null);
+
+  React.useEffect(() => {
+    setRequests(getPurchaseRequests());
+  }, []);
+
+>>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
   const handleConfirmSuccess = (updatedRequest: PurchaseRequest) => {
     setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
     setSelectedRequest(null);
@@ -81,7 +95,7 @@ export default function AdminRequestsPage() {
   }
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
-  const processedRequests = requests.filter(r => r.status !== 'pending');
+  const processedRequests = requests.filter(r => r.status !== 'pending').sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
 
   return (

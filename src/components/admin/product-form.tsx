@@ -61,11 +61,22 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     });
   }, [product, form]);
 
+<<<<<<< HEAD
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
     await onSave(data);
     setIsSaving(false);
+=======
+  const onSubmit = (data: ProductFormValues) => {
+    const finalData: Product = {
+        ...data,
+        id: product?.id || '', // ID will be set by parent component for new products
+        imageUrl: data.imageUrl || '',
+    }
+    onSave(finalData);
+    toast({ title: 'Producto guardado', description: `El producto "${data.name}" ha sido guardado.` });
+>>>>>>> e4739d1 (La app me esta dando problemas durante su uso, ayudame a resolverlas. Te)
   };
   
   const handleImproveDescription = async () => {
