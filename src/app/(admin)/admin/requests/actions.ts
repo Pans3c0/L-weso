@@ -151,3 +151,36 @@ export async function sendTestNotificationAction(userId: string) {
         return { error: 'Failed to send test notification.' };
     }
 }
+
+
+const EmergencyNotificationSchema = z.object({
+  senderId: z.string(),
+  senderName: z.string(),
+});
+
+/**
+ * Server Action: Sends an emergency notification to the master admin.
+ * @param input - The sender's details.
+ * @returns A success or error object.
+ */
+export async function sendEmergencyNotificationAction(input: z.infer<typeof EmergencyNotificationSchema>) {
+  const parsedInput = EmergencyNotificationSchema.safeParse(input);
+  if (!parsedInput.success) {
+    return { error: 'Datos inválidos.' };
+  }
+
+  const { senderName } = parsedInput.data;
+  const masterAdminId = 'seller_1'; // Hardcoded master admin ID
+
+  try {
+    await sendPushNotification(masterAdminId, {
+      title: "¡ALERTA DE EMERGENCIA RECIBIDA!",
+      body: `Activada por ${senderName}. Ponte en contacto con el usuario de inmediato.`,
+      url: "/admin/dashboard" // Or a specific emergency dashboard
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to send emergency notification:", error);
+    return { error: 'No se pudo enviar la alerta de emergencia.' };
+  }
+}

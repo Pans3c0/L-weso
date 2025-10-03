@@ -1,7 +1,8 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
-import { Package, ShoppingCart, Bell, User, LogIn, LogOut, Wrench, BellPlus, Info } from 'lucide-react';
+import { Package, ShoppingCart, Bell, User, LogIn, LogOut, Wrench, BellPlus, Info, Siren } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
@@ -19,17 +20,32 @@ import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { sendEmergencyNotificationAction } from '@/app/(admin)/admin/requests/actions';
+import { useToast } from '@/hooks/use-toast';
 
 export function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
   const { session, logout, isLoading } = useSession();
+  const { toast } = useToast();
   const { notificationCount } = useNotifications();
   const {
     isUnsupported,
     userConsent,
     requestPermission,
   } = usePushNotifications();
+  const [isSendingEmergency, setIsSendingEmergency] = React.useState(false);
 
 
   const handleLogout = () => {
@@ -46,6 +62,23 @@ export function Header() {
     return name.substring(0, 2).toUpperCase();
   }
   
+  const handleEmergency = async () => {
+    if (!session) return;
+    setIsSendingEmergency(true);
+    try {
+        const result = await sendEmergencyNotificationAction({ senderId: session.id, senderName: session.name });
+        if (result.success) {
+            toast({ title: "Alerta Enviada", description: "El administrador principal ha sido notificado de la emergencia." });
+        } else {
+            throw new Error(result.error);
+        }
+    } catch(e) {
+        toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
+    } finally {
+        setIsSendingEmergency(false);
+    }
+  };
+
   const showCustomerNotifications = session?.role === 'customer' && notificationCount > 0;
 
   return (
@@ -73,6 +106,40 @@ export function Header() {
                     </TooltipContent>
                   </Tooltip>
                 )}
+                
+                <AlertDialog>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" size="icon" aria-label="Alerta de emergencia">
+                                    <Siren className="h-5 w-5" />
+                                </Button>
+                            </AlertDialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Enviar alerta de emergencia</p>
+                        </TooltipContent>
+                    </Tooltip>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Estás seguro de que quieres enviar una alerta de emergencia?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Esta acción notificará inmediatamente al administrador principal sobre un problema. Úsalo solo en caso de una emergencia real.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel disabled={isSendingEmergency}>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleEmergency}
+                                disabled={isSendingEmergency}
+                                className="bg-destructive hover:bg-destructive/90"
+                            >
+                                 {isSendingEmergency ? "Enviando..." : "Sí, Enviar Alerta"}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+
 
                 {userConsent !== 'granted' && !isUnsupported && (
                     <Tooltip>
