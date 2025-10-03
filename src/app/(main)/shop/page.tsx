@@ -17,10 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getSellersAction, getCustomerSellerRelationsAction } from './actions';
-import { associateCustomerWithSellerAction } from '@/app/(admin)/admin/referrals/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 export default function ShopPage() {
   const { toast } = useToast();
@@ -31,8 +28,6 @@ export default function ShopPage() {
   const [isLoadingSellers, setIsLoadingSellers] = React.useState(true);
   const [isLoadingProducts, setIsLoadingProducts] = React.useState(false);
   const { session, isLoading: isLoadingSession } = useSession();
-  const [referralCode, setReferralCode] = React.useState('');
-  const [isAssociating, setIsAssociating] = React.useState(false);
 
   const fetchSellersAndRelations = React.useCallback(async () => {
     setIsLoadingSellers(true);
@@ -93,29 +88,6 @@ export default function ShopPage() {
       fetchProducts();
     }
   }, [selectedSeller]);
-
-  const handleAssociateCode = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!session || !referralCode) return;
-    setIsAssociating(true);
-    try {
-      const result = await associateCustomerWithSellerAction({ customerId: session.id, referralCode });
-      if (result.success) {
-        toast({ title: '¡Tienda Añadida!', description: 'Ahora puedes comprar en esta nueva tienda.' });
-        setReferralCode('');
-        await fetchSellersAndRelations(); // Refetch sellers to update the dropdown
-        if (result.newSellerId) {
-          setSelectedSeller(result.newSellerId); // Switch to the newly added store
-        }
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
-    } finally {
-      setIsAssociating(false);
-    }
-  }
 
   if (isLoadingSession || isLoadingSellers) {
     return (
@@ -181,28 +153,6 @@ export default function ShopPage() {
                     </Link>
                 </p>
             </CardContent>
-        </Card>
-      )}
-
-      {session?.role === 'customer' && (
-        <Card className="max-w-lg mx-auto mb-8">
-          <CardContent className='pt-6'>
-            <form onSubmit={handleAssociateCode} className="space-y-4">
-              <Label htmlFor="referral-code" className='flex items-center'><KeyRound className='mr-2'/>Añadir una nueva tienda</Label>
-              <div className="flex gap-2">
-                <Input 
-                  id="referral-code"
-                  placeholder="Introduce el código de otra tienda"
-                  value={referralCode}
-                  onChange={(e) => setReferralCode(e.target.value)}
-                />
-                <Button type="submit" disabled={isAssociating || !referralCode}>
-                  {isAssociating ? <Loader2 className='animate-spin' /> : 'Añadir'}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">Si otro vendedor te ha dado un código de referencia, introdúcelo aquí para acceder a su tienda.</p>
-            </form>
-          </CardContent>
         </Card>
       )}
         

@@ -26,7 +26,6 @@ export function Header() {
   const { session, logout, isLoading } = useSession();
   const { notificationCount } = useNotifications();
   const {
-    isSubscribed,
     isUnsupported,
     userConsent,
     requestPermission,
@@ -64,19 +63,6 @@ export function Header() {
               <Skeleton className='w-24 h-8' />
             ) : session ? (
               <>
-                {userConsent === 'granted' && !isSubscribed && (
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Reactivar notificaciones">
-                               <BellPlus className="h-5 w-5 text-amber-500" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                           <p>Reactivar notificaciones</p>
-                        </TooltipContent>
-                    </Tooltip>
-                )}
-
                 {isUnsupported && (
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -91,7 +77,7 @@ export function Header() {
                 {userConsent !== 'granted' && !isUnsupported && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Activar notificaciones">
+                            <Button variant="ghost" size="icon" onClick={() => requestPermission(session.id)} aria-label="Activar notificaciones">
                                <BellPlus className="h-5 w-5" />
                             </Button>
                         </TooltipTrigger>

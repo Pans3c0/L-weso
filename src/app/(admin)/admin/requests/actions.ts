@@ -132,3 +132,22 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
     return { error: 'No se pudo notificar el retraso.' };
   }
 }
+
+/**
+ * Server Action: Sends a test notification to a specific user.
+ * @param userId - The ID of the user to send the notification to.
+ * @returns A success or error object.
+ */
+export async function sendTestNotificationAction(userId: string) {
+    try {
+        await sendPushNotification(userId, {
+            title: "¡Bienvenido a Mercado Vecinal!",
+            body: "Ahora recibirás notificaciones importantes.",
+            url: "/"
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to send test notification:", error);
+        return { error: 'Failed to send test notification.' };
+    }
+}

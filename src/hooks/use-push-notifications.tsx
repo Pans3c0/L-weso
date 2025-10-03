@@ -1,14 +1,14 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { useSession } from './use-session';
 import { useToast } from './use-toast';
+import { sendTestNotificationAction } from '@/app/(admin)/admin/requests/actions';
 
 interface PushNotificationsContextType {
   isSubscribed: boolean;
   isUnsupported: boolean;
   userConsent: NotificationPermission;
-  requestPermission: () => void;
+  requestPermission: (userId: string) => void;
 }
 
 const PushNotificationsContext = createContext<PushNotificationsContextType | undefined>(undefined);
@@ -29,7 +29,6 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export function PushNotificationsProvider({ children }: { children: ReactNode }) {
-  const { session } = useSession();
   const { toast } = useToast();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isUnsupported, setIsUnsupported] = useState(false);
@@ -74,8 +73,8 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
 
   }, []);
 
-  const requestPermission = useCallback(async () => {
-     if (isUnsupported || !session) return;
+  const requestPermission = useCallback(async (userId: string) => {
+     if (isUnsupported || !userId) return;
 
      if (userConsent === 'denied') {
         toast({
@@ -110,9 +109,6 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
 
-        // The user ID to save is the session ID, which could be a customerId or a sellerId
-        const userId = session.id;
-
         await fetch('/api/save-subscription', {
             method: 'POST',
             headers: {
@@ -124,8 +120,11 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
         setIsSubscribed(true);
         toast({
             title: '¡Notificaciones activadas!',
-            description: 'Te avisaremos sobre eventos importantes.',
+            description: 'Te avisaremos sobre eventos importantes. Enviando una prueba...',
         });
+
+        // Send a welcome notification to test the service
+        await sendTestNotificationAction(userId);
 
     } catch (error) {
         console.error('Failed to subscribe to push notifications', error);
@@ -135,7 +134,7 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             variant: 'destructive',
         });
     }
-  }, [isUnsupported, session, userConsent, toast]);
+  }, [isUnsupported, userConsent, toast]);
 
   const contextValue = {
     isSubscribed,

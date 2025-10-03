@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { KeyRound, User } from 'lucide-react';
+import { KeyRound, User, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Loader2 } from 'lucide-react';
 import { useSession } from '@/hooks/use-session';
 import { redirect } from 'next/navigation';
+import { associateCustomerWithSellerAction } from '@/app/(admin)/admin/referrals/actions';
+import { Label } from '@/components/ui/label';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, 'La contraseña actual es obligatoria.'),
@@ -30,6 +31,8 @@ export default function AccountPage() {
   const { toast } = useToast();
   const { session, isLoading: isSessionLoading } = useSession();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [referralCode, setReferralCode] = React.useState('');
+  const [isAssociating, setIsAssociating] = React.useState(false);
 
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -77,6 +80,26 @@ export default function AccountPage() {
     }, 1000);
   };
   
+  const handleAssociateCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session || !referralCode) return;
+    setIsAssociating(true);
+    try {
+      const result = await associateCustomerWithSellerAction({ customerId: session.id, referralCode });
+      if (result.success) {
+        toast({ title: '¡Tienda Añadida!', description: 'Ahora puedes comprar en esta nueva tienda.' });
+        setReferralCode('');
+        // Potentially refetch associated sellers if displayed on this page
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
+    } finally {
+      setIsAssociating(false);
+    }
+  }
+
   if (isSessionLoading || !session) {
     return (
         <div className="flex justify-center items-center min-h-[50vh]">
@@ -110,6 +133,41 @@ export default function AccountPage() {
       </Card>
 
       <Separator className="my-8" />
+
+      {session.role === 'customer' && (
+        <>
+          <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center">
+                    <KeyRound className="w-6 h-6 mr-3" />
+                    Añadir una nueva tienda
+                </CardTitle>
+                <CardDescription>
+                    Si otro vendedor te ha dado un código de referencia, introdúcelo aquí para acceder a su tienda.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleAssociateCode} className="space-y-4">
+                    <div className="flex gap-2 items-end">
+                        <div className='flex-grow'>
+                            <Label htmlFor="referral-code">Código de Referencia</Label>
+                            <Input
+                                id="referral-code"
+                                placeholder="Introduce el código de otra tienda"
+                                value={referralCode}
+                                onChange={(e) => setReferralCode(e.target.value)}
+                            />
+                        </div>
+                        <Button type="submit" disabled={isAssociating || !referralCode}>
+                            {isAssociating ? <Loader2 className='animate-spin' /> : 'Añadir'}
+                        </Button>
+                    </div>
+                </form>
+            </CardContent>
+          </Card>
+          <Separator className="my-8" />
+        </>
+      )}
 
       <Card>
         <CardHeader>
