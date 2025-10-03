@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, ShoppingCart, Bell, User, LogIn, LogOut } from 'lucide-react';
+import { Package, ShoppingCart, Bell, User, LogIn, LogOut, BellPlus, Info } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
@@ -17,12 +17,21 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '../ui/skeleton';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
   const { session, logout, isLoading } = useSession();
   const { notificationCount } = useNotifications(session?.id);
+  const {
+    isSubscribed,
+    isUnsupported,
+    userConsent,
+    requestPermission,
+  } = usePushNotifications();
+
 
   const handleLogout = () => {
     logout();
@@ -59,6 +68,29 @@ export function Header() {
               <Skeleton className='w-24 h-8' />
             ) : session ? (
               <>
+                {userConsent === 'granted' && !isSubscribed && (
+                    <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Reactivar notificaciones">
+                       <BellPlus className="h-5 w-5 text-amber-500" />
+                    </Button>
+                )}
+
+                {isUnsupported && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-5 w-5 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Las notificaciones push solo están disponibles en un entorno seguro (HTTPS o localhost).</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
+                {userConsent !== 'granted' && !isUnsupported && (
+                    <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Activar notificaciones">
+                       <BellPlus className="h-5 w-5" />
+                    </Button>
+                )}
+
                  <Button
                   variant="ghost"
                   size="icon"
