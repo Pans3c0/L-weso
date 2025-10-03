@@ -43,3 +43,21 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+*.tar
+
+
+
+# Archivos de la build de Gradle
+build/
+.gradle/
+*.jar
+*.war
+*.zip
+
+# Archivos de IDE (Eclipse/VS Code)
+.classpath
+.project
+.settings/
+.idea/
+*.iml
