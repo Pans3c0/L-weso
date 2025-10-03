@@ -9,19 +9,19 @@ const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json')
 
 /**
  * Retrieves all purchase requests from the data source.
+ * If the file doesn't exist or is empty, it initializes it as an empty array.
  * @returns A promise that resolves to an array of PurchaseRequest objects.
  */
 export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
     try {
-        await fs.ensureFile(requestsFilePath)
         const data = await fs.readJson(requestsFilePath, { throws: false });
-        if (!data) {
+        if (!data) { // Check if file is non-existent or empty
              await fs.outputJson(requestsFilePath, initialRequests, { spaces: 2 });
              return initialRequests;
         }
         return data;
     } catch (e) {
-        console.error("Could not read requests file, returning fallback data.", e);
+        console.error("Could not read or initialize requests file, returning fallback data.", e);
         return initialRequests;
     }
 }

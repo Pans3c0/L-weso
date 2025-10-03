@@ -8,33 +8,23 @@ import { initialProducts } from '@/lib/mock-data';
 // Resolve the path to the JSON file that acts as the database for products.
 const productsFilePath = path.resolve(process.cwd(), 'src/lib/db/products.json');
 
-/**
- * Initializes the products data file.
- * If the `products.json` file doesn't exist, it creates it with initial seed data.
- * This ensures the application has data to work with on first run.
- */
-async function initializeProductsFile() {
-  try {
-    const exists = await fs.pathExists(productsFilePath);
-    if (!exists) {
-      await fs.outputJson(productsFilePath, initialProducts, { spaces: 2 });
-    }
-  } catch (error) {
-    console.error('Failed to initialize products.json', error);
-  }
-}
 
 /**
  * Retrieves all products from the data source.
+ * If the data file does not exist or is empty, it initializes it with seed data.
  * @returns A promise that resolves to an array of Product objects.
  */
 export async function getAllProducts(): Promise<Product[]> {
   try {
-    await initializeProductsFile(); // Ensure file exists before reading
     const data = await fs.readJson(productsFilePath, { throws: false });
-    return data || [];
+    // If file doesn't exist, is null, or is an empty array, initialize it.
+    if (!data || data.length === 0) {
+      await fs.outputJson(productsFilePath, initialProducts, { spaces: 2 });
+      return initialProducts;
+    }
+    return data;
   } catch (e) {
-    console.error("Could not read products file, returning initial data.", e);
+    console.error("Could not read or initialize products file, returning fallback data.", e);
     // If reading fails, return the default mock data as a fallback.
     return initialProducts;
   }

@@ -1,4 +1,3 @@
-// THIS IS A NEW FILE
 'use server';
 
 import path from 'path';
@@ -7,31 +6,21 @@ import fs from 'fs-extra';
 const codesFilePath = path.resolve(process.cwd(), 'src/lib/db/referral-codes.json');
 
 /**
- * Ensures the referral codes file exists.
- */
-async function initializeFile() {
-  try {
-    const exists = await fs.pathExists(codesFilePath);
-    if (!exists) {
-      // Create with an initial placeholder code if it doesn't exist
-      await fs.outputJson(codesFilePath, ['REF-INIT1'], { spaces: 2 });
-    }
-  } catch (error) {
-    console.error('Failed to initialize referral-codes.json', error);
-  }
-}
-
-/**
  * Retrieves all active referral codes.
+ * If the file doesn't exist or is empty, it's initialized with a placeholder.
  * @returns A promise that resolves to an array of code strings.
  */
 export async function getReferralCodes(): Promise<string[]> {
   try {
-    await initializeFile();
     const data = await fs.readJson(codesFilePath, { throws: false });
-    return data || [];
+    if (!data || data.length === 0) {
+      const initialCodes = ['REF-INIT1'];
+      await fs.outputJson(codesFilePath, initialCodes, { spaces: 2 });
+      return initialCodes;
+    }
+    return data;
   } catch (e) {
-    console.error("Could not read referral codes file.", e);
+    console.error("Could not read or initialize referral codes file.", e);
     return [];
   }
 }

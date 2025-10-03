@@ -9,30 +9,20 @@ import { customers as initialCustomers } from '@/lib/mock-data';
 const customersFilePath = path.resolve(process.cwd(), 'src/lib/db/customers.json');
 
 /**
- * Initializes the customers data file if it doesn't exist.
- */
-async function initializeCustomersFile() {
-  try {
-    const exists = await fs.pathExists(customersFilePath);
-    if (!exists) {
-      await fs.outputJson(customersFilePath, initialCustomers, { spaces: 2 });
-    }
-  } catch (error) {
-    console.error('Failed to initialize customers.json', error);
-  }
-}
-
-/**
  * Retrieves all customers from the data source.
+ * If the file doesn't exist or is empty, it's initialized with seed data.
  * @returns A promise that resolves to an array of Customer objects.
  */
 export async function getAllCustomers(): Promise<Customer[]> {
   try {
-    await initializeCustomersFile(); // Ensure file exists before reading
     const data = await fs.readJson(customersFilePath, { throws: false });
-    return data || [];
+    if (!data || data.length === 0) {
+      await fs.outputJson(customersFilePath, initialCustomers, { spaces: 2 });
+      return initialCustomers;
+    }
+    return data;
   } catch (e) {
-    console.error("Could not read customers file, returning initial data.", e);
+    console.error("Could not read or initialize customers file, returning fallback data.", e);
     return initialCustomers;
   }
 }
