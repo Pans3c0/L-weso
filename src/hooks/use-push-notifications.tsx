@@ -36,7 +36,9 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
   const [userConsent, setUserConsent] = useState<NotificationPermission>('default');
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    // Push notifications require a secure context (HTTPS or localhost).
+    // Also check for browser support for Service Worker and Push Manager.
+    if (!window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         setIsUnsupported(true);
         return;
     }
@@ -44,9 +46,14 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
     setUserConsent(Notification.permission);
     
     const checkSubscription = async () => {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
-        setIsSubscribed(!!subscription);
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            setIsSubscribed(!!subscription);
+        } catch (error) {
+            console.error("Error checking for push subscription:", error);
+            setIsSubscribed(false);
+        }
     };
 
     navigator.serviceWorker.ready.then(checkSubscription);
