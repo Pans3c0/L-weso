@@ -4,11 +4,12 @@ import {
     addReferralCode,
     findReferralCode,
     removeReferralCode,
+    getReferralCodes
 } from '@/lib/referral-codes';
 import type { ReferralCode } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { associateCustomerWithSeller, getCustomerSellerRelations } from '@/lib/customers';
+import { associateCustomerWithSeller } from '@/lib/customers';
 
 const GenerateCodeSchema = z.object({
     sellerId: z.string().min(1, "Seller ID is required"),
@@ -51,12 +52,7 @@ export async function generateReferralCodeAction(input: { sellerId: string }): P
  * @returns An array of strings representing the active codes for that seller.
  */
 export async function getReferralCodesForSeller(sellerId: string): Promise<string[]> {
-    // This function is now used only for the admin display, so it just returns the codes.
     // The logic to find a code's owner is handled by findReferralCode.
-    const relations = await getCustomerSellerRelations();
-    // This is not correct logic. We should get referral codes from the referral codes file.
-    // Let's call getReferralCodes instead
-    const { getReferralCodes } = await import('@/lib/referral-codes');
     const allCodes = await getReferralCodes();
     return allCodes
         .filter(c => c.sellerId === sellerId)

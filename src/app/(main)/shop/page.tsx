@@ -16,8 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAllSellers } from '@/lib/sellers';
-import { getCustomerSellerRelations } from '@/lib/customers';
+import { getSellersAction, getCustomerSellerRelationsAction } from './actions';
 import { associateCustomerWithSellerAction } from '@/app/(admin)/admin/referrals/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -38,11 +37,11 @@ export default function ShopPage() {
   const fetchSellersAndRelations = React.useCallback(async () => {
     setIsLoadingSellers(true);
     try {
-      const allSellersData = await getAllSellers();
+      const allSellersData = await getSellersAction();
       setAllSellers(allSellersData);
 
       if (session?.role === 'customer') {
-        const relations = await getCustomerSellerRelations();
+        const relations = await getCustomerSellerRelationsAction();
         const customerRelations = relations.filter(r => r.customerId === session.id);
         const sellerIds = customerRelations.map(r => r.sellerId);
         const filteredSellers = allSellersData.filter(s => sellerIds.includes(s.id));
