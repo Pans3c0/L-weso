@@ -8,7 +8,12 @@ export async function GET(request: NextRequest) {
   const customerId = searchParams.get('customerId') || undefined;
 
   try {
-    let requests = await getPurchaseRequests(sellerId);
+    let requests = await getPurchaseRequests();
+    
+    // Filter by seller first if sellerId is provided
+    if (sellerId) {
+        requests = requests.filter(req => req.sellerId === sellerId);
+    }
     
     // If a customerId is provided, filter further for that customer's requests
     if (customerId) {
