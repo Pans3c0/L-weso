@@ -12,7 +12,7 @@ CONTAINER_PORT="3000"
 # Puerto externo del servidor (donde quieres que se acceda, ej: 80)
 HOST_PORT="80"
 # Ruta al archivo .env que contiene las variables de entorno
-ENV_FILE=".env"
+ENV_FILE=".env.production"
 # ---------------------
 
 # --- VERIFICACIÓN DE ENTRADA ---
@@ -22,14 +22,14 @@ if [ -z "$1" ]; then
 fi
 
 if [ ! -f "$ENV_FILE" ]; then
-    echo "ERROR: No se encontró el archivo de entorno '$ENV_FILE'. Crea uno con las variables necesarias."
+    echo "ERROR: No se encontró el archivo de entorno '$ENV_FILE'. Crea uno con las variables necesarias para producción."
     exit 1
 fi
 
 NEW_VERSION="$1"
 IMAGE_TAG="${IMAGE_BASE_NAME}:${NEW_VERSION}"
 TAR_FILE="${IMAGE_BASE_NAME}_v${NEW_VERSION}.tar"
-OLD_CONTAINER_NAME="${IMAGE_BASE_NAME}"
+CONTAINER_NAME="${IMAGE_BASE_NAME}"
 
 echo "=================================================="
 echo " INICIO DE DESPLIEGUE AUTOMATIZADO"
@@ -39,9 +39,8 @@ echo "Nombre de la imagen: $IMAGE_TAG"
 echo "Archivo TAR: $TAR_FILE"
 echo "--------------------------------------------------"
 
-# --- PASO 1: CONSTRUIR LA IMAGEN LOCALMENTE (FORZANDO SIN CACHÉ) ---
-echo "1. Construyendo la imagen de Docker localmente (forzando --no-cache)..."
-# El flag --no-cache asegura que los archivos JSON se copien de nuevo.
+# --- PASO 1: CONSTRUIR LA IMAGEN LOCALMENTE ---
+echo "1. Construyendo la imagen de Docker localmente..."
 docker build --no-cache -t "$IMAGE_TAG" .
 
 if [ $? -ne 0 ]; then
@@ -66,7 +65,7 @@ echo "--------------------------------------------------"
 # --- PASO 3: COPIAR ARCHIVOS AL SERVIDOR ---
 echo "3. Copiando $TAR_FILE y $ENV_FILE al servidor $SERVER_IP..."
 scp "$TAR_FILE" "${SERVER_USER}@${SERVER_IP}:/home/${SERVER_USER}/"
-scp "$ENV_FILE" "${SERVER_USER}@${SERVER_IP}:/home/${SERVER_USER}/${OLD_CONTAINER_NAME}.env"
+scp "$ENV_FILE" "${SERVER_USER}@${SERVER_IP}:/home/${SERVER_USER}/${CONTAINER_NAME}.env"
 if [ $? -ne 0 ]; then
     echo "ERROR: Falló la copia SCP. Asegúrate de que el servidor está encendido y el SSH funciona."
     exit 1
@@ -79,25 +78,27 @@ echo "--------------------------------------------------"
 echo "4. Ejecutando comandos de Docker en el servidor remoto..."
 
 SSH_COMMANDS="
+set -e # Abortar si algún comando falla
+
 # Cargar la nueva imagen
 echo '   -> Cargando la imagen $IMAGE_TAG...'
 docker load < /home/${SERVER_USER}/$TAR_FILE
 
 # Detener y eliminar el contenedor antiguo
-echo '   -> Deteniendo y eliminando el contenedor antiguo ($OLD_CONTAINER_NAME)...'
-docker stop $OLD_CONTAINER_NAME 2>/dev/null || true
-docker rm $OLD_CONTAINER_NAME 2>/dev/null || true
+echo '   -> Deteniendo y eliminando el contenedor antiguo ($CONTAINER_NAME)...'
+docker stop $CONTAINER_NAME 2>/dev/null || true
+docker rm $CONTAINER_NAME 2>/dev/null || true
 
 # Eliminar el archivo .tar cargado (limpieza)
 echo '   -> Limpiando archivo TAR...'
 rm /home/${SERVER_USER}/$TAR_FILE
 
 # Lanzar el nuevo contenedor con las variables de entorno
-echo '   -> Lanzando el nuevo contenedor $OLD_CONTAINER_NAME...'
+echo '   -> Lanzando el nuevo contenedor $CONTAINER_NAME...'
 docker run -d \\
     --restart always \\
-    --name $OLD_CONTAINER_NAME \\
-    --env-file /home/${SERVER_USER}/${OLD_CONTAINER_NAME}.env \\
+    --name $CONTAINER_NAME \\
+    --env-file /home/${SERVER_USER}/${CONTAINER_NAME}.env \\
     -p ${HOST_PORT}:${CONTAINER_PORT} \\
     $IMAGE_TAG
 "
@@ -114,7 +115,7 @@ echo "--------------------------------------------------"
 # --- FINALIZACIÓN ---
 echo "=================================================="
 echo " ✅ DESPLIEGUE FINALIZADO CON ÉXITO: $IMAGE_TAG"
-echo "   -> Contenedor '$OLD_CONTAINER_NAME' corriendo en $SERVER_IP:$HOST_PORT"
+echo "   -> Contenedor '$CONTAINER_NAME' corriendo en $SERVER_IP:$HOST_PORT"
 echo "=================================================="
 
 # Limpiar archivo tar local

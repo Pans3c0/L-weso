@@ -66,9 +66,16 @@ export function Header() {
             ) : session ? (
               <>
                 {userConsent === 'granted' && !isSubscribed && (
-                    <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Reactivar notificaciones">
-                       <BellPlus className="h-5 w-5 text-amber-500" />
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Reactivar notificaciones">
+                               <BellPlus className="h-5 w-5 text-amber-500" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>Reactivar notificaciones</p>
+                        </TooltipContent>
+                    </Tooltip>
                 )}
 
                 {isUnsupported && (
@@ -77,15 +84,22 @@ export function Header() {
                       <Info className="h-5 w-5 text-muted-foreground cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Las notificaciones push solo están disponibles en un entorno seguro (HTTPS o localhost).</p>
+                      <p>Las notificaciones push no son soportadas en este navegador o contexto.</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
 
                 {userConsent !== 'granted' && !isUnsupported && (
-                    <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Activar notificaciones">
-                       <BellPlus className="h-5 w-5" />
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={requestPermission} aria-label="Activar notificaciones">
+                               <BellPlus className="h-5 w-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>Activar notificaciones</p>
+                        </TooltipContent>
+                    </Tooltip>
                 )}
 
                  <Button
@@ -95,7 +109,7 @@ export function Header() {
                   aria-label="Notificaciones"
                   asChild
                 >
-                  <Link href="/notifications">
+                  <Link href={session.role === 'admin' ? '/admin/requests' : '/notifications'}>
                     <Bell className="h-5 w-5" />
                     {showCustomerNotifications && (
                       <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
@@ -144,7 +158,7 @@ export function Header() {
                         </DropdownMenuItem>
                         {session.role === 'admin' && (
                            <DropdownMenuItem asChild>
-                               <Link href="/admin"><Wrench className='mr-2'/>Panel de Admin</Link>
+                               <Link href="/admin/dashboard"><Wrench className='mr-2'/>Panel de Admin</Link>
                            </DropdownMenuItem>
                         )}
                         <DropdownMenuItem onClick={handleLogout}>

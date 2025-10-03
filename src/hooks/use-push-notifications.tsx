@@ -35,6 +35,20 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
   const [isUnsupported, setIsUnsupported] = useState(false);
   const [userConsent, setUserConsent] = useState<NotificationPermission>('default');
 
+  const registerServiceWorker = useCallback(async () => {
+    try {
+      await navigator.serviceWorker.register('/service-worker.js');
+    } catch (error) {
+      console.error("Service Worker registration failed:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator && window.isSecureContext) {
+      registerServiceWorker();
+    }
+  }, [registerServiceWorker]);
+
   useEffect(() => {
     // Push notifications require a secure context (HTTPS or localhost).
     // Also check for browser support for Service Worker and Push Manager.
@@ -73,7 +87,7 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
      }
 
     try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        const registration = await navigator.serviceWorker.ready;
         
         const consent = await Notification.requestPermission();
         setUserConsent(consent);
@@ -86,9 +100,14 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             return;
         }
 
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) {
+          throw new Error('VAPID public key is not defined');
+        }
+
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
 
         // The user ID to save is the session ID, which could be a customerId or a sellerId
