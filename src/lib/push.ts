@@ -8,7 +8,8 @@ import fs from 'fs-extra';
 const subscriptionsFilePath = path.resolve(process.cwd(), 'src/lib/db/subscriptions.json');
 
 // VAPID keys should be stored in environment variables
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+// Ensure the public key is URL-safe Base64 by removing any '=' padding.
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.replace(/=/g, '');
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 
 if (vapidPublicKey && vapidPrivateKey) {
