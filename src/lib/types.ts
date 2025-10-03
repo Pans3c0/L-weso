@@ -7,7 +7,6 @@ export type Product = {
   stockInGrams: number;
   imageUrl: string;
   imageHint?: string | null;
-  keywords?: string;
 };
 
 export type CartItem = {
