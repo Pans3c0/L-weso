@@ -45,7 +45,8 @@ export type CustomerSellerRelation = {
 
 export type Seller = {
   id: string;
-  username: string;
+  username: string; // Used for login, kept private
+  storeName: string; // Public-facing name for the shop
   passwordHash: string; // In a real app, this should be a hash
 }
 

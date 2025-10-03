@@ -20,7 +20,7 @@ export async function getAllSellers(): Promise<Seller[]> {
         return initialSellers;
     }
     const data = await fs.readJson(sellersFilePath, { throws: false });
-    if (!data) {
+    if (!data || !data.length) {
       await fs.outputJson(sellersFilePath, initialSellers, { spaces: 2 });
       return initialSellers;
     }

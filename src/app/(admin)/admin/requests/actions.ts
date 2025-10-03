@@ -58,8 +58,8 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     // Send a push notification to the customer if this is a new confirmation
     if (!isEditing) {
        await sendPushNotification(request.customerId, {
-        title: '¡Tu pedido ha sido confirmado!',
-        body: `Tu pedido de ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(request.total)} ha sido confirmado.`,
+        title: '¡Coño, se gano un sorteaso!',
+        body: `Tan ready esos ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(request.total)} \n Elimina la noti.`,
         url: '/notifications'
       });
     }

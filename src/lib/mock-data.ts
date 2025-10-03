@@ -4,9 +4,9 @@ import type { Product, PurchaseRequest, Customer, Seller, ReferralCode } from '@
  * Initial seed data for sellers.
  */
 export const initialSellers: Seller[] = [
-  { id: 'seller_1', username: 'pacheco', passwordHash: 'c9d10a0' },
+  { id: 'seller_1', username: 'pacheco', storeName: "Pacheco's Store", passwordHash: 'c9d10a0' },
   // Add more sellers here in the future
-  // { id: 'seller_2', username: 'another_admin', passwordHash: 'somepassword' },
+  // { id: 'seller_2', username: 'another_admin', storeName: "Another Store", passwordHash: 'somepassword' },
 ];
 
 /**
@@ -23,7 +23,6 @@ export const initialProducts: Product[] = [
     stockInGrams: 50,
     imageUrl: '/images/appleJax.png',
     imageHint: 'Apple',
-    keywords: 'apple, rojo, jax, hash',
   },
   {
     id: 'prod_2',
@@ -34,7 +33,6 @@ export const initialProducts: Product[] = [
     stockInGrams: 40,
     imageUrl: '/images/mfl.png',
     imageHint: 'marroco ',
-    keywords: 'hass, cremoso, guacamole, fruta',
   },
 ];
 

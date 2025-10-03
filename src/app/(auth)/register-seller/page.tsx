@@ -1,4 +1,3 @@
-// THIS IS A NEW FILE
 'use client';
 
 import { useState } from 'react';
@@ -17,6 +16,7 @@ import { registerSellerAction } from './actions';
 
 const registerSellerSchema = z.object({
   username: z.string().min(3, 'El nombre de usuario debe tener al menos 3 caracteres'),
+  storeName: z.string().min(3, 'El nombre de la tienda debe tener al menos 3 caracteres'),
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
   masterCode: z.string().min(1, 'El código maestro es obligatorio'),
 });
@@ -29,6 +29,7 @@ export default function RegisterSellerPage() {
     resolver: zodResolver(registerSellerSchema),
     defaultValues: {
       username: '',
+      storeName: '',
       password: '',
       masterCode: '',
     },
@@ -45,11 +46,20 @@ export default function RegisterSellerPage() {
         });
         router.push('/login');
       } else {
-        form.setError('masterCode', {
-            type: 'manual',
-            message: result.error || 'No se pudo completar el registro.',
+        // Show a generic error or specific if possible
+        toast({
+            title: 'Error de Registro',
+            description: result.error || 'No se pudo crear la cuenta de vendedor.',
+            variant: 'destructive',
         });
-        throw new Error(result.error);
+        // Optionally set a form error if it's related to a specific field
+        if (result.error?.includes('usuario')) {
+            form.setError('username', { message: result.error });
+        } else if (result.error?.includes('tienda')) {
+            form.setError('storeName', { message: result.error });
+        } else {
+            form.setError('masterCode', { message: result.error });
+        }
       }
     } catch (error) {
       toast({
@@ -76,12 +86,25 @@ export default function RegisterSellerPage() {
                 <CardContent className="space-y-4">
                     <FormField
                         control={form.control}
+                        name="storeName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nombre de la Tienda (Apodo)</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="El nombre público de tu tienda" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
                         name="username"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Nombre de Usuario del Vendedor</FormLabel>
+                                <FormLabel>Nombre de Usuario (Login)</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Elige un nombre de usuario para la tienda" {...field} />
+                                    <Input placeholder="Tu usuario privado para iniciar sesión" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

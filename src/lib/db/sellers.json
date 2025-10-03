@@ -3,6 +3,7 @@
   {
     "id": "seller_1",
     "username": "pacheco",
+    "storeName": "Pacheco's Store",
     "passwordHash": "c9d10a0"
   }
 ]

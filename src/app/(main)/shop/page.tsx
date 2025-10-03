@@ -8,7 +8,7 @@ import { useSession } from '@/hooks/use-session';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Loader2, User, Info, KeyRound } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -43,13 +43,14 @@ export default function ShopPage() {
         setAssociatedSellers(filteredSellers);
         
         if (filteredSellers.length > 0 && !selectedSeller) {
-            // Default to the first associated seller only if one isn't already selected
             setSelectedSeller(filteredSellers[0].id);
         }
-      } else if (allSellersData.length > 0) {
-        // For guests, default to the very first seller
-        setSelectedSeller(allSellersData[0].id);
+      } else {
+        // For guests or admins, show all sellers as available options
         setAssociatedSellers(allSellersData);
+        if (allSellersData.length > 0 && !selectedSeller) {
+          setSelectedSeller(allSellersData[0].id);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch sellers and relations', error);
@@ -79,7 +80,7 @@ export default function ShopPage() {
           setProducts(data);
         } catch (error) {
           console.error('Failed to fetch products', error);
-          setProducts([]); // Clear products on error
+          setProducts([]);
         } finally {
           setIsLoadingProducts(false);
         }
@@ -97,24 +98,23 @@ export default function ShopPage() {
     );
   }
   
-  const showSellerSelector = session?.role === 'customer' && associatedSellers.length > 1;
-  const currentSellerUsername = allSellers.find(s => s.id === selectedSeller)?.username;
+  const showSellerSelector = (session?.role === 'customer' && associatedSellers.length > 1) || (!session && associatedSellers.length > 1) ;
+  const currentSellerStoreName = allSellers.find(s => s.id === selectedSeller)?.storeName;
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="text-center mb-12">
         <h1 className="font-headline text-4xl md:text-5xl font-bold text-foreground">
-            {session ? `Bienvenido, ${session.name}`: 'Nuestros Productos'}
+            {session ? `Bienvenido, ${session.name}`: 'El mercado'}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
           {session 
-            ? 'Productos frescos y de calidad, directamente de productores locales a tu mesa.'
-            : 'Explora nuestro catálogo de productos locales. Inicia sesión para comprar.'
+            ? 'Todo lo que necesitas está aquí, pero no sea sapo.'
+            : 'No me seas mierdas ni chivato.'
           }
         </p>
       </div>
       
-      {/* Show selector only if customer is associated with more than one seller */}
       {showSellerSelector ? (
         <div className="mb-8 max-w-sm mx-auto">
           <Select onValueChange={setSelectedSeller} value={selectedSeller}>
@@ -124,14 +124,14 @@ export default function ShopPage() {
               <SelectContent>
                   {associatedSellers.map(seller => (
                       <SelectItem key={seller.id} value={seller.id}>
-                          Tienda de {seller.username}
+                          {seller.storeName || seller.username}
                       </SelectItem>
                   ))}
               </SelectContent>
           </Select>
         </div>
-      ) : associatedSellers.length === 1 && currentSellerUsername && (
-        <p className="text-center text-muted-foreground mb-8">Comprando en: <strong>Tienda de {currentSellerUsername}</strong></p>
+      ) : associatedSellers.length >= 1 && currentSellerStoreName && (
+        <p className="text-center text-muted-foreground mb-8">Comprando en: <strong>{currentSellerStoreName}</strong></p>
       )}
 
 
