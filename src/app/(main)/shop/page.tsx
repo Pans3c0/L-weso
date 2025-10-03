@@ -47,8 +47,8 @@ export default function ShopPage() {
         const filteredSellers = allSellersData.filter(s => sellerIds.includes(s.id));
         setAssociatedSellers(filteredSellers);
         
-        if (filteredSellers.length > 0) {
-            // Default to the first associated seller
+        if (filteredSellers.length > 0 && !selectedSeller) {
+            // Default to the first associated seller only if one isn't already selected
             setSelectedSeller(filteredSellers[0].id);
         }
       } else if (allSellersData.length > 0) {
@@ -58,10 +58,11 @@ export default function ShopPage() {
       }
     } catch (error) {
       console.error('Failed to fetch sellers and relations', error);
+      toast({ title: 'Error', description: 'No se pudieron cargar las tiendas.', variant: 'destructive' });
     } finally {
       setIsLoadingSellers(false);
     }
-  }, [session]);
+  }, [session, toast, selectedSeller]);
   
   React.useEffect(() => {
     fetchSellersAndRelations();
@@ -88,7 +89,9 @@ export default function ShopPage() {
           setIsLoadingProducts(false);
         }
       }
-    fetchProducts();
+    if (selectedSeller) {
+      fetchProducts();
+    }
   }, [selectedSeller]);
 
   const handleAssociateCode = async (e: React.FormEvent) => {
@@ -101,6 +104,9 @@ export default function ShopPage() {
         toast({ title: '¡Tienda Añadida!', description: 'Ahora puedes comprar en esta nueva tienda.' });
         setReferralCode('');
         await fetchSellersAndRelations(); // Refetch sellers to update the dropdown
+        if (result.newSellerId) {
+          setSelectedSeller(result.newSellerId); // Switch to the newly added store
+        }
       } else {
         throw new Error(result.error);
       }
@@ -119,7 +125,8 @@ export default function ShopPage() {
     );
   }
   
-  const showSellerSelector = session && associatedSellers.length > 1;
+  const showSellerSelector = session?.role === 'customer' && associatedSellers.length > 1;
+  const currentSellerUsername = allSellers.find(s => s.id === selectedSeller)?.username;
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -138,7 +145,7 @@ export default function ShopPage() {
       {/* Show selector only if customer is associated with more than one seller */}
       {showSellerSelector ? (
         <div className="mb-8 max-w-sm mx-auto">
-          <Select onValueChange={setSelectedSeller} defaultValue={selectedSeller}>
+          <Select onValueChange={setSelectedSeller} value={selectedSeller}>
               <SelectTrigger>
                   <SelectValue placeholder="Selecciona una tienda..." />
               </SelectTrigger>
@@ -151,8 +158,8 @@ export default function ShopPage() {
               </SelectContent>
           </Select>
         </div>
-      ) : session && associatedSellers.length === 1 && (
-        <p className="text-center text-muted-foreground mb-8">Comprando en: <strong>Tienda de {associatedSellers[0].username}</strong></p>
+      ) : associatedSellers.length === 1 && currentSellerUsername && (
+        <p className="text-center text-muted-foreground mb-8">Comprando en: <strong>Tienda de {currentSellerUsername}</strong></p>
       )}
 
 

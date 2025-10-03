@@ -33,8 +33,10 @@ export default function ReferralsPage() {
   }, [toast, session?.sellerId]);
 
   React.useEffect(() => {
-    fetchCodes();
-  }, [fetchCodes]);
+    if (session?.sellerId) {
+      fetchCodes();
+    }
+  }, [fetchCodes, session?.sellerId]);
 
   const handleGenerateCode = async () => {
     if (!session?.sellerId) {
