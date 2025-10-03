@@ -14,6 +14,11 @@ const sellersFilePath = path.resolve(process.cwd(), 'src/lib/db/sellers.json');
  */
 export async function getAllSellers(): Promise<Seller[]> {
   try {
+    const fileExists = await fs.pathExists(sellersFilePath);
+    if (!fileExists) {
+        await fs.outputJson(sellersFilePath, initialSellers, { spaces: 2 });
+        return initialSellers;
+    }
     const data = await fs.readJson(sellersFilePath, { throws: false });
     if (!data) {
       await fs.outputJson(sellersFilePath, initialSellers, { spaces: 2 });

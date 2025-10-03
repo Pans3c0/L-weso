@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { z } from "zod";
 import { getAllCustomers } from "@/lib/customers";

@@ -2,7 +2,7 @@
 
 import { improveProductDescription } from '@/ai/flows/improve-product-description';
 import { z } from 'zod';
-import { saveProducts, getAllProducts } from '@/lib/data';
+import { getAllProducts, saveProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
