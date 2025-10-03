@@ -47,13 +47,15 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   }, [customerId, session?.role]);
 
   useEffect(() => {
-    refetch();
-    
-    const intervalId = setInterval(refetch, 30000); 
-
-    return () => clearInterval(intervalId);
-
-  }, [refetch]);
+    if (session?.role === 'customer') {
+      refetch();
+      const intervalId = setInterval(refetch, 30000); 
+      return () => clearInterval(intervalId);
+    } else {
+        setIsLoading(false);
+        setRequests([]);
+    }
+  }, [refetch, session?.role]);
 
   const notificationCount = requests.filter(req => req.status === 'confirmed' && !req.isRead).length;
 

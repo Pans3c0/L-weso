@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, ShoppingCart, Bell, User, LogIn, LogOut, BellPlus, Info, Wrench } from 'lucide-react';
+import { Package, ShoppingCart, Bell, User, LogIn, LogOut, Wrench, BellPlus, Info } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ export function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
   const { session, logout, isLoading } = useSession();
-  const { notificationCount } = useNotifications(session?.id);
+  const { notificationCount } = useNotifications();
   const {
     isSubscribed,
     isUnsupported,
@@ -47,7 +47,6 @@ export function Header() {
     return name.substring(0, 2).toUpperCase();
   }
   
-  // Decide whether to show the notification bell based on role
   const showCustomerNotifications = session?.role === 'customer' && notificationCount > 0;
 
   return (
