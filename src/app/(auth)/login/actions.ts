@@ -46,6 +46,7 @@ export async function loginAction(
         name: customer.name,
         username: customer.username,
         role: "customer",
+        // sellerId is not needed for customer session, as their context is determined by their actions (e.g., which shop they visit)
       };
       return { user: customerUser };
     }
