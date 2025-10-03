@@ -116,3 +116,8 @@ echo "=================================================="
 echo " ✅ DESPLIEGUE FINALIZADO CON ÉXITO: $IMAGE_TAG"
 echo "   -> Contenedor '$OLD_CONTAINER_NAME' corriendo en $SERVER_IP:$HOST_PORT"
 echo "=================================================="
+
+# Limpiar archivo tar local
+rm "$TAR_FILE"
+echo "Limpiado el archivo $TAR_FILE local."
+echo "--------------------------------------------------"
