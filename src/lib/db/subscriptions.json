@@ -1,1 +1,10 @@
-{}
+{
+  "seller_1": {
+    "endpoint": "https://fcm.googleapis.com/fcm/send/cgzaO05DjY8:APA91bHrMFxdiV0mvoHIpNP3edck_FAIFXM81zksOKVOB7RXtuyob5akwofzufW2yQ4K1DwvP7L4VDgzzdqGK10lV1w5Onb6uLiOV6LEiZAYgByatt80QIQdmLRA2SZm2J6sHnMAqjCH",
+    "expirationTime": null,
+    "keys": {
+      "p256dh": "BLghaw2b4G-pNFfvn22ltRnX5fUmLkDxZw_x1oZKAtBiv2ARN6shYX5ROmfHyMCaTa54JNhSdu7N5rf7rsSWYAM",
+      "auth": "ImP081yTZ2d1oepyBWSpLA"
+    }
+  }
+}
