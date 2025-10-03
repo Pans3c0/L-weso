@@ -5,6 +5,7 @@ import { getPurchaseRequests, savePurchaseRequests } from '@/lib/requests';
 import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { getAllCustomers } from '@/lib/customers';
+import { sendPushNotification } from '@/lib/push';
 
 const ProductSchema = z.object({
   id: z.string(),
@@ -70,7 +71,14 @@ export async function submitPurchaseRequestAction(input: {
     allRequests.unshift(newRequest);
     await savePurchaseRequests(allRequests);
     
-    revalidatePath(`/admin/requests`); // Revalidate for the specific seller
+    // Notify the seller that a new request has been submitted
+    await sendPushNotification(sellerId, {
+      title: '¡Nueva solicitud de compra!',
+      body: `Has recibido una nueva solicitud de ${customer.name} por un total de ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total)}.`,
+      url: '/admin/requests'
+    });
+    
+    revalidatePath(`/admin/requests`);
     revalidatePath(`/admin/customers`);
 
     return { success: true, requestId: newRequest.id };

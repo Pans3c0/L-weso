@@ -81,7 +81,7 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
         if (consent !== 'granted') {
             toast({
                 title: 'Permiso denegado',
-                description: 'No podremos notificarte sobre tus pedidos.',
+                description: 'No podremos enviarte notificaciones.',
             });
             return;
         }
@@ -91,18 +91,21 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
         });
 
+        // The user ID to save is the session ID, which could be a customerId or a sellerId
+        const userId = session.id;
+
         await fetch('/api/save-subscription', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ subscription, customerId: session.id }),
+            body: JSON.stringify({ subscription, userId }),
         });
 
         setIsSubscribed(true);
         toast({
             title: '¡Notificaciones activadas!',
-            description: 'Te avisaremos cuando tus pedidos se confirmen.',
+            description: 'Te avisaremos sobre eventos importantes.',
         });
 
     } catch (error) {

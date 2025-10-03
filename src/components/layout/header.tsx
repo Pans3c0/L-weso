@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Package, ShoppingCart, Bell, User, LogIn, LogOut, BellPlus, Info } from 'lucide-react';
+import { Package, ShoppingCart, Bell, User, LogIn, LogOut, BellPlus, Info, Wrench } from 'lucide-react';
 import { useCart } from '@/hooks/use-cart';
 import { useNotifications } from '@/hooks/use-notifications';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,9 @@ export function Header() {
     }
     return name.substring(0, 2).toUpperCase();
   }
+  
+  // Decide whether to show the notification bell based on role
+  const showCustomerNotifications = session?.role === 'customer' && notificationCount > 0;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -58,12 +61,6 @@ export function Header() {
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
           <nav className="flex items-center space-x-1">
-             {session?.role === 'admin' && (
-                <Button variant="ghost" asChild>
-                    <Link href="/admin">Boss</Link>
-                </Button>
-             )}
-
             {isLoading ? (
               <Skeleton className='w-24 h-8' />
             ) : session ? (
@@ -100,7 +97,7 @@ export function Header() {
                 >
                   <Link href="/notifications">
                     <Bell className="h-5 w-5" />
-                    {notificationCount > 0 && (
+                    {showCustomerNotifications && (
                       <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
@@ -108,22 +105,26 @@ export function Header() {
                     )}
                   </Link>
                 </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="relative"
-                  aria-label="Carrito de compras"
-                  asChild
-                >
-                  <Link href="/cart">
-                    <ShoppingCart className="h-5 w-5" />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-                        {totalItems}
-                      </span>
-                    )}
-                  </Link>
-                </Button>
+                
+                {session.role === 'customer' && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="relative"
+                    aria-label="Carrito de compras"
+                    asChild
+                  >
+                    <Link href="/cart">
+                      <ShoppingCart className="h-5 w-5" />
+                      {totalItems > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                          {totalItems}
+                        </span>
+                      )}
+                    </Link>
+                  </Button>
+                )}
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -141,12 +142,16 @@ export function Header() {
                         <DropdownMenuItem asChild>
                             <Link href="/account"><User className='mr-2'/>Mi Cuenta</Link>
                         </DropdownMenuItem>
+                        {session.role === 'admin' && (
+                           <DropdownMenuItem asChild>
+                               <Link href="/admin"><Wrench className='mr-2'/>Panel de Admin</Link>
+                           </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={handleLogout}>
                             <LogOut className='mr-2'/>Cerrar Sesión
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
-
               </>
             ) : (
               <Button asChild>

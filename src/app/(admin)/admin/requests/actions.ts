@@ -115,8 +115,12 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
 
     await updateRequest(updated);
     
-    // In a real app, this might trigger a notification to the seller's dashboard or device.
-    console.log(`Delay notified for request ${requestId}.`);
+    // Notify the seller about the customer's delay
+    await sendPushNotification(request.sellerId, {
+      title: 'Retraso notificado por un cliente',
+      body: `El cliente ${request.customerName} ha notificado un retraso para el pedido #${request.id.slice(-6)}.`,
+      url: `/admin/orders`
+    });
 
     // Revalidate paths to ensure UI is up-to-date for both admin and customer.
     revalidatePath('/admin/orders');

@@ -47,11 +47,11 @@ async function getSubscriptions(): Promise<Record<string, PushSubscription>> {
 }
 
 /**
- * Sends a push notification to a specific customer.
- * @param customerId - The ID of the customer to notify.
+ * Sends a push notification to a specific user (customer or seller).
+ * @param userId - The ID of the user to notify (can be customerId or sellerId).
  * @param payload - The data to send in the notification.
  */
-export async function sendPushNotification(customerId: string, payload: { title: string; body: string; url?: string; }) {
+export async function sendPushNotification(userId: string, payload: { title: string; body: string; url?: string; }) {
   if (!vapidPublicKey || !vapidPrivateKey) {
       console.log('VAPID keys not configured, skipping push notification.');
       return;
@@ -59,17 +59,17 @@ export async function sendPushNotification(customerId: string, payload: { title:
   
   try {
     const subscriptions = await getSubscriptions();
-    const subscription = subscriptions[customerId];
+    const subscription = subscriptions[userId];
 
     if (subscription) {
       const notificationPayload = JSON.stringify(payload);
       
-      console.log(`Sending push notification to customer ${customerId}...`);
+      console.log(`Sending push notification to user ${userId}...`);
       await webpush.sendNotification(subscription, notificationPayload);
       console.log('Push notification sent successfully.');
 
     } else {
-      console.log(`No push subscription found for customer ${customerId}.`);
+      console.log(`No push subscription found for user ${userId}.`);
     }
   } catch (error: any) {
     // If the subscription is expired or invalid, the push service will return an error.
@@ -77,7 +77,7 @@ export async function sendPushNotification(customerId: string, payload: { title:
     if (error.statusCode === 404 || error.statusCode === 410) {
       console.log('Subscription has expired or is no longer valid. Removing it.');
       const subscriptions = await getSubscriptions();
-      delete subscriptions[customerId];
+      delete subscriptions[userId];
       await fs.outputJson(subscriptionsFilePath, subscriptions, { spaces: 2 });
     } else {
       console.error('Error sending push notification:', error);
