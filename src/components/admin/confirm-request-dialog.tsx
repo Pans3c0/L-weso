@@ -40,9 +40,10 @@ interface ConfirmRequestDialogProps {
   request: PurchaseRequest | null;
   onOpenChange: (open: boolean) => void;
   onSuccess: (updatedRequest: PurchaseRequest) => void;
+  isEditing?: boolean;
 }
 
-export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: ConfirmRequestDialogProps) {
+export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditing = false }: ConfirmRequestDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const form = useForm<ConfirmFormValues>({
@@ -51,11 +52,11 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
 
   React.useEffect(() => {
     if (request) {
-        const now = new Date();
+        const confirmationDate = request.confirmationDate ? new Date(request.confirmationDate) : new Date();
         form.reset({
-            confirmationDate: now,
-            confirmationTime: format(now, 'HH:mm'),
-            sellerNote: '',
+            confirmationDate: confirmationDate,
+            confirmationTime: format(confirmationDate, 'HH:mm'),
+            sellerNote: request.sellerNote || '',
         });
     }
   }, [request, form]);
@@ -79,8 +80,10 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
 
       if (result.success && result.updatedRequest) {
         toast({
-          title: 'Solicitud Confirmada',
-          description: `Has confirmado el pedido de ${request.customerName}.`,
+          title: isEditing ? 'Pedido Actualizado' : 'Solicitud Confirmada',
+          description: isEditing 
+            ? `Has actualizado el pedido de ${request.customerName}.`
+            : `Has confirmado el pedido de ${request.customerName}.`,
         });
         onSuccess(result.updatedRequest);
       } else {
@@ -88,7 +91,7 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
       }
     } catch (error) {
       toast({
-        title: 'Error al confirmar',
+        title: 'Error al guardar',
         description: error instanceof Error ? error.message : 'Inténtalo de nuevo.',
         variant: 'destructive',
       });
@@ -97,14 +100,17 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
     }
   };
 
+  const title = isEditing ? 'Editar Pedido' : 'Confirmar Solicitud';
+  const description = isEditing 
+    ? `Ajusta la fecha, hora o nota para el pedido de ${request?.customerName}.`
+    : `Establece la fecha y hora de recogida/entrega para el pedido de ${request?.customerName}.`;
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Confirmar Solicitud</DialogTitle>
-          <DialogDescription>
-            Establece la fecha y hora de recogida/entrega para el pedido de {request?.customerName}.
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -140,6 +146,7 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
+                          disabled={(date) => isEditing ? false : date < new Date(new Date().setHours(0,0,0,0))}
                         />
                       </PopoverContent>
                     </Popover>
@@ -180,7 +187,7 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess }: Confi
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Confirmar Solicitud
+                {isEditing ? 'Guardar Cambios' : 'Confirmar Solicitud'}
               </Button>
             </DialogFooter>
           </form>

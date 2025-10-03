@@ -1,3 +1,6 @@
+'use client';
+
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -13,19 +16,53 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getCustomersByReferralCode } from "@/lib/customers";
-import { Users } from 'lucide-react';
+import type { Customer } from "@/lib/types";
+import { Users, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 
-async function getCustomers() {
-    // In a real app, you would get the admin's specific referral code from their session
-    const adminReferralCode = 'tienda_admin';
-    const customers = await getCustomersByReferralCode(adminReferralCode);
-    return customers;
+async function fetchCustomers(): Promise<Customer[]> {
+  // We don't have a specific API route for customers,
+  // but in a real app, you might fetch from /api/customers/by-referral/[code]
+  // For now, we simulate by fetching all requests and deducing customers,
+  // or we could create a dedicated API endpoint. Let's stick to a client-side fetch for simplicity.
+  // We will create a temporary API route for this.
+  const res = await fetch('/api/customers');
+  if (!res.ok) {
+    throw new Error('Failed to fetch customers');
+  }
+  return res.json();
 }
 
-export default async function CustomersPage() {
-  const customers = await getCustomers();
+
+export default function CustomersPage() {
+  const { toast } = useToast();
+  const [customers, setCustomers] = React.useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const getCustomers = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const adminReferralCode = 'tienda_admin';
+      const allCustomers = await fetchCustomers();
+      const filteredCustomers = allCustomers.filter(c => c.referralCode === adminReferralCode);
+      setCustomers(filteredCustomers);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudieron cargar los clientes.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+  
+  React.useEffect(() => {
+    getCustomers();
+  }, [getCustomers]);
+
 
   return (
     <div>
@@ -66,12 +103,26 @@ export default async function CustomersPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {customers.map((customer) => (
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center">
+                        <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                      </TableCell>
+                    </TableRow>
+                  ) : customers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={2} className="text-center text-muted-foreground">
+                        No se encontraron clientes.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    customers.map((customer) => (
                     <TableRow key={customer.id}>
                         <TableCell className="font-medium">{customer.name}</TableCell>
                         <TableCell>{customer.id}</TableCell>
                     </TableRow>
-                    ))}
+                    ))
+                  )}
                 </TableBody>
                 </Table>
             </CardContent>

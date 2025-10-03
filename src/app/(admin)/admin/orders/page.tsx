@@ -1,3 +1,6 @@
+'use client';
+
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -5,82 +8,123 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getPurchaseRequests } from "@/lib/requests";
 import type { PurchaseRequest } from "@/lib/types";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PackageCheck, Clock } from 'lucide-react';
+import { PackageCheck, Clock, Pencil } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { ConfirmRequestDialog } from '@/components/admin/confirm-request-dialog';
+import { useToast } from '@/hooks/use-toast';
+
 
 async function getConfirmedOrders(): Promise<PurchaseRequest[]> {
-  const allRequests = await getPurchaseRequests();
-  // Filter for confirmed orders and sort them by confirmation date
+  const res = await fetch('/api/requests');
+  if (!res.ok) {
+    console.error('Failed to fetch requests');
+    return [];
+  }
+  const allRequests: PurchaseRequest[] = await res.json();
   return allRequests
     .filter((req) => req.status === 'confirmed' && req.confirmationDate)
     .sort((a, b) => new Date(b.confirmationDate!).getTime() - new Date(a.confirmationDate!).getTime());
 }
 
-export default async function OrdersPage() {
-  const orders = await getConfirmedOrders();
+export default function OrdersPage() {
+  const { toast } = useToast();
+  const [orders, setOrders] = React.useState<PurchaseRequest[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [editingOrder, setEditingOrder] = React.useState<PurchaseRequest | null>(null);
+
+  const fetchOrders = React.useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const fetchedOrders = await getConfirmedOrders();
+      setOrders(fetchedOrders);
+    } catch (error) {
+       toast({ title: 'Error', description: 'No se pudieron cargar los pedidos.', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+  
+  React.useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+  
+  const handleEditSuccess = (updatedRequest: PurchaseRequest) => {
+    setOrders(prev => prev.map(o => o.id === updatedRequest.id ? updatedRequest : o));
+    setEditingOrder(null);
+  };
+
 
   const upcomingOrders = orders.filter(o => new Date(o.confirmationDate!) >= new Date());
   const pastOrders = orders.filter(o => new Date(o.confirmationDate!) < new Date());
 
   return (
-    <div>
-      <div className="flex items-center">
-        <h1 className="text-lg font-semibold md:text-2xl font-headline">Pedidos Activos</h1>
+    <>
+      <div>
+        <div className="flex items-center">
+          <h1 className="text-lg font-semibold md:text-2xl font-headline">Pedidos Activos</h1>
+        </div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Próximas Entregas/Recogidas</CardTitle>
+            <CardDescription>
+              Estos son los pedidos confirmados que están pendientes de ser entregados o recogidos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {upcomingOrders.length > 0 ? (
+              <div className="space-y-4">
+                {upcomingOrders.map((order) => (
+                  <OrderCard key={order.id} order={order} onEditClick={() => setEditingOrder(order)} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-muted-foreground">
+                  <PackageCheck className="mx-auto h-12 w-12" />
+                  <p className="mt-4">No tienes pedidos pendientes de entrega.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Historial de Pedidos Entregados</CardTitle>
+            <CardDescription>
+              Estos son los pedidos que ya han sido completados.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {pastOrders.length > 0 ? (
+              <div className="space-y-4">
+                {pastOrders.map((order) => (
+                  <OrderCard key={order.id} order={order} onEditClick={() => setEditingOrder(order)} isPastOrder />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 text-muted-foreground">
+                  <p>Aún no has completado ningún pedido.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Próximas Entregas/Recogidas</CardTitle>
-          <CardDescription>
-            Estos son los pedidos confirmados que están pendientes de ser entregados o recogidos.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {upcomingOrders.length > 0 ? (
-            <div className="space-y-4">
-              {upcomingOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-10 text-muted-foreground">
-                <PackageCheck className="mx-auto h-12 w-12" />
-                <p className="mt-4">No tienes pedidos pendientes de entrega.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Historial de Pedidos Entregados</CardTitle>
-          <CardDescription>
-            Estos son los pedidos que ya han sido completados.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {pastOrders.length > 0 ? (
-            <div className="space-y-4">
-              {pastOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-          ) : (
-             <div className="text-center py-10 text-muted-foreground">
-                <p>Aún no has completado ningún pedido.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      <ConfirmRequestDialog
+        request={editingOrder}
+        onOpenChange={(isOpen) => !isOpen && setEditingOrder(null)}
+        onSuccess={handleEditSuccess}
+        isEditing
+      />
+    </>
   );
 }
 
-function OrderCard({ order }: { order: PurchaseRequest }) {
+function OrderCard({ order, onEditClick, isPastOrder = false }: { order: PurchaseRequest, onEditClick: () => void, isPastOrder?: boolean }) {
     const isPast = new Date(order.confirmationDate!) < new Date();
     
     const formatCurrency = (amount: number) => {
@@ -94,12 +138,15 @@ function OrderCard({ order }: { order: PurchaseRequest }) {
                     <p className="font-semibold text-lg">{order.customerName}</p>
                     <p className="text-sm text-muted-foreground">Pedido #{order.id.slice(-6)} | <span className="font-bold">{formatCurrency(order.total)}</span></p>
                 </div>
-                <div className="mt-2 sm:mt-0 text-left sm:text-right">
+                <div className="mt-2 sm:mt-0 flex items-center gap-2">
                     <Badge variant={isPast ? 'secondary' : 'default'} className="flex items-center w-fit">
                         <Clock className="h-4 w-4 mr-2" />
                         <span className="font-semibold">{format(new Date(order.confirmationDate!), "eeee, d 'de' MMMM", { locale: es })}</span>
                         <span className="ml-2">a las {format(new Date(order.confirmationDate!), "HH:mm", { locale: es })}h</span>
                     </Badge>
+                     <Button variant="ghost" size="icon" onClick={onEditClick}>
+                        <Pencil className="h-4 w-4" />
+                     </Button>
                 </div>
             </div>
             {order.sellerNote && (
