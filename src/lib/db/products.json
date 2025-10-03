@@ -1,6 +1,8 @@
+
 [
   {
     "id": "prod_1",
+    "sellerId": "seller_1",
     "name": "Apple Jax",
     "description": "Rubio, made in Spain.",
     "pricePerGram": 5,
@@ -11,6 +13,7 @@
   },
   {
     "id": "prod_2",
+    "sellerId": "seller_1",
     "name": "Real Marrocino Farm",
     "description": "Made in Marruecos,  moreno.",
     "pricePerGram": 5,

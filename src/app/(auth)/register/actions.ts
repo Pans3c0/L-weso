@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { getAllCustomers, saveCustomers } from '@/lib/customers';
-import { isValidReferralCode, removeReferralCode } from '@/lib/referral-codes';
+import { findReferralCode, removeReferralCode } from '@/lib/referral-codes';
 import type { Customer } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
@@ -15,10 +15,9 @@ const RegisterCustomerSchema = z.object({
 
 /**
  * Server Action: Registers a new customer using a single-use referral code.
- * This function validates the referral code, creates a new customer, saves them,
+ * This function validates the referral code, finds the associated seller,
+ * creates a new customer linked to that seller, saves them,
  * and then invalidates the referral code.
- * @param input - The customer's registration data.
- * @returns A success object or an error object.
  */
 export async function registerCustomerAction(input: z.infer<typeof RegisterCustomerSchema>) {
   const parsedInput = RegisterCustomerSchema.safeParse(input);
@@ -28,9 +27,9 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
 
   const { name, username, referralCode, password } = parsedInput.data;
 
-  // Check if the referral code is valid and exists
-  const isCodeValid = await isValidReferralCode(referralCode);
-  if (!isCodeValid) {
+  // Find the referral code and its associated seller
+  const validCode = await findReferralCode(referralCode);
+  if (!validCode) {
     return { error: 'El código de referencia no es válido o ya ha sido utilizado.' };
   }
   
@@ -44,20 +43,18 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
 
     const newCustomer: Customer = {
       id: `customer_${Date.now()}`,
+      sellerId: validCode.sellerId, // Link customer to the seller
       name,
       username,
       referralCode, // Store which code was used
-      password,
+      password, // In a real app, hash this password
     };
     
-    // Add the new customer
     const updatedCustomers = [...allCustomers, newCustomer];
     await saveCustomers(updatedCustomers);
     
-    // Invalidate the referral code so it cannot be used again
     await removeReferralCode(referralCode);
 
-    // Revalidate paths to show updated data in admin panels
     revalidatePath('/admin/customers');
     revalidatePath('/admin/referrals');
 

@@ -11,42 +11,39 @@ import {
 import type { PurchaseRequest } from "@/lib/types";
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { PackageCheck, Clock, Pencil } from 'lucide-react';
+import { PackageCheck, Clock, Pencil, Loader2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
 import { ConfirmRequestDialog } from '@/components/admin/confirm-request-dialog';
 import { useToast } from '@/hooks/use-toast';
-
-
-async function getConfirmedOrders(): Promise<PurchaseRequest[]> {
-  const res = await fetch('/api/requests');
-  if (!res.ok) {
-    console.error('Failed to fetch requests');
-    return [];
-  }
-  const allRequests: PurchaseRequest[] = await res.json();
-  return allRequests
-    .filter((req) => req.status === 'confirmed' && req.confirmationDate)
-    .sort((a, b) => new Date(b.confirmationDate!).getTime() - new Date(a.confirmationDate!).getTime());
-}
+import { useSession } from '@/hooks/use-session';
 
 export default function OrdersPage() {
   const { toast } = useToast();
+  const { session } = useSession();
   const [orders, setOrders] = React.useState<PurchaseRequest[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [editingOrder, setEditingOrder] = React.useState<PurchaseRequest | null>(null);
 
   const fetchOrders = React.useCallback(async () => {
+    if (!session?.sellerId) return;
     setIsLoading(true);
     try {
-      const fetchedOrders = await getConfirmedOrders();
-      setOrders(fetchedOrders);
+      const res = await fetch(`/api/requests?sellerId=${session.sellerId}`);
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      
+      const allRequests: PurchaseRequest[] = await res.json();
+      const confirmedOrders = allRequests
+        .filter((req) => req.status === 'confirmed' && req.confirmationDate)
+        .sort((a, b) => new Date(b.confirmationDate!).getTime() - new Date(a.confirmationDate!).getTime());
+        
+      setOrders(confirmedOrders);
     } catch (error) {
        toast({ title: 'Error', description: 'No se pudieron cargar los pedidos.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, session?.sellerId]);
   
   React.useEffect(() => {
     fetchOrders();
@@ -60,6 +57,14 @@ export default function OrdersPage() {
 
   const upcomingOrders = orders.filter(o => new Date(o.confirmationDate!) >= new Date());
   const pastOrders = orders.filter(o => new Date(o.confirmationDate!) < new Date());
+  
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center min-h-[50vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+    );
+  }
 
   return (
     <>
@@ -128,7 +133,7 @@ function OrderCard({ order, onEditClick, isPastOrder = false }: { order: Purchas
     const isPast = new Date(order.confirmationDate!) < new Date();
     
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+        return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
     };
 
     return (

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +26,7 @@ import type { Product } from '@/lib/types';
 import { ProductForm } from '@/components/admin/product-form';
 import { saveProductAction, deleteProductAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from '@/hooks/use-session';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,11 +36,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
 export default function AdminProductsPage() {
   const { toast } = useToast();
+  const { session } = useSession();
   const [products, setProducts] = React.useState<Product[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSheetOpen, setIsSheetOpen] = React.useState(false);
@@ -47,9 +48,11 @@ export default function AdminProductsPage() {
   const [isDeleting, setIsDeleting] = React.useState(false);
 
   const fetchProducts = React.useCallback(async () => {
+    if (!session?.sellerId) return;
     setIsLoading(true);
     try {
-      const res = await fetch('/api/products');
+      // Fetch products only for the logged-in seller
+      const res = await fetch(`/api/products?sellerId=${session.sellerId}`);
       if (!res.ok) throw new Error('Failed to fetch products');
       const data = await res.json();
       setProducts(data);
@@ -59,24 +62,36 @@ export default function AdminProductsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, session?.sellerId]);
 
   React.useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    if (session?.sellerId) {
+      fetchProducts();
+    }
+  }, [fetchProducts, session?.sellerId]);
 
-  const handleProductSave = async (product: Product) => {
-    await saveProductAction(product);
-    await fetchProducts(); // Refetch to get the latest list
+  const handleProductSave = async (productData: Omit<Product, 'id'>) => {
+    if (!session?.sellerId) {
+        toast({ title: 'Error', description: 'No se pudo identificar al vendedor.', variant: 'destructive' });
+        return;
+    }
+    const productToSave = {
+        ...productData,
+        sellerId: session.sellerId,
+        id: editingProduct?.id, // Pass existing id if editing
+    };
+    
+    await saveProductAction(productToSave);
+    await fetchProducts(); 
     setIsSheetOpen(false);
     setEditingProduct(undefined);
-    toast({ title: 'Producto guardado', description: `El producto "${product.name}" ha sido guardado.` });
+    toast({ title: 'Producto guardado', description: `El producto "${productData.name}" ha sido guardado.` });
   };
   
   const handleDelete = async (productId: string) => {
     setIsDeleting(true);
     await deleteProductAction(productId);
-    await fetchProducts(); // Refetch to update the list
+    await fetchProducts();
     setIsDeleting(false);
     toast({ title: 'Producto eliminado', description: 'El producto ha sido eliminado correctamente.' });
   }
@@ -92,7 +107,7 @@ export default function AdminProductsPage() {
   }
   
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   };
 
   return (
@@ -137,7 +152,9 @@ export default function AdminProductsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center">Cargando productos...</TableCell>
+                  <TableCell colSpan={5} className="text-center">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin" />
+                  </TableCell>
                 </TableRow>
               ) : products.length === 0 ? (
                  <TableRow>

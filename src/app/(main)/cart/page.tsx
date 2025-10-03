@@ -21,7 +21,7 @@ export default function CartPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   };
   
   const canFulfillOrder = cartItems.every(item => item.quantityInGrams <= item.product.stockInGrams);
@@ -36,6 +36,20 @@ export default function CartPage() {
       });
       return;
     }
+    
+    if(cartItems.length > 0) {
+      const sellerId = cartItems[0].product.sellerId;
+      const allSameSeller = cartItems.every(item => item.product.sellerId === sellerId);
+      if (!allSameSeller) {
+        toast({
+          title: 'Carrito inválido',
+          description: 'Todos los productos en el carrito deben ser del mismo vendedor.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
 
     setIsSubmitting(true);
     try {

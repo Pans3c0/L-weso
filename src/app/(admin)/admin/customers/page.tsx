@@ -19,34 +19,23 @@ import {
 import type { Customer } from "@/lib/types";
 import { Users, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-
-async function fetchCustomers(): Promise<Customer[]> {
-  // We don't have a specific API route for customers,
-  // but in a real app, you might fetch from /api/customers/by-referral/[code]
-  // For now, we simulate by fetching all requests and deducing customers,
-  // or we could create a dedicated API endpoint. Let's stick to a client-side fetch for simplicity.
-  // We will create a temporary API route for this.
-  const res = await fetch('/api/customers');
-  if (!res.ok) {
-    throw new Error('Failed to fetch customers');
-  }
-  return res.json();
-}
+import { useSession } from '@/hooks/use-session';
 
 
 export default function CustomersPage() {
   const { toast } = useToast();
+  const { session } = useSession();
   const [customers, setCustomers] = React.useState<Customer[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   const getCustomers = React.useCallback(async () => {
+    if (!session?.sellerId) return;
     setIsLoading(true);
     try {
-      const adminReferralCode = 'tienda_admin';
-      const allCustomers = await fetchCustomers();
-      const filteredCustomers = allCustomers.filter(c => c.referralCode === adminReferralCode);
-      setCustomers(filteredCustomers);
+      const res = await fetch(`/api/customers?sellerId=${session.sellerId}`);
+      if (!res.ok) throw new Error('Failed to fetch customers');
+      const data = await res.json();
+      setCustomers(data);
     } catch (error) {
       console.error(error);
       toast({
@@ -57,11 +46,13 @@ export default function CustomersPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, session?.sellerId]);
   
   React.useEffect(() => {
-    getCustomers();
-  }, [getCustomers]);
+    if(session?.sellerId) {
+        getCustomers();
+    }
+  }, [getCustomers, session?.sellerId]);
 
 
   return (
@@ -81,7 +72,7 @@ export default function CustomersPage() {
             <CardContent>
                 <div className="text-2xl font-bold">{customers.length}</div>
                 <p className="text-xs text-muted-foreground">
-                    clientes registrados con tu código de referencia.
+                    clientes registrados en tu tienda.
                 </p>
             </CardContent>
             </Card>

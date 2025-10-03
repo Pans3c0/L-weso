@@ -8,21 +8,31 @@ import { initialRequests } from '@/lib/mock-data';
 const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
 
 /**
- * Retrieves all purchase requests from the data source.
- * If the file doesn't exist or is empty, it initializes it as an empty array.
+ * Retrieves purchase requests, optionally filtered by seller.
+ * @param sellerId - If provided, only returns requests for that seller.
  * @returns A promise that resolves to an array of PurchaseRequest objects.
  */
-export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
+export async function getPurchaseRequests(sellerId?: string): Promise<PurchaseRequest[]> {
     try {
-        const data = await fs.readJson(requestsFilePath, { throws: false });
-        if (!data) { // Check if file is non-existent or empty
-             await fs.outputJson(requestsFilePath, initialRequests, { spaces: 2 });
-             return initialRequests;
+        const fileExists = await fs.pathExists(requestsFilePath);
+        let allRequests: PurchaseRequest[];
+
+        if (!fileExists) {
+            await fs.outputJson(requestsFilePath, initialRequests, { spaces: 2 });
+            allRequests = initialRequests;
+        } else {
+            const data = await fs.readJson(requestsFilePath, { throws: false });
+            allRequests = (data && data.length > 0) ? data : initialRequests;
+            if (!data || data.length === 0) {
+                 await fs.outputJson(requestsFilePath, initialRequests, { spaces: 2 });
+            }
         }
-        return data;
+        
+        return sellerId ? allRequests.filter(req => req.sellerId === sellerId) : allRequests;
     } catch (e) {
         console.error("Could not read or initialize requests file, returning fallback data.", e);
-        return initialRequests;
+        const allRequests = initialRequests;
+        return sellerId ? allRequests.filter(req => req.sellerId === sellerId) : allRequests;
     }
 }
 
@@ -32,16 +42,14 @@ export async function getPurchaseRequests(): Promise<PurchaseRequest[]> {
  * @returns A promise resolving to the PurchaseRequest or null if not found.
  */
 export async function getPurchaseRequestById(requestId: string): Promise<PurchaseRequest | null> {
-    const requests = await getPurchaseRequests();
+    const requests = await getPurchaseRequests(); // Fetches all requests
     return requests.find(req => req.id === requestId) || null;
 }
 
 
 /**
  * Saves the entire list of purchase requests to the data source.
- * Note: This overwrites the existing file.
  * @param requests - The full array of requests to save.
- * @returns A promise that resolves when the file is written.
  */
 export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise<void> {
     try {
@@ -54,12 +62,11 @@ export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise
 
 /**
  * Updates a single purchase request in the data source.
- * It finds the request by ID and replaces it with the updated version.
  * @param updatedRequest - The purchase request object with new data.
  * @returns A promise resolving to true if successful, false otherwise.
  */
 export async function updateRequest(updatedRequest: PurchaseRequest): Promise<boolean> {
-    const requests = await getPurchaseRequests();
+    const requests = await getPurchaseRequests(); // Fetches all requests
     const index = requests.findIndex(req => req.id === updatedRequest.id);
     if (index !== -1) {
         requests[index] = updatedRequest;

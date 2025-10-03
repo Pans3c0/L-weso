@@ -14,19 +14,6 @@ interface NotificationsContextType {
 
 const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
 
-async function fetchRequestsForCustomer(customerId: string): Promise<PurchaseRequest[]> {
-  // In a real app, you would fetch only the requests for the given customer.
-  // For now, we fetch all and filter.
-  const res = await fetch('/api/requests');
-  if (!res.ok) {
-    throw new Error('Failed to fetch requests');
-  }
-  const allRequests: PurchaseRequest[] = await res.json();
-  return allRequests
-    .filter(req => req.customerId === customerId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { session, isLoading: isSessionLoading } = useSession();
   const [requests, setRequests] = useState<PurchaseRequest[]>([]);
@@ -36,7 +23,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const customerId = session?.id;
 
   const refetch = useCallback(async () => {
-    if (!customerId) {
+    if (session?.role !== 'customer' || !customerId) {
         setRequests([]);
         setIsLoading(false);
         return;
@@ -45,22 +32,25 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchRequestsForCustomer(customerId);
-      setRequests(data);
+      // Fetch only requests for the logged-in customer
+      const res = await fetch(`/api/requests?customerId=${customerId}`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch requests');
+      }
+      const data: PurchaseRequest[] = await res.json();
+      setRequests(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'An unknown error occurred');
     } finally {
       setIsLoading(false);
     }
-  }, [customerId]);
+  }, [customerId, session?.role]);
 
   useEffect(() => {
     refetch();
     
-    // Set up an interval to periodically refetch the count
-    const intervalId = setInterval(refetch, 30000); // Poll every 30 seconds
+    const intervalId = setInterval(refetch, 30000); 
 
-    // Clean up the interval when the component is unmounted
     return () => clearInterval(intervalId);
 
   }, [refetch]);
@@ -82,11 +72,10 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useNotifications(customerId?: string) {
+export function useNotifications() {
     const context = useContext(NotificationsContext);
     if (context === undefined) {
       throw new Error('useNotifications must be used within a NotificationsProvider');
     }
-    // The customerId argument is now optional as the provider gets it from the session.
     return context;
 }

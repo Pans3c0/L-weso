@@ -17,16 +17,19 @@ import * as React from 'react';
 import type { PurchaseRequest } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/hooks/use-session";
 
 
 export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
     const pathname = usePathname();
+    const { session } = useSession();
     const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
 
     React.useEffect(() => {
         async function fetchPendingRequests() {
+            if (!session?.sellerId) return;
             try {
-                const res = await fetch('/api/requests');
+                const res = await fetch(`/api/requests?sellerId=${session.sellerId}`);
                 if (res.ok) {
                     const requests: PurchaseRequest[] = await res.json();
                     const pendingCount = requests.filter(r => r.status === 'pending').length;
@@ -40,7 +43,7 @@ export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
         fetchPendingRequests();
         const intervalId = setInterval(fetchPendingRequests, 30000); 
         return () => clearInterval(intervalId);
-    }, []);
+    }, [session?.sellerId]);
 
     const navItems = [
         { href: "/admin/dashboard", icon: Home, label: "Dashboard" },

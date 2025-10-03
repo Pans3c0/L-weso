@@ -1,6 +1,8 @@
+
 [
   {
     "id": "req_1759492294677",
+    "sellerId": "seller_1",
     "customerId": "customer_123",
     "customerName": "Juan Pérez",
     "items": [
@@ -13,7 +15,8 @@
           "stockInGrams": 40,
           "imageUrl": "/images/mfl.png",
           "imageHint": "marroco ",
-          "keywords": "hass, cremoso, guacamole, fruta"
+          "keywords": "hass, cremoso, guacamole, fruta",
+          "sellerId": "seller_1"
         },
         "quantityInGrams": 2
       }
@@ -26,6 +29,7 @@
   },
   {
     "id": "req_1759489971365",
+    "sellerId": "seller_1",
     "customerId": "customer_123",
     "customerName": "Juan Pérez",
     "items": [
@@ -38,7 +42,8 @@
           "stockInGrams": 50,
           "imageUrl": "/images/appleJax.png",
           "imageHint": "Apple",
-          "keywords": "apple, rojo, jax, hash"
+          "keywords": "apple, rojo, jax, hash",
+          "sellerId": "seller_1"
         },
         "quantityInGrams": 2
       }

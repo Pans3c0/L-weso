@@ -27,7 +27,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product;
-  onSave: (data: Product) => void;
+  onSave: (data: Omit<Product, 'id' | 'sellerId'>) => void;
   onCancel: () => void;
 }
 
@@ -48,15 +48,23 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       keywords: product?.keywords || '',
     },
   });
+  
+  React.useEffect(() => {
+    form.reset({
+      name: product?.name || '',
+      description: product?.description || '',
+      pricePerGram: product?.pricePerGram || 0,
+      stockInGrams: product?.stockInGrams || 0,
+      imageUrl: product?.imageUrl || '',
+      imageHint: product?.imageHint || '',
+      keywords: product?.keywords || '',
+    });
+  }, [product, form]);
+
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
-    const finalData: Product = {
-        ...data,
-        id: product?.id || '', // ID will be set by parent component for new products
-        imageUrl: data.imageUrl || '',
-    }
-    await onSave(finalData);
+    await onSave(data);
     setIsSaving(false);
   };
   
@@ -129,7 +137,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Precio por Gramo (€)</FormLabel>
-                <FormControl><Input type="number" step="0.001" {...field} /></FormControl>
+                <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
                 <FormMessage />
                 </FormItem>
             )}

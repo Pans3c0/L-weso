@@ -1,4 +1,13 @@
-import type { Product, PurchaseRequest, Customer } from '@/lib/types';
+import type { Product, PurchaseRequest, Customer, Seller } from '@/lib/types';
+
+/**
+ * Initial seed data for sellers.
+ */
+export const initialSellers: Seller[] = [
+  { id: 'seller_1', username: 'pacheco', passwordHash: 'c9d10a0' },
+  // Add more sellers here in the future
+  // { id: 'seller_2', username: 'another_admin', passwordHash: 'somepassword' },
+];
 
 /**
  * Initial seed data for products.
@@ -7,44 +16,26 @@ import type { Product, PurchaseRequest, Customer } from '@/lib/types';
 export const initialProducts: Product[] = [
   {
     id: 'prod_1',
-    name: 'Lemon Fresh',
-    description: 'Polen tierno, made in Spain.',
+    sellerId: 'seller_1',
+    name: 'Apple Jax',
+    description: 'Rubio, made in Spain.',
     pricePerGram: 5,
-    stockInGrams: 25000,
-    imageUrl: '/images/tomate.jpg',
-    imageHint: 'fresh tomatoes',
-    keywords: 'tomate, rojo, ensalada, fresco, verdura',
+    stockInGrams: 50,
+    imageUrl: '/images/appleJax.png',
+    imageHint: 'Apple',
+    keywords: 'apple, rojo, jax, hash',
   },
   {
     id: 'prod_2',
-    name: 'Horse Power',
-    description: 'Made in France, Tierno y buen tufo.',
-    pricePerGram: 6.5,
-    stockInGrams: 15000,
-    imageUrl: '/images/aguacate.jpg',
-    imageHint: 'ripe avocados',
-    keywords: 'aguacate, hass, cremoso, guacamole, fruta',
+    sellerId: 'seller_1',
+    name: 'Real Marrocino Farm',
+    description: 'Made in Marruecos,  moreno.',
+    pricePerGram: 5,
+    stockInGrams: 40,
+    imageUrl: '/images/mfl.png',
+    imageHint: 'marroco ',
+    keywords: 'hass, cremoso, guacamole, fruta',
   },
-  {
-    id: 'prod_3',
-    name: 'CR7',
-    description: 'Comer decente.',
-    pricePerGram: 3.5,
-    stockInGrams: 5000,
-    imageUrl: '/images/pan.jpg',
-    imageHint: 'artisanal bread',
-    keywords: 'pan, masa madre, artesanal, panaderia, crujiente',
-  },
-  {
-    id: 'prod_1759228772828',
-    name: 'Ferrari',
-    description: 'Polen rubio de alta calidad.',
-    pricePerGram: 4.7,
-    stockInGrams: 10000,
-    imageUrl: '/images/aceite.jpg',
-    imageHint: 'olive oil',
-    keywords: 'Polen, rubio'
-  }
 ];
 
 /**
@@ -52,8 +43,7 @@ export const initialProducts: Product[] = [
  * In a real application, this would be stored in a database.
  */
 export const customers: Customer[] = [
-    { id: 'customer_123', name: 'Juan Pérez', username: 'juanperez', referralCode: 'tienda_admin', password: 'password123' },
-    { id: 'customer_456', name: 'Maria García', username: 'mariagarcia', referralCode: 'tienda_admin', password: 'password' },
+    { id: 'customer_123', sellerId: 'seller_1', name: 'Juan Pérez', username: 'juanperez', referralCode: 'tienda_admin', password: 'password123' },
 ];
 
 /**
@@ -62,4 +52,11 @@ export const customers: Customer[] = [
  */
 export const initialRequests: PurchaseRequest[] = [
     // The list is intentionally left empty to start fresh.
+];
+
+/**
+ * Initial seed data for referral codes.
+ */
+export const initialReferralCodes = [
+    { code: 'REF-INIT1', sellerId: 'seller_1' }
 ];

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { getAllCustomers } from "@/lib/customers";
+import { getAllSellers } from "@/lib/sellers";
 import type { SessionUser } from "@/lib/types";
 
 const LoginSchema = z.object({
@@ -21,12 +22,16 @@ export async function loginAction(
 
   try {
     // 1. Admin Check
-    if (username === "pacheco" && password === "c9d10a0") {
+    const sellers = await getAllSellers();
+    const seller = sellers.find(s => s.username === username);
+
+    if (seller && seller.passwordHash === password) { // In a real app, use bcrypt.compare
       const adminUser: SessionUser = {
-        id: "admin",
-        name: "Admin",
-        username: "admin",
+        id: seller.id, // The user ID for an admin is their sellerId
+        name: seller.username, // Display username as name
+        username: seller.username,
         role: "admin",
+        sellerId: seller.id, // Explicitly set sellerId for admin session
       };
       return { user: adminUser };
     }
@@ -35,7 +40,7 @@ export async function loginAction(
     const customers = await getAllCustomers();
     const customer = customers.find((c) => c.username === username);
 
-    if (customer && customer.password === password) {
+    if (customer && customer.password === password) { // In a real app, use bcrypt.compare
       const customerUser: SessionUser = {
         id: customer.id,
         name: customer.name,

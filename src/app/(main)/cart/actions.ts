@@ -6,12 +6,9 @@ import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { getAllCustomers } from '@/lib/customers';
 
-/**
- * Schema for validating a product object within a cart.
- * Simplified to what's necessary for creating a purchase request.
- */
 const ProductSchema = z.object({
   id: z.string(),
+  sellerId: z.string(),
   name: z.string(),
   description: z.string(),
   pricePerGram: z.number(),
@@ -21,28 +18,16 @@ const ProductSchema = z.object({
   keywords: z.string().optional(),
 });
 
-/**
- * Schema for validating a single item in the cart.
- */
 const CartItemSchema = z.object({
   product: ProductSchema,
   quantityInGrams: z.number().positive(),
 });
 
-/**
- * Schema for validating the input for submitting a new purchase request.
- */
 const PurchaseRequestSchema = z.object({
   customerId: z.string(),
   items: z.array(CartItemSchema).min(1, "El carrito no puede estar vacío."),
 });
 
-/**
- * Server Action: Submits a new purchase request from a customer's cart.
- * This function creates a new request record with a 'pending' status.
- * @param input - An object containing the customer ID and the array of cart items.
- * @returns An object indicating success with the new request ID, or an error object.
- */
 export async function submitPurchaseRequestAction(input: {
   customerId: string;
   items: CartItem[];
@@ -55,6 +40,12 @@ export async function submitPurchaseRequestAction(input: {
 
   const { customerId, items } = parsedInput.data;
 
+  // All items in a single cart must belong to the same seller.
+  const sellerId = items[0]?.product.sellerId;
+  if (!sellerId || !items.every(item => item.product.sellerId === sellerId)) {
+    return { error: 'Todos los artículos del carrito deben pertenecer al mismo vendedor.' };
+  }
+
   try {
     const customers = await getAllCustomers();
     const customer = customers.find(c => c.id === customerId);
@@ -66,6 +57,7 @@ export async function submitPurchaseRequestAction(input: {
 
     const newRequest: PurchaseRequest = {
       id: `req_${Date.now()}`,
+      sellerId: sellerId, // Link request to the seller
       customerId,
       customerName: customer.name,
       items,
@@ -78,11 +70,8 @@ export async function submitPurchaseRequestAction(input: {
     allRequests.unshift(newRequest);
     await savePurchaseRequests(allRequests);
     
-    console.log('New purchase request submitted:', newRequest.id);
-    
-    // Revalidate paths to update the UI for administrators.
-    revalidatePath('/admin/requests');
-    revalidatePath('/admin/customers');
+    revalidatePath(`/admin/requests`); // Revalidate for the specific seller
+    revalidatePath(`/admin/customers`);
 
     return { success: true, requestId: newRequest.id };
 

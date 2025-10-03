@@ -1,4 +1,3 @@
-// THIS IS A NEW FILE
 'use client';
 
 import * as React from 'react';
@@ -6,18 +5,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { KeyRound, PlusCircle, Copy, Loader2 } from 'lucide-react';
-import { generateReferralCodeAction, getReferralCodes } from './actions';
+import { generateReferralCodeAction, getReferralCodesForSeller } from './actions';
+import { useSession } from '@/hooks/use-session';
 
 export default function ReferralsPage() {
   const { toast } = useToast();
+  const { session } = useSession();
   const [codes, setCodes] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isGenerating, setIsGenerating] = React.useState(false);
 
   const fetchCodes = React.useCallback(async () => {
+    if (!session?.sellerId) return;
     setIsLoading(true);
     try {
-      const currentCodes = await getReferralCodes();
+      const currentCodes = await getReferralCodesForSeller(session.sellerId);
       setCodes(currentCodes);
     } catch (error) {
       toast({
@@ -28,16 +30,20 @@ export default function ReferralsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, session?.sellerId]);
 
   React.useEffect(() => {
     fetchCodes();
   }, [fetchCodes]);
 
   const handleGenerateCode = async () => {
+    if (!session?.sellerId) {
+        toast({ title: 'Error', description: 'No se ha podido identificar al vendedor.', variant: 'destructive' });
+        return;
+    }
     setIsGenerating(true);
     try {
-      const result = await generateReferralCodeAction();
+      const result = await generateReferralCodeAction({ sellerId: session.sellerId });
       if (result.success && result.newCode) {
         toast({
           title: 'Código Generado',
@@ -65,6 +71,14 @@ export default function ReferralsPage() {
       description: `El código "${code}" ha sido copiado al portapapeles.`,
     });
   };
+  
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center min-h-[50vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+    );
+  }
 
   return (
     <div>
@@ -84,13 +98,11 @@ export default function ReferralsPage() {
         <CardHeader>
           <CardTitle>Códigos de Un Solo Uso Activos</CardTitle>
           <CardDescription>
-            Estos códigos pueden ser usados una sola vez para registrar un nuevo cliente. Una vez utilizados, desaparecerán de esta lista.
+            Estos códigos pueden ser usados una sola vez para registrar un nuevo cliente en tu tienda. Una vez utilizados, desaparecerán de esta lista.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <p>Cargando códigos...</p>
-          ) : codes.length > 0 ? (
+          {codes.length > 0 ? (
             <div className="space-y-3">
               {codes.map((code) => (
                 <div key={code} className="flex items-center justify-between p-3 bg-muted rounded-lg">

@@ -15,26 +15,32 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { ConfirmRequestDialog } from '@/components/admin/confirm-request-dialog';
-import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-
-async function fetchRequests(): Promise<PurchaseRequest[]> {
-    const res = await fetch('/api/requests');
-    if (!res.ok) {
-        console.error('Failed to fetch requests');
-        return [];
-    }
-    return res.json();
-}
-
+import { Clock, CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useSession } from '@/hooks/use-session';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminRequestsPage() {
+  const { session } = useSession();
+  const { toast } = useToast();
   const [requests, setRequests] = React.useState<PurchaseRequest[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [selectedRequest, setSelectedRequest] = React.useState<PurchaseRequest | null>(null);
 
   const fetchAndSetRequests = React.useCallback(async () => {
-    const data = await fetchRequests();
-    setRequests(data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-  }, []);
+    if (!session?.sellerId) return;
+    setIsLoading(true);
+    try {
+        const res = await fetch(`/api/requests?sellerId=${session.sellerId}`);
+        if (!res.ok) throw new Error('Failed to fetch requests');
+        const data = await res.json();
+        setRequests(data.sort((a: PurchaseRequest, b: PurchaseRequest) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    } catch(e) {
+        console.error(e);
+        toast({ title: 'Error', description: 'No se pudieron cargar las solicitudes.', variant: 'destructive' });
+    } finally {
+        setIsLoading(false);
+    }
+  }, [session?.sellerId, toast]);
 
   React.useEffect(() => {
     fetchAndSetRequests();
@@ -46,32 +52,33 @@ export default function AdminRequestsPage() {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   };
   
   const getStatusVariant = (status: PurchaseRequest['status']) => {
     switch (status) {
-      case 'pending':
-        return 'secondary';
-      case 'confirmed':
-        return 'default';
-      case 'rejected':
-        return 'destructive';
-      default:
-        return 'outline';
+      case 'pending': return 'secondary';
+      case 'confirmed': return 'default';
+      case 'rejected': return 'destructive';
+      default: return 'outline';
     }
   };
 
   const getStatusIcon = (status: PurchaseRequest['status']) => {
     switch (status) {
-      case 'pending':
-        return <Clock className="h-4 w-4 mr-2" />;
-      case 'confirmed':
-        return <CheckCircle className="h-4 w-4 mr-2" />;
-      case 'rejected':
-        return <XCircle className="h-4 w-4 mr-2" />;
+      case 'pending': return <Clock className="h-4 w-4 mr-2" />;
+      case 'confirmed': return <CheckCircle className="h-4 w-4 mr-2" />;
+      case 'rejected': return <XCircle className="h-4 w-4 mr-2" />;
     }
   };
+
+  if (isLoading) {
+    return (
+        <div className="flex justify-center items-center min-h-[50vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        </div>
+    );
+  }
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
   const processedRequests = requests.filter(r => r.status !== 'pending');
