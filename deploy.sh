@@ -7,15 +7,22 @@ SERVER_IP="192.168.0.12"
 SERVER_USER="pacheco"
 # Nombre base de la imagen (ej: l-weso)
 IMAGE_BASE_NAME="l-weso"
-# Puerto interno de tu app React (generalmente 3000)
+# Puerto interno de tu app React (el que usa el Dockerfile, generalmente 3000)
 CONTAINER_PORT="3000"
 # Puerto externo del servidor (donde quieres que se acceda, ej: 80)
 HOST_PORT="80"
+# Ruta al archivo .env que contiene las variables de entorno
+ENV_FILE=".env"
 # ---------------------
 
 # --- VERIFICACIÓN DE ENTRADA ---
 if [ -z "$1" ]; then
     echo "ERROR: Debes proporcionar el número de versión (ej: ./deploy.sh 1.0.5)"
+    exit 1
+fi
+
+if [ ! -f "$ENV_FILE" ]; then
+    echo "ERROR: No se encontró el archivo de entorno '$ENV_FILE'. Crea uno con las variables necesarias."
     exit 1
 fi
 
@@ -56,9 +63,10 @@ echo "   -> Exportación completa."
 echo "--------------------------------------------------"
 
 
-# --- PASO 3: COPIAR EL ARCHIVO TAR AL SERVIDOR ---
-echo "3. Copiando $TAR_FILE al servidor $SERVER_IP..."
+# --- PASO 3: COPIAR ARCHIVOS AL SERVIDOR ---
+echo "3. Copiando $TAR_FILE y $ENV_FILE al servidor $SERVER_IP..."
 scp "$TAR_FILE" "${SERVER_USER}@${SERVER_IP}:/home/${SERVER_USER}/"
+scp "$ENV_FILE" "${SERVER_USER}@${SERVER_IP}:/home/${SERVER_USER}/${OLD_CONTAINER_NAME}.env"
 if [ $? -ne 0 ]; then
     echo "ERROR: Falló la copia SCP. Asegúrate de que el servidor está encendido y el SSH funciona."
     exit 1
@@ -84,11 +92,12 @@ docker rm $OLD_CONTAINER_NAME 2>/dev/null || true
 echo '   -> Limpiando archivo TAR...'
 rm /home/${SERVER_USER}/$TAR_FILE
 
-# Lanzar el nuevo contenedor
+# Lanzar el nuevo contenedor con las variables de entorno
 echo '   -> Lanzando el nuevo contenedor $OLD_CONTAINER_NAME...'
 docker run -d \\
     --restart always \\
     --name $OLD_CONTAINER_NAME \\
+    --env-file /home/${SERVER_USER}/${OLD_CONTAINER_NAME}.env \\
     -p ${HOST_PORT}:${CONTAINER_PORT} \\
     $IMAGE_TAG
 "

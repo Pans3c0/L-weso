@@ -1,0 +1,17 @@
+# Dependencias
+node_modules
+npm-debug.log
+
+# Directorios de Build
+.next/
+dist/
+out/
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+
+# Otros
+.DS_Store
+*.log

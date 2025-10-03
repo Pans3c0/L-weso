@@ -4,8 +4,6 @@ import type { PushSubscription } from 'web-push';
 import webpush from 'web-push';
 import path from 'path';
 import fs from 'fs-extra';
-require('dotenv').config({ path: path.resolve(process.cwd(), '.env') });
-
 
 const subscriptionsFilePath = path.resolve(process.cwd(), 'src/lib/db/subscriptions.json');
 
