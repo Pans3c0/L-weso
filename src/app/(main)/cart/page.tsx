@@ -12,19 +12,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { submitPurchaseRequestAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
-<<<<<<< HEAD
 import { useSession } from '@/hooks/use-session';
-=======
-import { Loader2 } from 'lucide-react';
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
   const { toast } = useToast();
-<<<<<<< HEAD
   const { session, isLoading: isSessionLoading } = useSession();
-=======
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const formatCurrency = (amount: number) => {
@@ -74,31 +67,6 @@ export default function CartPage() {
         </div>
     );
   }
-
-  const handleSubmitRequest = async () => {
-    setIsSubmitting(true);
-    try {
-      // In a real app, you'd get the customerId from the session
-      const result = await submitPurchaseRequestAction({ customerId: 'customer_123', items: cartItems });
-      if (result.success) {
-        toast({
-          title: 'Solicitud Enviada',
-          description: 'El vendedor ha recibido tu solicitud y la revisará pronto.',
-        });
-        clearCart();
-      } else {
-        throw new Error(result.error || 'Algo salió mal');
-      }
-    } catch (error) {
-      toast({
-        title: 'Error al enviar la solicitud',
-        description: error instanceof Error ? error.message : 'Por favor, inténtalo de nuevo.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -194,11 +162,7 @@ export default function CartPage() {
                 <Button 
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90" 
                   size="lg" 
-<<<<<<< HEAD
                   disabled={!canFulfillOrder || isSubmitting || !session}
-=======
-                  disabled={!canFulfillOrder || isSubmitting}
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
                   onClick={handleSubmitRequest}
                 >
                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

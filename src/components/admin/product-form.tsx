@@ -18,11 +18,7 @@ const productSchema = z.object({
   description: z.string().min(10, 'La descripción es obligatoria'),
   pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
   stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
-<<<<<<< HEAD
   imageUrl: z.string().url('Debe ser una URL válida o estar vacío').optional().or(z.literal('')),
-=======
-  imageUrl: z.string().url('Debe ser una URL válida o estar vacío').or(z.literal('')),
->>>>>>> daa9c85 (Ademas por ahora aniadir una imagen no debe ser obligatorio para agregar)
   imageHint: z.string().optional(),
   keywords: z.string().optional(),
 });
@@ -155,16 +151,11 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           name="imageUrl"
           render={({ field }) => (
             <FormItem>
-<<<<<<< HEAD
               <FormLabel>URL de la Imagen</FormLabel>
               <FormControl><Input placeholder="https://ejemplo.com/imagen.jpg" {...field} /></FormControl>
               <FormDescription>
                 Pega aquí el enlace a una imagen del producto que esté en internet.
               </FormDescription>
-=======
-              <FormLabel>URL de la Imagen (Opcional)</FormLabel>
-              <FormControl><Input {...field} /></FormControl>
->>>>>>> daa9c85 (Ademas por ahora aniadir una imagen no debe ser obligatorio para agregar)
               <FormMessage />
             </FormItem>
           )}

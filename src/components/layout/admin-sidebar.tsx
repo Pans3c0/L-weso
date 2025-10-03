@@ -11,10 +11,7 @@ import {
   Package2,
   Store,
   Bell,
-<<<<<<< HEAD
   KeyRound,
-=======
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 } from "lucide-react";
 import * as React from 'react';
 import type { PurchaseRequest } from "@/lib/types";
@@ -47,20 +44,14 @@ export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
 
     const navItems = [
         { href: "/admin/dashboard", icon: Home, label: "Dashboard" },
-<<<<<<< HEAD
         { href: "/admin/requests", icon: Bell, label: "Solicitudes", badge: pendingRequestsCount > 0 ? pendingRequestsCount : null },
         { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos" },
-=======
-        { href: "/admin/requests", icon: Bell, label: "Solicitudes" },
-        { href: "/admin/orders", icon: ShoppingCart, label: "Pedidos", badge: "6" },
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
         { href: "/admin/products", icon: Package, label: "Productos" },
         { href: "/admin/customers", icon: Users, label: "Clientes" },
         { href: "/admin/referrals", icon: KeyRound, label: "Códigos de Referencia" },
         { href: "/admin/analytics", icon: LineChart, label: "Analíticas" },
     ];
     
-<<<<<<< HEAD
     const implementedRoutes = ["/admin/products", "/admin/requests", "/admin/dashboard", "/admin/orders", "/admin/customers", "/admin/referrals"];
 
     return (
@@ -76,24 +67,6 @@ export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
                     {navItems.map(item => {
                         const isActive = pathname.startsWith(item.href);
                         const isImplemented = implementedRoutes.includes(item.href);
-=======
-    const implementedRoutes = ["/admin/products", "/admin/requests"];
-
-    return (
-        <div className="hidden border-r bg-background md:block">
-            <div className="flex h-full max-h-screen flex-col gap-2">
-                <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                    <Link href="/admin/products" className="flex items-center gap-2 font-semibold font-headline">
-                        <Package2 className="h-6 w-6" />
-                        <span className="">Mercado Vecinal</span>
-                    </Link>
-                </div>
-                <div className="flex-1">
-                    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                        {navItems.map(item => {
-                            const isActive = pathname.startsWith(item.href);
-                            const isImplemented = implementedRoutes.includes(item.href);
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 
                         return (
                             <Link

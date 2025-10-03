@@ -1,10 +1,6 @@
 'use client';
 
 import * as React from 'react';
-<<<<<<< HEAD
-=======
-import { purchaseRequests as initialRequests } from '@/lib/requests';
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 import type { PurchaseRequest } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +15,6 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Image from 'next/image';
 import { ConfirmRequestDialog } from '@/components/admin/confirm-request-dialog';
-<<<<<<< HEAD
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 async function fetchRequests(): Promise<PurchaseRequest[]> {
@@ -45,25 +40,13 @@ export default function AdminRequestsPage() {
     fetchAndSetRequests();
   }, [fetchAndSetRequests]);
   
-=======
-import { Clock, CheckCircle, XCircle } from 'lucide-react';
-
-export default function AdminRequestsPage() {
-  const [requests, setRequests] = React.useState<PurchaseRequest[]>(initialRequests);
-  const [selectedRequest, setSelectedRequest] = React.useState<PurchaseRequest | null>(null);
-
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   const handleConfirmSuccess = (updatedRequest: PurchaseRequest) => {
     setRequests(prev => prev.map(r => r.id === updatedRequest.id ? updatedRequest : r));
     setSelectedRequest(null);
   };
 
   const formatCurrency = (amount: number) => {
-<<<<<<< HEAD
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
-=======
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   };
   
   const getStatusVariant = (status: PurchaseRequest['status']) => {
@@ -104,11 +87,7 @@ export default function AdminRequestsPage() {
           <CardTitle>Nuevas Solicitudes</CardTitle>
           <CardDescription>
             {pendingRequests.length > 0
-<<<<<<< HEAD
               ? `Tienes ${pendingRequests.length} ${pendingRequests.length === 1 ? 'nueva solicitud pendiente' : 'nuevas solicitudes pendientes'} de revisión.`
-=======
-              ? 'Tienes nuevas solicitudes pendientes de revisión.'
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
               : 'No hay solicitudes pendientes.'}
           </CardDescription>
         </CardHeader>
@@ -182,10 +161,7 @@ function RequestItem({
   getStatusIcon: (status: PurchaseRequest['status']) => React.ReactNode;
   onConfirmClick?: () => void;
 }) {
-<<<<<<< HEAD
   const placeholderImageUrl = 'https://placehold.co/64x64/F5F5F5/696969?text=?';
-=======
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
   return (
     <AccordionItem value={request.id}>
       <AccordionTrigger>
@@ -213,11 +189,7 @@ function RequestItem({
               <li key={item.product.id} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Image
-<<<<<<< HEAD
                     src={item.product.imageUrl || placeholderImageUrl}
-=======
-                    src={item.product.imageUrl}
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
                     alt={item.product.name}
                     width={40}
                     height={40}
@@ -226,7 +198,6 @@ function RequestItem({
                   />
                   <span>{item.product.name}</span>
                 </div>
-<<<<<<< HEAD
                 <span>{item.quantityInGrams} g</span>
               </li>
             ))}
@@ -248,16 +219,6 @@ function RequestItem({
             <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/50 rounded-md">
                 <p className="font-semibold text-green-800 dark:text-green-300">
                     Confirmado para: {format(new Date(request.confirmationDate), "eeee, d 'de' MMMM 'a las' HH:mm", { locale: es })}
-=======
-                <span>{(item.quantityInGrams / 1000).toFixed(3)} kg</span>
-              </li>
-            ))}
-          </ul>
-          {request.status === 'confirmed' && (
-            <div className="mb-4 p-3 bg-green-100 dark:bg-green-900/50 rounded-md">
-                <p className="font-semibold text-green-800 dark:text-green-300">
-                    Confirmado para: {format(new Date(request.confirmationDate!), "eeee, d 'de' MMMM 'a las' HH:mm", { locale: es })}
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
                 </p>
                 {request.sellerNote && <p className="mt-1 text-sm text-green-700 dark:text-green-400">Nota: "{request.sellerNote}"</p>}
             </div>
