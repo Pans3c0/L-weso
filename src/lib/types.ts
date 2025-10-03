@@ -26,7 +26,6 @@ export type PurchaseRequest = {
   createdAt: string;
   confirmationDate?: string;
   sellerNote?: string;
-<<<<<<< HEAD
   customerNote?: string; // For delay notifications
   isRead?: boolean; // For client-side notification tracking
 };
@@ -44,6 +43,4 @@ export type SessionUser = {
   name: string;
   username: string;
   role: 'admin' | 'customer';
-=======
->>>>>>> 0c19ed0 (Quiero que se le envie una notificacion al vendedor para que cuando se q)
 };
