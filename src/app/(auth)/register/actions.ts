@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { getAllCustomers, saveCustomers } from '@/lib/customers';
+import { getAllCustomers, saveCustomers, associateCustomerWithSeller } from '@/lib/customers';
 import { findReferralCode, removeReferralCode } from '@/lib/referral-codes';
 import type { Customer } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
@@ -43,16 +43,18 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
 
     const newCustomer: Customer = {
       id: `customer_${Date.now()}`,
-      sellerId: validCode.sellerId, // Link customer to the seller
       name,
       username,
-      referralCode, // Store which code was used
       password, // In a real app, hash this password
     };
     
     const updatedCustomers = [...allCustomers, newCustomer];
     await saveCustomers(updatedCustomers);
     
+    // Create the initial association between the new customer and the seller
+    await associateCustomerWithSeller(newCustomer.id, validCode.sellerId);
+    
+    // Invalidate the referral code so it cannot be used again
     await removeReferralCode(referralCode);
 
     revalidatePath('/admin/customers');

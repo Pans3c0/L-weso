@@ -1,6 +1,6 @@
 export type Product = {
   id: string;
-  sellerId: string; // New: To link product to a seller
+  sellerId: string; // To link product to a seller
   name: string;
   description: string;
   pricePerGram: number;
@@ -19,7 +19,7 @@ export type PurchaseRequestStatus = 'pending' | 'confirmed' | 'rejected';
 
 export type PurchaseRequest = {
   id: string;
-  sellerId: string; // New: To link request to a seller
+  sellerId: string; // To link request to a seller
   customerId: string;
   customerName: string;
   items: CartItem[];
@@ -34,12 +34,15 @@ export type PurchaseRequest = {
 
 export type Customer = {
     id: string;
-    sellerId: string; // New: To link customer to the seller they registered with
     name: string;
     username: string;
-    referralCode: string;
     password?: string;
 };
+
+export type CustomerSellerRelation = {
+  customerId: string;
+  sellerId: string;
+}
 
 export type Seller = {
   id: string;

@@ -74,7 +74,7 @@ export default function RegisterPage() {
                         <Package className="h-8 w-8 text-primary" />
                     </div>
                     <CardTitle className="font-headline text-2xl">Crear una cuenta</CardTitle>
-                    <CardDescription>Únete con un código de referencia.</CardDescription>
+                    <CardDescription>Únete con un código de referencia de una tienda.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <FormField
@@ -84,7 +84,7 @@ export default function RegisterPage() {
                             <FormItem>
                                 <FormLabel>Código de Referencia</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Ingresa el código de tu vendedor" {...field} />
+                                    <Input placeholder="Ingresa el código que te dio tu vendedor" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

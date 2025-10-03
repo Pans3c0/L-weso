@@ -43,7 +43,7 @@ export const initialProducts: Product[] = [
  * In a real application, this would be stored in a database.
  */
 export const initialCustomers: Customer[] = [
-    { id: 'customer_123', sellerId: 'seller_1', name: 'Juan Pérez', username: 'juanperez', referralCode: 'tienda_admin', password: 'password123' },
+    { id: 'customer_123', name: 'Juan Pérez', username: 'juanperez', password: 'password123' },
 ];
 
 /**
@@ -59,4 +59,9 @@ export const initialRequests: PurchaseRequest[] = [
  */
 export const initialReferralCodes: ReferralCode[] = [
     { code: 'REF-INIT1', sellerId: 'seller_1' }
+];
+
+// Seed data for the many-to-many relationship between customers and sellers.
+export const initialCustomerSellerRelations = [
+    { customerId: 'customer_123', sellerId: 'seller_1' },
 ];

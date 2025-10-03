@@ -1,55 +1,79 @@
 'use client';
 
 import * as React from 'react';
-import type { Product } from '@/lib/types';
+import type { Product, Seller } from '@/lib/types';
 import { ProductCard } from '@/components/products/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from '@/hooks/use-session';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Loader2, User, Info } from 'lucide-react';
+import { Loader2, User, Info, KeyRound } from 'lucide-react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import { getAllSellers } from '@/lib/sellers';
-import type { Seller } from '@/lib/types';
-
+import { getCustomerSellerRelations } from '@/lib/customers';
+import { associateCustomerWithSellerAction } from '@/app/(admin)/admin/referrals/actions';
+import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function ShopPage() {
+  const { toast } = useToast();
   const [products, setProducts] = React.useState<Product[]>([]);
-  const [sellers, setSellers] = React.useState<Seller[]>([]);
+  const [allSellers, setAllSellers] = React.useState<Seller[]>([]);
+  const [associatedSellers, setAssociatedSellers] = React.useState<Seller[]>([]);
   const [selectedSeller, setSelectedSeller] = React.useState<string | undefined>(undefined);
   const [isLoadingSellers, setIsLoadingSellers] = React.useState(true);
   const [isLoadingProducts, setIsLoadingProducts] = React.useState(false);
   const { session, isLoading: isLoadingSession } = useSession();
+  const [referralCode, setReferralCode] = React.useState('');
+  const [isAssociating, setIsAssociating] = React.useState(false);
+
+  const fetchSellersAndRelations = React.useCallback(async () => {
+    setIsLoadingSellers(true);
+    try {
+      const allSellersData = await getAllSellers();
+      setAllSellers(allSellersData);
+
+      if (session?.role === 'customer') {
+        const relations = await getCustomerSellerRelations();
+        const customerRelations = relations.filter(r => r.customerId === session.id);
+        const sellerIds = customerRelations.map(r => r.sellerId);
+        const filteredSellers = allSellersData.filter(s => sellerIds.includes(s.id));
+        setAssociatedSellers(filteredSellers);
+        
+        if (filteredSellers.length > 0) {
+            // Default to the first associated seller
+            setSelectedSeller(filteredSellers[0].id);
+        }
+      } else if (allSellersData.length > 0) {
+        // For guests, default to the very first seller
+        setSelectedSeller(allSellersData[0].id);
+        setAssociatedSellers(allSellersData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch sellers and relations', error);
+    } finally {
+      setIsLoadingSellers(false);
+    }
+  }, [session]);
   
   React.useEffect(() => {
-    async function fetchSellers() {
-      setIsLoadingSellers(true);
-      try {
-        const sellerData = await getAllSellers();
-        setSellers(sellerData);
-        // Default to the first seller if available
-        if(sellerData.length > 0) {
-            setSelectedSeller(sellerData[0].id);
-        }
-      } catch (error) {
-        console.error('Failed to fetch sellers', error);
-      } finally {
-        setIsLoadingSellers(false);
-      }
-    }
-    fetchSellers();
-  }, [])
+    fetchSellersAndRelations();
+  }, [fetchSellersAndRelations]);
 
   React.useEffect(() => {
     async function fetchProducts() {
-        if (!selectedSeller) return;
+        if (!selectedSeller) {
+          setProducts([]);
+          return
+        };
         setIsLoadingProducts(true);
         try {
           const res = await fetch(`/api/products?sellerId=${selectedSeller}`);
@@ -60,12 +84,33 @@ export default function ShopPage() {
           setProducts(data);
         } catch (error) {
           console.error('Failed to fetch products', error);
+          setProducts([]); // Clear products on error
         } finally {
           setIsLoadingProducts(false);
         }
       }
     fetchProducts();
   }, [selectedSeller]);
+
+  const handleAssociateCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session || !referralCode) return;
+    setIsAssociating(true);
+    try {
+      const result = await associateCustomerWithSellerAction({ customerId: session.id, referralCode });
+      if (result.success) {
+        toast({ title: '¡Tienda Añadida!', description: 'Ahora puedes comprar en esta nueva tienda.' });
+        setReferralCode('');
+        await fetchSellersAndRelations(); // Refetch sellers to update the dropdown
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: (error as Error).message, variant: 'destructive' });
+    } finally {
+      setIsAssociating(false);
+    }
+  }
 
   if (isLoadingSession || isLoadingSellers) {
     return (
@@ -74,6 +119,8 @@ export default function ShopPage() {
         </div>
     );
   }
+  
+  const showSellerSelector = session && associatedSellers.length > 1;
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
@@ -89,20 +136,25 @@ export default function ShopPage() {
         </p>
       </div>
       
-      <div className="mb-8 max-w-sm mx-auto">
-        <Select onValueChange={setSelectedSeller} defaultValue={selectedSeller}>
-            <SelectTrigger>
-                <SelectValue placeholder="Selecciona una tienda..." />
-            </SelectTrigger>
-            <SelectContent>
-                {sellers.map(seller => (
-                    <SelectItem key={seller.id} value={seller.id}>
-                        Tienda de {seller.username}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-      </div>
+      {/* Show selector only if customer is associated with more than one seller */}
+      {showSellerSelector ? (
+        <div className="mb-8 max-w-sm mx-auto">
+          <Select onValueChange={setSelectedSeller} defaultValue={selectedSeller}>
+              <SelectTrigger>
+                  <SelectValue placeholder="Selecciona una tienda..." />
+              </SelectTrigger>
+              <SelectContent>
+                  {associatedSellers.map(seller => (
+                      <SelectItem key={seller.id} value={seller.id}>
+                          Tienda de {seller.username}
+                      </SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
+        </div>
+      ) : session && associatedSellers.length === 1 && (
+        <p className="text-center text-muted-foreground mb-8">Comprando en: <strong>Tienda de {associatedSellers[0].username}</strong></p>
+      )}
 
 
       {!session && (
@@ -125,6 +177,28 @@ export default function ShopPage() {
             </CardContent>
         </Card>
       )}
+
+      {session?.role === 'customer' && (
+        <Card className="max-w-lg mx-auto mb-8">
+          <CardContent className='pt-6'>
+            <form onSubmit={handleAssociateCode} className="space-y-4">
+              <Label htmlFor="referral-code" className='flex items-center'><KeyRound className='mr-2'/>Añadir una nueva tienda</Label>
+              <div className="flex gap-2">
+                <Input 
+                  id="referral-code"
+                  placeholder="Introduce el código de otra tienda"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                />
+                <Button type="submit" disabled={isAssociating || !referralCode}>
+                  {isAssociating ? <Loader2 className='animate-spin' /> : 'Añadir'}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Si otro vendedor te ha dado un código de referencia, introdúcelo aquí para acceder a su tienda.</p>
+            </form>
+          </CardContent>
+        </Card>
+      )}
         
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
       {isLoadingProducts ? (
@@ -137,7 +211,7 @@ export default function ShopPage() {
           ))
       ) : (
           <div className="col-span-full text-center text-muted-foreground py-10">
-            Esta tienda aún no tiene productos.
+            {selectedSeller ? 'Esta tienda aún no tiene productos.' : 'Selecciona una tienda para ver sus productos.'}
           </div>
       )}
       </div>

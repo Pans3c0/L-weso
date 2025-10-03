@@ -2,10 +2,8 @@
 [
   {
     "id": "customer_123",
-    "sellerId": "seller_1",
     "name": "Juan Pérez",
     "username": "juanperez",
-    "referralCode": "tienda_admin",
     "password": "password123"
   }
 ]
