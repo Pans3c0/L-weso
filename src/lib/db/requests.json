@@ -1,5 +1,31 @@
-
 [
+  {
+    "id": "req_1759506164211",
+    "sellerId": "seller_1",
+    "customerId": "customer_123",
+    "customerName": "Juan Pérez",
+    "items": [
+      {
+        "product": {
+          "id": "prod_2",
+          "sellerId": "seller_1",
+          "name": "Real Marrocino Farm",
+          "description": "Made in Marruecos,  moreno.",
+          "pricePerGram": 5,
+          "stockInGrams": 40,
+          "imageUrl": "/images/mfl.png",
+          "imageHint": "marroco ",
+          "keywords": "hass, cremoso, guacamole, fruta"
+        },
+        "quantityInGrams": 2
+      }
+    ],
+    "total": 10,
+    "status": "confirmed",
+    "createdAt": "2025-10-03T15:42:44.211Z",
+    "confirmationDate": "2025-10-03T15:42:58.106Z",
+    "sellerNote": ""
+  },
   {
     "id": "req_1759492294677",
     "sellerId": "seller_1",
