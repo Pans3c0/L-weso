@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { PanelLeft, Wrench, User, LogOut, BellPlus, Info, Bell, Siren } from 'lucide-react';
+import { PanelLeft, Wrench, User, LogOut, BellPlus, Info, Bell } from 'lucide-react';
 import { AdminSidebar } from './admin-sidebar';
 import { useSession } from '@/hooks/use-session';
 import { Skeleton } from '../ui/skeleton';
@@ -15,25 +15,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { Badge } from '@/components/ui/badge';
 import type { PurchaseRequest } from '@/lib/types';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { sendEmergencyNotificationAction } from '@/app/(admin)/admin/requests/actions';
-import { useToast } from '@/hooks/use-toast';
+import { EmergencyButton } from '../emergency-button';
 
 
 export function AdminHeader() {
   const { session, logout, isLoading } = useSession();
   const router = useRouter();
-  const { toast } = useToast();
   const {
     isUnsupported,
     userConsent,
@@ -41,7 +28,6 @@ export function AdminHeader() {
   } = usePushNotifications();
 
   const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
-  const [isSendingEmergency, setIsSendingEmergency] = React.useState(false);
 
 
   React.useEffect(() => {
@@ -80,23 +66,6 @@ export function AdminHeader() {
     return name.substring(0, 2).toUpperCase();
   }
   
-  const handleEmergency = async () => {
-    if (!session) return;
-    setIsSendingEmergency(true);
-    try {
-        const result = await sendEmergencyNotificationAction({ senderId: session.id, senderName: session.name });
-        if (result.success) {
-            toast({ title: "Alerta Enviada", description: "El administrador principal ha sido notificado de la emergencia." });
-        } else {
-            throw new Error(result.error);
-        }
-    } catch(e) {
-        toast({ title: "Error", description: (e as Error).message, variant: "destructive" });
-    } finally {
-        setIsSendingEmergency(false);
-    }
-  };
-
   const showPendingRequestsBadge = pendingRequestsCount > 0;
 
 
@@ -146,38 +115,7 @@ export function AdminHeader() {
         )}
         
         {session && (
-            <AlertDialog>
-              <Tooltip>
-                  <TooltipTrigger asChild>
-                      <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="icon" aria-label="Alerta de emergencia">
-                              <Siren className="h-5 w-5" />
-                          </Button>
-                      </AlertDialogTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                      <p>Enviar alerta de emergencia</p>
-                  </TooltipContent>
-              </Tooltip>
-              <AlertDialogContent>
-                  <AlertDialogHeader>
-                      <AlertDialogTitle>¿Estás seguro de que quieres enviar una alerta de emergencia?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                          Esta acción notificará inmediatamente al administrador principal sobre un problema. Úsalo solo en caso de una emergencia real.
-                      </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                      <AlertDialogCancel disabled={isSendingEmergency}>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction
-                          onClick={handleEmergency}
-                          disabled={isSendingEmergency}
-                          className="bg-destructive hover:bg-destructive/90"
-                      >
-                           {isSendingEmergency ? "Enviando..." : "Sí, Enviar Alerta"}
-                      </AlertDialogAction>
-                  </AlertDialogFooter>
-              </AlertDialogContent>
-          </AlertDialog>
+          <EmergencyButton session={session} />
         )}
 
         <Button
