@@ -76,6 +76,7 @@ export function ConfirmRequestDialog({ request, onOpenChange, onSuccess, isEditi
         requestId: request.id,
         confirmationDate: combinedDateTime.toISOString(),
         sellerNote: data.sellerNote,
+        isEditing: isEditing, // Pass the flag to the action
       });
 
       if (result.success && result.updatedRequest) {

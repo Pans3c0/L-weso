@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "id": "req_1759489971365",
+    "customerId": "customer_123",
+    "customerName": "Juan Pérez",
+    "items": [
+      {
+        "product": {
+          "id": "prod_1",
+          "name": "Apple Jax",
+          "description": "Rubio, made in Spain.",
+          "pricePerGram": 5,
+          "stockInGrams": 50,
+          "imageUrl": "/images/appleJax.png",
+          "imageHint": "Apple",
+          "keywords": "apple, rojo, jax, hash"
+        },
+        "quantityInGrams": 2
+      }
+    ],
+    "total": 10,
+    "status": "confirmed",
+    "createdAt": "2025-10-03T11:12:51.365Z",
+    "confirmationDate": "2025-10-03T11:13:13.399Z",
+    "sellerNote": ""
+  }
+]

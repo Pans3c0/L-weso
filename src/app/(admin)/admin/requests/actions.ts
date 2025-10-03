@@ -12,11 +12,12 @@ const ConfirmRequestSchema = z.object({
   requestId: z.string(),
   confirmationDate: z.string().datetime(),
   sellerNote: z.string().optional(),
+  isEditing: z.boolean().optional(), // Add isEditing flag
 });
 
 /**
- * Server Action: Confirms a pending purchase request.
- * This action finds the request, updates its status to 'confirmed',
+ * Server Action: Confirms a pending purchase request or updates a confirmed one.
+ * This action finds the request, updates its status/details,
  * and saves the new state. It also revalidates relevant paths.
  * @param input - The details for the confirmation, including request ID, date, and an optional note.
  * @returns A success object with the updated request or an error object.
@@ -27,7 +28,7 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     return { error: 'Datos de confirmación inválidos.' };
   }
 
-  const { requestId, confirmationDate, sellerNote } = parsedInput.data;
+  const { requestId, confirmationDate, sellerNote, isEditing } = parsedInput.data;
   
   try {
     const request = await getPurchaseRequestById(requestId);
@@ -35,13 +36,18 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
       return { error: 'Solicitud no encontrada.' };
     }
 
-    if (request.status !== 'pending') {
+    // Allow updates only on pending requests OR if we are explicitly editing a confirmed one
+    if (request.status !== 'pending' && !isEditing) {
       return { error: 'Esta solicitud ya ha sido procesada.' };
     }
+     if (isEditing && request.status !== 'confirmed') {
+      return { error: 'Solo se pueden editar pedidos que ya están confirmados.' };
+    }
+
 
     const updated: PurchaseRequest = {
       ...request,
-      status: 'confirmed',
+      status: 'confirmed', // Keep status as confirmed
       confirmationDate,
       sellerNote,
     };
@@ -49,7 +55,7 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
     await updateRequest(updated);
     
     // In a real app, you would send a notification (e.g., email, push) to the customer here.
-    console.log(`Request ${requestId} confirmed for ${confirmationDate}.`);
+    console.log(`Request ${requestId} ${isEditing ? 'updated' : 'confirmed'} for ${confirmationDate}.`);
 
     // Revalidate paths to update UI across the app
     revalidatePath('/admin/requests');
@@ -58,8 +64,8 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
 
     return { success: true, updatedRequest: updated };
   } catch (error) {
-    console.error(`Failed to confirm request ${requestId}:`, error);
-    return { error: 'No se pudo confirmar la solicitud.' };
+    console.error(`Failed to process request ${requestId}:`, error);
+    return { error: 'No se pudo procesar la solicitud.' };
   }
 }
 
