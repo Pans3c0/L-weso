@@ -56,22 +56,35 @@ export async function deleteProductAction(productId: string) {
 export async function uploadImageAction(formData: FormData) {
   const file = formData.get('file') as File;
   if (!file) {
-    return { success: false, error: 'No file provided.' };
+    return { success: false, error: 'No se ha proporcionado ningún archivo.' };
+  }
+
+  // Validar tipo de archivo
+  const allowedTypes = ['image/jpeg', 'image/png'];
+  if (!allowedTypes.includes(file.type)) {
+      return { success: false, error: 'Formato de archivo no válido. Solo se permiten JPEG y PNG.' };
+  }
+  
+  // Validar tamaño del archivo (e.g., 5MB)
+  const maxSizeInBytes = 5 * 1024 * 1024;
+  if (file.size > maxSizeInBytes) {
+      return { success: false, error: 'El archivo es demasiado grande. El máximo es 5MB.'};
   }
 
   const fileBuffer = Buffer.from(await file.arrayBuffer());
   const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
   const uploadDir = path.join(process.cwd(), 'public/images');
   
-  await fs.ensureDir(uploadDir);
-  const filePath = path.join(uploadDir, fileName);
-
   try {
+    // Asegurarse de que el directorio existe, si no, lo crea.
+    await fs.ensureDir(uploadDir);
+    const filePath = path.join(uploadDir, fileName);
+
     await fs.writeFile(filePath, fileBuffer);
-    const imageUrl = `/images/${fileName}`; // Path to be used in <img> src
+    const imageUrl = `/images/${fileName}`; // Ruta relativa para usar en <img> src
     return { success: true, imageUrl };
   } catch (error) {
-    console.error('Failed to save image:', error);
-    return { success: false, error: 'Failed to save image.' };
+    console.error('Fallo al guardar la imagen:', error);
+    return { success: false, error: 'No se pudo guardar la imagen en el servidor.' };
   }
 }
