@@ -80,9 +80,6 @@ export default function AdminProductsPage() {
     }
     
     formData.set('sellerId', session.sellerId);
-    if(editingProduct) {
-        formData.set('id', editingProduct.id);
-    }
     
     const result = await saveProductAction(formData);
 

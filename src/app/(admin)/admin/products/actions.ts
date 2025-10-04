@@ -14,17 +14,17 @@ const ProductFormSchema = z.object({
     description: z.string().min(10, 'La descripción es obligatoria'),
     pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
     stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
-    imageUrl: z.string().optional(),
 });
 
 export async function saveProductAction(
   formData: FormData
 ) {
     const imageFile = formData.get('imageFile') as File | null;
-    const existingImageUrl = formData.get('imageUrl') as string || undefined;
+    // This is the URL of the image that was on the product BEFORE this update
+    const existingImageUrl = formData.get('existingImageUrl') as string | null;
 
     const productData = {
-        id: formData.get('id') as string || undefined,
+        id: formData.get('id') as string | undefined,
         sellerId: formData.get('sellerId') as string,
         name: formData.get('name') as string,
         description: formData.get('description') as string,
@@ -32,30 +32,36 @@ export async function saveProductAction(
         stockInGrams: formData.get('stockInGrams') as string,
     };
     
-    // Check if id is an empty string and convert to undefined
     if (productData.id === '') {
         productData.id = undefined;
     }
-
 
     const parsedProduct = ProductFormSchema.safeParse({
         ...productData,
         pricePerGram: Number(productData.pricePerGram),
         stockInGrams: Number(productData.stockInGrams),
-        imageUrl: existingImageUrl,
     });
     
     if (!parsedProduct.success) {
       console.error(parsedProduct.error.flatten().fieldErrors);
       return { success: false, error: "Invalid product data." };
     }
-
-    let finalImageUrl = parsedProduct.data.imageUrl;
+    
+    let finalImageUrl: string | undefined = existingImageUrl || undefined;
 
     // Handle image upload only if a new file is provided
     if (imageFile && imageFile.size > 0) {
-        if (imageFile.size > 10 * 1024 * 1024) { 
-            return { success: false, error: 'El archivo es demasiado grande (máx 10MB).' };
+        // If there was an old image, delete it from the server
+        if (existingImageUrl) {
+            try {
+                const oldImagePath = path.join(process.cwd(), 'public', existingImageUrl);
+                if (await fs.pathExists(oldImagePath)) {
+                    await fs.unlink(oldImagePath);
+                }
+            } catch (error) {
+                console.error('Failed to delete old image:', error);
+                // Non-fatal, so we continue
+            }
         }
         
         const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
@@ -76,7 +82,7 @@ export async function saveProductAction(
     try {
         const productToSave: Omit<Product, 'id'> & { id?: string } = {
             ...parsedProduct.data,
-            imageUrl: finalImageUrl 
+            imageUrl: finalImageUrl || '',
         };
 
         const savedProduct = await saveProduct(productToSave);

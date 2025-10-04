@@ -31,6 +31,10 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string | null>(product?.imageUrl || null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // This stores the original image URL when editing
+  const [existingImageUrl, setExistingImageUrl] = React.useState<string | null>(product?.imageUrl || null);
+
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -49,7 +53,9 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       pricePerGram: product?.pricePerGram || 0,
       stockInGrams: product?.stockInGrams || 0,
     });
-    setImagePreview(product?.imageUrl || null);
+    const url = product?.imageUrl || null;
+    setImagePreview(url);
+    setExistingImageUrl(url);
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
@@ -60,20 +66,18 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     setIsSaving(true);
     const formData = new FormData();
     
-    // Append form data
     Object.entries(data).forEach(([key, value]) => {
       formData.append(key, String(value));
     });
 
-    // Append existing product ID and image URL if editing
     if (product?.id) {
         formData.append('id', product.id);
     }
-    if (product?.imageUrl) {
-        formData.append('imageUrl', product.imageUrl);
+    // Pass the original image URL to the action so it can delete it if a new one is uploaded
+    if (existingImageUrl) {
+        formData.append('existingImageUrl', existingImageUrl);
     }
 
-    // Append a new file if one was selected
     if (fileInputRef.current?.files?.[0]) {
       formData.append('imageFile', fileInputRef.current.files[0]);
     }
@@ -103,15 +107,15 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             <div className="flex flex-col items-center gap-4">
                 <div className="w-full h-40 relative rounded-md border border-dashed flex items-center justify-center bg-muted/50">
                     {imagePreview ? (
-                        <Image src={imagePreview} alt="Vista previa del producto" fill objectFit="contain" className="rounded-md" unoptimized/>
+                        <Image src={imagePreview} alt="Vista previa del producto" fill style={{objectFit: 'contain'}} className="rounded-md" unoptimized/>
                     ) : (
                         <span className="text-muted-foreground text-sm">Vista previa</span>
                     )}
                 </div>
-                <input type="file" name="imageFile" ref={fileInputRef} onChange={handleImageChange} accept="image/jpeg,image/png,image/webp" className="hidden" />
+                <input type="file" name="imageFile" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" />
-                    Subir Imagen
+                    {imagePreview ? 'Cambiar Imagen' : 'Subir Imagen'}
                 </Button>
             </div>
           </FormControl>
