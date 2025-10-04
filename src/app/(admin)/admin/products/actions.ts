@@ -66,8 +66,8 @@ export async function saveProductAction(
         
         const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
         const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-        // Use path.resolve to get an absolute path to the public directory
-        const uploadDir = path.resolve(process.cwd(), 'public/images');
+        // Correct path for production/Docker environments
+        const uploadDir = path.join(process.cwd(), 'public/images');
         
         try {
             // Ensure the directory exists before writing
