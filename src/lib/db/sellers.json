@@ -1,9 +1,8 @@
-
 [
   {
     "id": "seller_1",
     "username": "pacheco",
-    "storeName": "XooX's Store",
+    "storeName": "Pacheco's Store",
     "passwordHash": "c9d10a0"
   }
 ]

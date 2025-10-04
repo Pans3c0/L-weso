@@ -1,5 +1,22 @@
+[
+  {
+    "id": "prod_1",
+    "sellerId": "seller_1",
+    "name": "Apple Jax",
+    "description": "Rubio, made in Spain.",
+    "pricePerGram": 5,
+    "stockInGrams": 50,
+    "imageUrl": "/images/appleJax.png",
+    "imageHint": "Apple"
+  },
+  {
+    "id": "prod_2",
+    "sellerId": "seller_1",
+    "name": "Real Marrocino Farm",
+    "description": "Made in Marruecos,  moreno.",
+    "pricePerGram": 5,
+    "stockInGrams": 40,
+    "imageUrl": "/images/mfl.png",
+    "imageHint": "marroco "
+  }
 ]
-]></content>
-  </change>
-  <change>
-    <file>src/lib/db/referral-codes.json</file

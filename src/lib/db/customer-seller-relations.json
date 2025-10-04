@@ -1,6 +1,6 @@
+[
+  {
+    "customerId": "customer_123",
+    "sellerId": "seller_1"
+  }
 ]
-]></content>
-  </change>
-  <change>
-    <file>src/lib/db/customer-seller-relations.json</file>
-    <
