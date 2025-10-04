@@ -54,8 +54,7 @@ export async function saveProductAction(
 
     // Handle image upload only if a new file is provided
     if (imageFile && imageFile.size > 0) {
-        // This size limit is now more of a safeguard, the real limit is in next.config.js
-        if (imageFile.size > 10 * 1024 * 1024) { // 10MB limit
+        if (imageFile.size > 10 * 1024 * 1024) { 
             return { success: false, error: 'El archivo es demasiado grande (máx 10MB).' };
         }
         
@@ -67,7 +66,7 @@ export async function saveProductAction(
             await fs.ensureDir(uploadDir);
             const filePath = path.join(uploadDir, fileName);
             await fs.writeFile(filePath, fileBuffer);
-            finalImageUrl = `/images/${fileName}`; // Set the new image URL
+            finalImageUrl = `/images/${fileName}`; 
         } catch (error) {
             console.error('Fallo al guardar la imagen:', error);
             return { success: false, error: 'No se pudo guardar la imagen en el servidor.' };
@@ -77,7 +76,7 @@ export async function saveProductAction(
     try {
         const productToSave: Omit<Product, 'id'> & { id?: string } = {
             ...parsedProduct.data,
-            imageUrl: finalImageUrl // Use the potentially new URL
+            imageUrl: finalImageUrl 
         };
 
         const savedProduct = await saveProduct(productToSave);
