@@ -31,6 +31,12 @@ export async function saveProductAction(
         pricePerGram: formData.get('pricePerGram') as string,
         stockInGrams: formData.get('stockInGrams') as string,
     };
+    
+    // Check if id is an empty string and convert to undefined
+    if (productData.id === '') {
+        productData.id = undefined;
+    }
+
 
     const parsedProduct = ProductFormSchema.safeParse({
         ...productData,
@@ -52,11 +58,6 @@ export async function saveProductAction(
             return { success: false, error: 'El archivo es demasiado grande (máx 5MB).' };
         }
         
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        if (!allowedTypes.includes(imageFile.type)) {
-            return { success: false, error: 'Tipo de archivo no permitido. Solo se aceptan JPEG, PNG, o WebP.' };
-        }
-
         const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
         const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
         const uploadDir = path.join(process.cwd(), 'public/images');
