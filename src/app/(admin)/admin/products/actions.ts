@@ -17,6 +17,12 @@ async function uploadImage(file: File): Promise<{ success: boolean; imageUrl?: s
     return { success: false, error: 'El archivo es demasiado grande (máx 5MB).' };
   }
 
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+      return { success: false, error: 'Tipo de archivo no permitido. Solo se aceptan JPEG, PNG, o WebP.' };
+  }
+
+
   const fileBuffer = Buffer.from(await file.arrayBuffer());
   const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
   const uploadDir = path.join(process.cwd(), 'public/images');

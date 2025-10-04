@@ -24,7 +24,7 @@ export type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product;
-  onSave: (data: ProductFormValues, imageFile: File | null) => void;
+  onSave: (data: ProductFormValues, imageFile: File | null) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -86,7 +86,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             <div className="flex flex-col items-center gap-4">
                 <div className="w-full h-40 relative rounded-md border border-dashed flex items-center justify-center bg-muted/50">
                     {imagePreview ? (
-                        <Image src={imagePreview} alt="Vista previa del producto" fill objectFit="contain" className="rounded-md" />
+                        <Image src={imagePreview} alt="Vista previa del producto" fill objectFit="contain" className="rounded-md" unoptimized/>
                     ) : (
                         <span className="text-muted-foreground text-sm">Vista previa</span>
                     )}

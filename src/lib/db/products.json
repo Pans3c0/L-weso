@@ -1,4 +1,3 @@
-
 [
   {
     "id": "prod_1",
@@ -19,5 +18,14 @@
     "stockInGrams": 40,
     "imageUrl": "/images/mfl.png",
     "imageHint": "marroco "
+  },
+  {
+    "id": "prod_1759542623272",
+    "sellerId": "seller_1",
+    "name": "Gguuug",
+    "description": "Gjjb. Hhjhh hujnn",
+    "pricePerGram": 5,
+    "stockInGrams": 20,
+    "imageUrl": "/images/1759542623259-49847.jpg"
   }
 ]
