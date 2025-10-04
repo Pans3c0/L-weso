@@ -3,7 +3,6 @@
 import type { PurchaseRequest } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
-import { initialRequests } from '@/lib/mock-data';
 
 const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
 
@@ -15,24 +14,17 @@ const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json')
 export async function getPurchaseRequests(sellerId?: string): Promise<PurchaseRequest[]> {
     try {
         const fileExists = await fs.pathExists(requestsFilePath);
-        let allRequests: PurchaseRequest[];
-
         if (!fileExists) {
-            await fs.outputJson(requestsFilePath, initialRequests, { spaces: 2 });
-            allRequests = initialRequests;
-        } else {
-            const data = await fs.readJson(requestsFilePath, { throws: false });
-            allRequests = (data && data.length > 0) ? data : initialRequests;
-            if (!data || data.length === 0) {
-                 await fs.outputJson(requestsFilePath, initialRequests, { spaces: 2 });
-            }
+            await fs.outputJson(requestsFilePath, [], { spaces: 2 });
+            return [];
         }
+
+        const allRequests: PurchaseRequest[] = await fs.readJson(requestsFilePath, { throws: false }) || [];
         
         return sellerId ? allRequests.filter(req => req.sellerId === sellerId) : allRequests;
     } catch (e) {
-        console.error("Could not read or initialize requests file, returning fallback data.", e);
-        const allRequests = initialRequests;
-        return sellerId ? allRequests.filter(req => req.sellerId === sellerId) : allRequests;
+        console.error("Could not read or initialize requests file.", e);
+        return [];
     }
 }
 

@@ -3,28 +3,23 @@
 import path from 'path';
 import fs from 'fs-extra';
 import type { ReferralCode } from './types';
-import { initialReferralCodes } from './mock-data';
 
 const codesFilePath = path.resolve(process.cwd(), 'src/lib/db/referral-codes.json');
 
 /**
  * Retrieves all active referral codes.
- * If the file doesn't exist or is empty, it's initialized with a placeholder.
+ * If the file doesn't exist or is empty, it's initialized with an empty array.
  * @returns A promise that resolves to an array of ReferralCode objects.
  */
 export async function getReferralCodes(): Promise<ReferralCode[]> {
   try {
     const fileExists = await fs.pathExists(codesFilePath);
     if (!fileExists) {
-        await fs.outputJson(codesFilePath, initialReferralCodes, { spaces: 2 });
-        return initialReferralCodes;
+        await fs.outputJson(codesFilePath, [], { spaces: 2 });
+        return [];
     }
     const data = await fs.readJson(codesFilePath, { throws: false });
-    if (!data || data.length === 0) {
-      await fs.outputJson(codesFilePath, initialReferralCodes, { spaces: 2 });
-      return initialReferralCodes;
-    }
-    return data;
+    return data || [];
   } catch (e) {
     console.error("Could not read or initialize referral codes file.", e);
     return [];

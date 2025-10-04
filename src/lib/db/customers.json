@@ -1,9 +1,31 @@
-
-[
-  {
-    "id": "customer_123",
-    "name": "Juan Pérez",
-    "username": "juanperez",
-    "password": "password123"
-  }
 ]
+]></content>
+  </change>
+  <change>
+    <file>src/lib/db/products.json</file>
+    <content><![CDATA[]
+]></content>
+  </change>
+  <change>
+    <file>src/lib/db/referral-codes.json</file>
+    <content><![CDATA[]
+]></content>
+  </change>
+  <change>
+    <file>src/lib/db/requests.json</file>
+    <content><![CDATA[]
+]></content>
+  </change>
+  <change>
+    <file>src/lib/db/sellers.json</file>
+    <content><![CDATA[]
+]></content>
+  </change>
+  <change>
+    <file>src/lib/db/customer-seller-relations.json</file>
+    <content><![CDATA[]
+]></content>
+  </change>
+  <change>
+    <file>src/lib/db/subscriptions.json</file>
+    <content><![CDATA[{}

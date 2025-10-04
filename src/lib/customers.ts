@@ -3,7 +3,6 @@
 import type { Customer, CustomerSellerRelation } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
-import { initialCustomers } from '@/lib/mock-data';
 
 const customersFilePath = path.resolve(process.cwd(), 'src/lib/db/customers.json');
 const relationsFilePath = path.resolve(process.cwd(), 'src/lib/db/customer-seller-relations.json');
@@ -42,17 +41,12 @@ async function saveCustomerSellerRelations(relations: CustomerSellerRelation[]):
 export async function getAllCustomers(sellerId?: string): Promise<Customer[]> {
   try {
     const fileExists = await fs.pathExists(customersFilePath);
-    let allCustomers: Customer[];
     if (!fileExists) {
-      await fs.outputJson(customersFilePath, initialCustomers, { spaces: 2 });
-      allCustomers = initialCustomers;
-    } else {
-      const data = await fs.readJson(customersFilePath, { throws: false });
-      allCustomers = (data && data.length > 0) ? data : initialCustomers;
-      if (!data || data.length === 0) {
-        await fs.outputJson(customersFilePath, initialCustomers, { spaces: 2 });
-      }
+      await fs.outputJson(customersFilePath, [], { spaces: 2 });
+      return [];
     }
+    
+    const allCustomers: Customer[] = await fs.readJson(customersFilePath, { throws: false }) || [];
     
     if (sellerId) {
       const relations = await getCustomerSellerRelations();
@@ -64,8 +58,8 @@ export async function getAllCustomers(sellerId?: string): Promise<Customer[]> {
 
     return allCustomers;
   } catch (e) {
-    console.error("Could not read or initialize customers file, returning fallback data.", e);
-    return initialCustomers;
+    console.error("Could not read customers file.", e);
+    return [];
   }
 }
 

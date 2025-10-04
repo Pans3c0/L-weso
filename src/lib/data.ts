@@ -3,7 +3,6 @@
 import type { Product } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
-import { initialProducts } from '@/lib/mock-data';
 
 const productsFilePath = path.resolve(process.cwd(), 'src/lib/db/products.json');
 
@@ -16,23 +15,16 @@ export async function getAllProducts(sellerId?: string): Promise<Product[]> {
   try {
     const fileExists = await fs.pathExists(productsFilePath);
     if (!fileExists) {
-        await fs.outputJson(productsFilePath, initialProducts, { spaces: 2 });
-        const allProducts = initialProducts;
-        return sellerId ? allProducts.filter(p => p.sellerId === sellerId) : allProducts;
+        await fs.outputJson(productsFilePath, [], { spaces: 2 });
+        return [];
     }
 
-    const data = await fs.readJson(productsFilePath, { throws: false });
-    if (!data || data.length === 0) {
-      await fs.outputJson(productsFilePath, initialProducts, { spaces: 2 });
-      const allProducts = initialProducts;
-      return sellerId ? allProducts.filter(p => p.sellerId === sellerId) : allProducts;
-    }
+    const data: Product[] = await fs.readJson(productsFilePath, { throws: false }) || [];
     
     return sellerId ? data.filter((p: Product) => p.sellerId === sellerId) : data;
   } catch (e) {
-    console.error("Could not read or initialize products file, returning fallback data.", e);
-    const allProducts = initialProducts;
-    return sellerId ? allProducts.filter(p => p.sellerId === sellerId) : allProducts;
+    console.error("Could not read products file.", e);
+    return [];
   }
 }
 

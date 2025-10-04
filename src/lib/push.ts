@@ -35,11 +35,7 @@ async function getSubscriptions(): Promise<Record<string, PushSubscription>> {
             return {};
         }
         const data = await fs.readJson(subscriptionsFilePath, { throws: false });
-        if (!data) {
-            await fs.outputJson(subscriptionsFilePath, {}, { spaces: 2 });
-            return {};
-        }
-        return data;
+        return data || {};
     } catch (e) {
         console.error("Could not read or initialize subscriptions file.", e);
         return {};

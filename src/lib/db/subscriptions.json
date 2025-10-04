@@ -1,18 +1,1 @@
-{
-  "seller_1": {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/cgzaO05DjY8:APA91bHrMFxdiV0mvoHIpNP3edck_FAIFXM81zksOKVOB7RXtuyob5akwofzufW2yQ4K1DwvP7L4VDgzzdqGK10lV1w5Onb6uLiOV6LEiZAYgByatt80QIQdmLRA2SZm2J6sHnMAqjCH",
-    "expirationTime": null,
-    "keys": {
-      "p256dh": "BLghaw2b4G-pNFfvn22ltRnX5fUmLkDxZw_x1oZKAtBiv2ARN6shYX5ROmfHyMCaTa54JNhSdu7N5rf7rsSWYAM",
-      "auth": "ImP081yTZ2d1oepyBWSpLA"
-    }
-  },
-  "customer_123": {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/f20Lvj5Joew:APA91bHB-upIFXvgLSs50rjRPRmk2t4ym_gsZLU1hROwoHXutEhiLENDNpcVjzV2vo19oVfoKL-MSD538NenvFzi8r_pwrHl_R16mHF1HcSvUBHjesn0YlNjJkDmnIBAFyIuVxMSy0ZE",
-    "expirationTime": null,
-    "keys": {
-      "p256dh": "BKja50VnTgIwQeQ_55ZhGlPrxD6wIqtzKgTF0CMQCAs6Ty5oO4aca46iYXFitO0kUJvBLKaUOLcK3Zu2WYu_Jls",
-      "auth": "a57KGuuAp2XveBeNDo5NXg"
-    }
-  }
-}
+{}
