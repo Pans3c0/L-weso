@@ -201,7 +201,6 @@ function RequestItem({
                     width={40}
                     height={40}
                     className="rounded-md object-cover mr-3"
-                    unoptimized
                     data-ai-hint={item.product.imageHint}
                   />
                   <span>{item.product.name}</span>

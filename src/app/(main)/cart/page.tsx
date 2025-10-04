@@ -115,7 +115,7 @@ export default function CartPage() {
                     {cartItems.map(item => (
                       <TableRow key={item.product.id}>
                         <TableCell className="hidden md:table-cell">
-                          <Image src={item.product.imageUrl || placeholderImageUrl} alt={item.product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={item.product.imageHint} unoptimized />
+                          <Image src={item.product.imageUrl || placeholderImageUrl} alt={item.product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={item.product.imageHint} />
                         </TableCell>
                         <TableCell className="font-medium">{item.product.name}</TableCell>
                         <TableCell>

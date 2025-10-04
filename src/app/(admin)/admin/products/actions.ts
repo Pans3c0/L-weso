@@ -20,7 +20,6 @@ export async function saveProductAction(
   formData: FormData
 ) {
     const imageFile = formData.get('imageFile') as File | null;
-    // This is the URL of the image that was on the product BEFORE this update
     const existingImageUrl = formData.get('existingImageUrl') as string | null;
 
     const productData = {
@@ -32,7 +31,7 @@ export async function saveProductAction(
         stockInGrams: formData.get('stockInGrams') as string,
     };
     
-    if (productData.id === '') {
+    if (productData.id === 'undefined' || productData.id === '') {
         productData.id = undefined;
     }
 
@@ -49,9 +48,7 @@ export async function saveProductAction(
     
     let finalImageUrl: string | undefined = existingImageUrl || undefined;
 
-    // Handle image upload only if a new file is provided
     if (imageFile && imageFile.size > 0) {
-        // If there was an old image, delete it from the server
         if (existingImageUrl) {
             try {
                 const oldImagePath = path.join(process.cwd(), 'public', existingImageUrl);
@@ -60,7 +57,6 @@ export async function saveProductAction(
                 }
             } catch (error) {
                 console.error('Failed to delete old image:', error);
-                // Non-fatal, so we continue
             }
         }
         

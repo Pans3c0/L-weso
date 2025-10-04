@@ -39,7 +39,6 @@ export function ProductCard({ product }: { product: Product }) {
             fill
             className="object-cover"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            unoptimized
             data-ai-hint={product.imageHint}
           />
         </div>

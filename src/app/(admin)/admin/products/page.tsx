@@ -180,7 +180,6 @@ export default function AdminProductsPage() {
                         height="64"
                         src={product.imageUrl || 'https://placehold.co/64x64/F5F5F5/696969?text=?'}
                         width="64"
-                        unoptimized
                         data-ai-hint={product.imageHint}
                       />
                     </TableCell>

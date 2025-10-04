@@ -31,8 +31,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string | null>(product?.imageUrl || null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  
-  // This stores the original image URL when editing
   const [existingImageUrl, setExistingImageUrl] = React.useState<string | null>(product?.imageUrl || null);
 
 
@@ -72,8 +70,10 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
     if (product?.id) {
         formData.append('id', product.id);
+    } else {
+        formData.append('id', 'undefined');
     }
-    // Pass the original image URL to the action so it can delete it if a new one is uploaded
+
     if (existingImageUrl) {
         formData.append('existingImageUrl', existingImageUrl);
     }
@@ -107,7 +107,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             <div className="flex flex-col items-center gap-4">
                 <div className="w-full h-40 relative rounded-md border border-dashed flex items-center justify-center bg-muted/50">
                     {imagePreview ? (
-                        <Image src={imagePreview} alt="Vista previa del producto" fill style={{objectFit: 'contain'}} className="rounded-md" unoptimized/>
+                        <Image src={imagePreview} alt="Vista previa del producto" fill style={{objectFit: 'contain'}} className="rounded-md" />
                     ) : (
                         <span className="text-muted-foreground text-sm">Vista previa</span>
                     )}
