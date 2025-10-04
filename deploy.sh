@@ -19,15 +19,15 @@ set -e # Termina el script si algún comando falla
 # ----------------- CONFIGURACIÓN -----------------
 # ¡IMPORTANTE! Rellena estas variables antes de ejecutar.
 # -------------------------------------------------
-REMOTE_USER="tu_usuario_remoto"                   # Ejemplo: root, ubuntu, etc.
-REMOTE_HOST="tu_ip_del_servidor"                  # La dirección IP de tu servidor
+REMOTE_USER="pacheco"                   # Ejemplo: root, ubuntu, etc.
+REMOTE_HOST="192.168.0.12"                  # La dirección IP de tu servidor
 DOCKER_IMAGE_NAME="l-weso-app"                    # Nombre para la imagen de Docker
-DOCKER_IMAGE_TAG="latest"                         # Tag para la imagen
+DOCKER_IMAGE_TAG="1.1.0"                         # Tag para la imagen
 
 # Variables de entorno para el contenedor
-export SELLER_REGISTRATION_CODE="TU_CODIGO_MAESTRO_AQUI"
-export NEXT_PUBLIC_VAPID_PUBLIC_KEY="TU_CLAVE_PUBLICA_VAPID_AQUI"
-export VAPID_PRIVATE_KEY="TU_CLAVE_PRIVADA_VAPID_AQUI"
+export SELLER_REGISTRATION_CODE="NuevoAdmin"
+export NEXT_PUBLIC_VAPID_PUBLIC_KEY="BC0o__GETMOPnRes0sQgLOb5Oaf_0H-LVyfkDsiMhE_i1yS9KcaRX02BRIi5xAP20rxyWs8L79oNCoDGGrAiigQ"
+export VAPID_PRIVATE_KEY="hDMBdqeUZ9kWt-wnvb50seu6ahFfrklRmOgftNNhODY"
 
 # ----------------- PASO 1: CONSTRUCCIÓN LOCAL -----------------
 echo ">>> (1/5) Construyendo la imagen de Docker: $DOCKER_IMAGE_NAME:$DOCKER_IMAGE_TAG..."
