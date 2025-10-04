@@ -23,8 +23,8 @@ import {
 } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import type { Product } from '@/lib/types';
-import { ProductForm, type ProductFormValues } from '@/components/admin/product-form';
-import { saveProductAction } from './actions';
+import { ProductForm } from '@/components/admin/product-form';
+import { saveProductAction, deleteProductAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/use-session';
 import {
@@ -72,28 +72,25 @@ export default function AdminProductsPage() {
   }, [fetchProducts, session?.sellerId]);
 
   const handleProductSave = async (
-    data: ProductFormValues,
-    imageFile: File | null
+    formData: FormData,
   ) => {
     if (!session?.sellerId) {
         toast({ title: 'Error', description: 'No se pudo identificar al vendedor.', variant: 'destructive' });
         return;
     }
     
-    // Add sellerId to the form data
-    const completeData = {
-      ...data,
-      id: editingProduct?.id,
-      sellerId: session.sellerId,
-    };
+    formData.set('sellerId', session.sellerId);
+    if(editingProduct) {
+        formData.set('id', editingProduct.id);
+    }
     
-    const result = await saveProductAction(completeData, imageFile);
+    const result = await saveProductAction(formData);
 
     if (result.success) {
       await fetchProducts(); 
       setIsSheetOpen(false);
       setEditingProduct(undefined);
-      toast({ title: 'Producto guardado', description: `El producto "${completeData.name}" ha sido guardado.` });
+      toast({ title: 'Producto guardado', description: `El producto ha sido guardado.` });
     } else {
        toast({ title: 'Error al guardar', description: result.error, variant: 'destructive' });
     }
@@ -122,7 +119,12 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+    <Sheet open={isSheetOpen} onOpenChange={(isOpen) => {
+      setIsSheetOpen(isOpen);
+      if (!isOpen) {
+        setEditingProduct(undefined);
+      }
+    }}>
       <div className="flex items-center">
         <h1 className="text-lg font-semibold md:text-2xl font-headline">Productos</h1>
         <div className="ml-auto flex items-center gap-2">
@@ -249,7 +251,10 @@ export default function AdminProductsPage() {
         <ProductForm 
             product={editingProduct} 
             onSave={handleProductSave}
-            onCancel={() => setIsSheetOpen(false)}
+            onCancel={() => {
+                setIsSheetOpen(false);
+                setEditingProduct(undefined);
+            }}
         />
       </SheetContent>
     </Sheet>

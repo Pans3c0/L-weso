@@ -17,21 +17,19 @@ const productSchema = z.object({
   description: z.string().min(10, 'La descripción es obligatoria'),
   pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
   stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
-  imageUrl: z.string().optional(),
 });
 
-export type ProductFormValues = z.infer<typeof productSchema>;
+type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product;
-  onSave: (data: ProductFormValues, imageFile: File | null) => Promise<void>;
+  onSave: (data: FormData) => Promise<void>;
   onCancel: () => void;
 }
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string | null>(product?.imageUrl || null);
-  const [imageFile, setImageFile] = React.useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormValues>({
@@ -41,7 +39,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       description: product?.description || '',
       pricePerGram: product?.pricePerGram || 0,
       stockInGrams: product?.stockInGrams || 0,
-      imageUrl: product?.imageUrl || '',
     },
   });
 
@@ -51,23 +48,43 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       description: product?.description || '',
       pricePerGram: product?.pricePerGram || 0,
       stockInGrams: product?.stockInGrams || 0,
-      imageUrl: product?.imageUrl || '',
     });
     setImagePreview(product?.imageUrl || null);
-    setImageFile(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
   }, [product, form]);
 
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
-    await onSave(data, imageFile);
+    const formData = new FormData();
+    
+    // Append form data
+    Object.entries(data).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+
+    // Append existing product ID and image URL if editing
+    if (product?.id) {
+        formData.append('id', product.id);
+    }
+    if (product?.imageUrl) {
+        formData.append('imageUrl', product.imageUrl);
+    }
+
+    // Append a new file if one was selected
+    if (fileInputRef.current?.files?.[0]) {
+      formData.append('imageFile', fileInputRef.current.files[0]);
+    }
+    
+    await onSave(formData);
     setIsSaving(false);
   };
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -91,7 +108,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                         <span className="text-muted-foreground text-sm">Vista previa</span>
                     )}
                 </div>
-                <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
+                <input type="file" name="imageFile" ref={fileInputRef} onChange={handleImageChange} accept="image/jpeg,image/png,image/webp" className="hidden" />
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" />
                     Subir Imagen
