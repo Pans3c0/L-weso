@@ -20,11 +20,11 @@ const productSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
-type ProductFormValues = z.infer<typeof productSchema>;
+export type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product;
-  onSave: (data: FormData) => void;
+  onSave: (data: ProductFormValues, imageFile: File | null) => void;
   onCancel: () => void;
 }
 
@@ -60,20 +60,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
-    
-    const formData = new FormData();
-    formData.append('id', product?.id || '');
-    formData.append('name', data.name);
-    formData.append('description', data.description);
-    formData.append('pricePerGram', String(data.pricePerGram));
-    formData.append('stockInGrams', String(data.stockInGrams));
-    formData.append('imageUrl', data.imageUrl || '');
-
-    if (imageFile) {
-        formData.append('imageFile', imageFile);
-    }
-    
-    await onSave(formData);
+    await onSave(data, imageFile);
     setIsSaving(false);
   };
   
@@ -99,14 +86,14 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             <div className="flex flex-col items-center gap-4">
                 <div className="w-full h-40 relative rounded-md border border-dashed flex items-center justify-center bg-muted/50">
                     {imagePreview ? (
-                        <Image src={imagePreview} alt="Vista previa del producto" layout="fill" objectFit="contain" className="rounded-md" />
+                        <Image src={imagePreview} alt="Vista previa del producto" fill objectFit="contain" className="rounded-md" />
                     ) : (
                         <span className="text-muted-foreground text-sm">Vista previa</span>
                     )}
                 </div>
                 <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                    <Upload className="mr-2" />
+                    <Upload className="mr-2 h-4 w-4" />
                     Subir Imagen
                 </Button>
             </div>

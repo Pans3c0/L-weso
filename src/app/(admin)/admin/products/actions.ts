@@ -12,6 +12,10 @@ async function uploadImage(file: File): Promise<{ success: boolean; imageUrl?: s
   if (!file) {
     return { success: false, error: 'No se ha proporcionado ningún archivo.' };
   }
+  
+  if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    return { success: false, error: 'El archivo es demasiado grande (máx 5MB).' };
+  }
 
   const fileBuffer = Buffer.from(await file.arrayBuffer());
   const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
@@ -30,7 +34,7 @@ async function uploadImage(file: File): Promise<{ success: boolean; imageUrl?: s
   }
 }
 
-const ProductSchema = z.object({
+const ProductFormSchema = z.object({
     id: z.string().optional(),
     sellerId: z.string().min(1, "Seller ID is required."),
     name: z.string().min(3, 'El nombre es obligatorio'),
@@ -39,17 +43,14 @@ const ProductSchema = z.object({
     stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
     imageUrl: z.string().optional(),
 });
+export type ProductFormValues = z.infer<typeof ProductFormSchema>;
 
 
-export async function saveProductAction(formData: FormData) {
-  const rawData = Object.fromEntries(formData.entries());
-
-  const productData = {
-    ...rawData,
-    id: rawData.id === 'undefined' ? undefined : rawData.id,
-  };
-  
-  const parsedProduct = ProductSchema.safeParse(productData);
+export async function saveProductAction(
+  data: ProductFormValues,
+  imageFile: File | null
+) {
+  const parsedProduct = ProductFormSchema.safeParse(data);
 
   if (!parsedProduct.success) {
       console.error(parsedProduct.error.flatten().fieldErrors);
@@ -59,9 +60,7 @@ export async function saveProductAction(formData: FormData) {
   const { id, sellerId, name, description, pricePerGram, stockInGrams } = parsedProduct.data;
   let imageUrl = parsedProduct.data.imageUrl;
   
-  const imageFile = formData.get('imageFile') as File | null;
-
-  if (imageFile && imageFile.size > 0) {
+  if (imageFile) {
     const uploadResult = await uploadImage(imageFile);
     if (uploadResult.success && uploadResult.imageUrl) {
       imageUrl = uploadResult.imageUrl;

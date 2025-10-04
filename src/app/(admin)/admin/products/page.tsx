@@ -23,8 +23,8 @@ import {
 } from '@/components/ui/table';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import type { Product } from '@/lib/types';
-import { ProductForm } from '@/components/admin/product-form';
-import { saveProductAction, deleteProductAction } from './actions';
+import { ProductForm, type ProductFormValues } from '@/components/admin/product-form';
+import { saveProductAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/use-session';
 import {
@@ -71,23 +71,29 @@ export default function AdminProductsPage() {
     }
   }, [fetchProducts, session?.sellerId]);
 
-  const handleProductSave = async (formData: FormData) => {
+  const handleProductSave = async (
+    data: ProductFormValues,
+    imageFile: File | null
+  ) => {
     if (!session?.sellerId) {
         toast({ title: 'Error', description: 'No se pudo identificar al vendedor.', variant: 'destructive' });
         return;
     }
     
     // Add sellerId to the form data
-    formData.append('sellerId', session.sellerId);
+    const completeData = {
+      ...data,
+      id: editingProduct?.id,
+      sellerId: session.sellerId,
+    };
     
-    const result = await saveProductAction(formData);
+    const result = await saveProductAction(completeData, imageFile);
 
     if (result.success) {
       await fetchProducts(); 
       setIsSheetOpen(false);
       setEditingProduct(undefined);
-      const productName = formData.get('name') as string;
-      toast({ title: 'Producto guardado', description: `El producto "${productName}" ha sido guardado.` });
+      toast({ title: 'Producto guardado', description: `El producto "${completeData.name}" ha sido guardado.` });
     } else {
        toast({ title: 'Error al guardar', description: result.error, variant: 'destructive' });
     }
