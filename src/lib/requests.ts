@@ -4,7 +4,7 @@ import type { PurchaseRequest } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json');
+const requestsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'requests.json');
 
 /**
  * Retrieves purchase requests, optionally filtered by seller.
@@ -13,12 +13,7 @@ const requestsFilePath = path.resolve(process.cwd(), 'src/lib/db/requests.json')
  */
 export async function getPurchaseRequests(sellerId?: string): Promise<PurchaseRequest[]> {
     try {
-        const fileExists = await fs.pathExists(requestsFilePath);
-        if (!fileExists) {
-            await fs.outputJson(requestsFilePath, [], { spaces: 2 });
-            return [];
-        }
-
+        await fs.ensureFile(requestsFilePath);
         const allRequests: PurchaseRequest[] = await fs.readJson(requestsFilePath, { throws: false }) || [];
         
         return sellerId ? allRequests.filter(req => req.sellerId === sellerId) : allRequests;

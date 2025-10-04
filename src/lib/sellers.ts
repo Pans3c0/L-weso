@@ -4,7 +4,7 @@ import type { Seller } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const sellersFilePath = path.resolve(process.cwd(), 'src/lib/db/sellers.json');
+const sellersFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'sellers.json');
 
 /**
  * Retrieves all sellers from the data source.
@@ -13,11 +13,7 @@ const sellersFilePath = path.resolve(process.cwd(), 'src/lib/db/sellers.json');
  */
 export async function getAllSellers(): Promise<Seller[]> {
   try {
-    const fileExists = await fs.pathExists(sellersFilePath);
-    if (!fileExists) {
-        await fs.outputJson(sellersFilePath, [], { spaces: 2 });
-        return [];
-    }
+    await fs.ensureFile(sellersFilePath);
     const data = await fs.readJson(sellersFilePath, { throws: false });
     return data || [];
   } catch (e) {

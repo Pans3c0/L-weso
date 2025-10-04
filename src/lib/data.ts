@@ -4,7 +4,8 @@ import type { Product } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const productsFilePath = path.resolve(process.cwd(), 'src/lib/db/products.json');
+const productsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'products.json');
+
 
 /**
  * Retrieves all products from the data source, optionally filtered by sellerId.
@@ -13,12 +14,7 @@ const productsFilePath = path.resolve(process.cwd(), 'src/lib/db/products.json')
  */
 export async function getAllProducts(sellerId?: string): Promise<Product[]> {
   try {
-    const fileExists = await fs.pathExists(productsFilePath);
-    if (!fileExists) {
-        await fs.outputJson(productsFilePath, [], { spaces: 2 });
-        return [];
-    }
-
+    await fs.ensureFile(productsFilePath);
     const data: Product[] = await fs.readJson(productsFilePath, { throws: false }) || [];
     
     return sellerId ? data.filter((p: Product) => p.sellerId === sellerId) : data;

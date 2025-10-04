@@ -4,7 +4,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { ReferralCode } from './types';
 
-const codesFilePath = path.resolve(process.cwd(), 'src/lib/db/referral-codes.json');
+const codesFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'referral-codes.json');
+
 
 /**
  * Retrieves all active referral codes.
@@ -13,11 +14,7 @@ const codesFilePath = path.resolve(process.cwd(), 'src/lib/db/referral-codes.jso
  */
 export async function getReferralCodes(): Promise<ReferralCode[]> {
   try {
-    const fileExists = await fs.pathExists(codesFilePath);
-    if (!fileExists) {
-        await fs.outputJson(codesFilePath, [], { spaces: 2 });
-        return [];
-    }
+    await fs.ensureFile(codesFilePath);
     const data = await fs.readJson(codesFilePath, { throws: false });
     return data || [];
   } catch (e) {

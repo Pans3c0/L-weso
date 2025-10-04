@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { PushSubscription } from 'web-push';
 
-const subscriptionsFilePath = path.resolve(process.cwd(), 'src/lib/db/subscriptions.json');
+const subscriptionsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'subscriptions.json');
 
 type SubscriptionData = {
     subscription: PushSubscription;
@@ -39,11 +39,7 @@ export async function POST(request: Request) {
  */
 async function getSubscriptions(): Promise<Record<string, PushSubscription>> {
     try {
-        const fileExists = await fs.pathExists(subscriptionsFilePath);
-        if (!fileExists) {
-            await fs.outputJson(subscriptionsFilePath, {}, { spaces: 2 });
-            return {};
-        }
+        await fs.ensureFile(subscriptionsFilePath);
         const data = await fs.readJson(subscriptionsFilePath, { throws: false });
         return data || {};
     } catch (e) {

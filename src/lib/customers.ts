@@ -4,19 +4,16 @@ import type { Customer, CustomerSellerRelation } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const customersFilePath = path.resolve(process.cwd(), 'src/lib/db/customers.json');
-const relationsFilePath = path.resolve(process.cwd(), 'src/lib/db/customer-seller-relations.json');
+const customersFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'customers.json');
+const relationsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'customer-seller-relations.json');
+
 
 /**
  * Retrieves all customer-seller relations.
  */
 export async function getCustomerSellerRelations(): Promise<CustomerSellerRelation[]> {
   try {
-    const fileExists = await fs.pathExists(relationsFilePath);
-    if (!fileExists) {
-      await fs.outputJson(relationsFilePath, [], { spaces: 2 });
-      return [];
-    }
+    await fs.ensureFile(relationsFilePath);
     const data = await fs.readJson(relationsFilePath, { throws: false });
     return data || [];
   } catch (e) {
@@ -40,12 +37,7 @@ async function saveCustomerSellerRelations(relations: CustomerSellerRelation[]):
  */
 export async function getAllCustomers(sellerId?: string): Promise<Customer[]> {
   try {
-    const fileExists = await fs.pathExists(customersFilePath);
-    if (!fileExists) {
-      await fs.outputJson(customersFilePath, [], { spaces: 2 });
-      return [];
-    }
-    
+    await fs.ensureFile(customersFilePath);
     const allCustomers: Customer[] = await fs.readJson(customersFilePath, { throws: false }) || [];
     
     if (sellerId) {

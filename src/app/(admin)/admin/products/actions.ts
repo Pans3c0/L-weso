@@ -47,15 +47,16 @@ export async function saveProductAction(
     }
     
     let finalImageUrl: string | undefined = existingImageUrl || undefined;
+    const uploadDir = path.join('/', 'public', 'images');
 
     // Handle new image upload
     if (imageFile && imageFile.size > 0) {
         // Delete old image if a new one is uploaded
         if (existingImageUrl) {
             try {
-                // Construct the path relative to the public directory
-                const oldImagePath = path.join(process.cwd(), 'public', existingImageUrl);
-                if (await fs.pathExists(oldImagePath)) {
+                // Construct the path inside the container
+                const oldImagePath = path.join(uploadDir, path.basename(existingImageUrl));
+                 if (await fs.pathExists(oldImagePath)) {
                     await fs.unlink(oldImagePath);
                 }
             } catch (error) {
@@ -66,15 +67,12 @@ export async function saveProductAction(
         
         const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
         const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-        // Correct path for production/Docker environments
-        const uploadDir = path.join(process.cwd(), 'public/images');
         
         try {
-            // Ensure the directory exists before writing
             await fs.ensureDir(uploadDir);
             const filePath = path.join(uploadDir, fileName);
             await fs.writeFile(filePath, fileBuffer);
-            finalImageUrl = `/images/${fileName}`; // The URL path remains the same
+            finalImageUrl = `/images/${fileName}`; 
         } catch (error) {
             console.error('Fallo al guardar la imagen:', error);
             return { success: false, error: 'No se pudo guardar la imagen en el servidor.' };
