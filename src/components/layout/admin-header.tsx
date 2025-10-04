@@ -21,6 +21,7 @@ import { EmergencyButton } from '../emergency-button';
 export function AdminHeader() {
   const { session, logout, isLoading } = useSession();
   const router = useRouter();
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
   const {
     isUnsupported,
     userConsent,
@@ -71,7 +72,7 @@ export function AdminHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
             <Button
                 variant="outline"
@@ -86,7 +87,7 @@ export function AdminHeader() {
              <SheetHeader className="sr-only">
                 <SheetTitle>Menú de Navegación</SheetTitle>
               </SheetHeader>
-              <AdminSidebar isMobile />
+              <AdminSidebar isMobile onLinkClick={() => setIsSheetOpen(false)} />
             </SheetContent>
         </Sheet>
         <div className="w-full flex-1">

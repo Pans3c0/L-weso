@@ -20,7 +20,13 @@ import { cn } from "@/lib/utils";
 import { useSession } from "@/hooks/use-session";
 
 
-export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
+interface AdminSidebarProps {
+  isMobile?: boolean;
+  onLinkClick?: () => void;
+}
+
+
+export function AdminSidebar({ isMobile = false, onLinkClick }: AdminSidebarProps) {
     const pathname = usePathname();
     const { session } = useSession();
     const [pendingRequestsCount, setPendingRequestsCount] = React.useState(0);
@@ -57,10 +63,18 @@ export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
     
     const implementedRoutes = ["/admin/products", "/admin/requests", "/admin/dashboard", "/admin/orders", "/admin/customers", "/admin/referrals"];
 
+    const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, isImplemented: boolean) => {
+        if (!isImplemented) {
+            e.preventDefault();
+        } else if (isMobile && onLinkClick) {
+            onLinkClick();
+        }
+    };
+
     return (
         <div className="flex h-full max-h-screen flex-col gap-2">
             <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-                <Link href="/admin/products" className="flex items-center gap-2 font-semibold font-headline">
+                <Link href="/admin/products" className="flex items-center gap-2 font-semibold font-headline" onClick={(e) => handleLinkClick(e, "/admin/products", true)}>
                     <Package2 className="h-6 w-6" />
                     <span className="">Mercado Vecinal</span>
                 </Link>
@@ -80,7 +94,7 @@ export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
                                     isActive ? "bg-muted text-primary" : "text-muted-foreground hover:text-primary",
                                     !isImplemented && "opacity-50 cursor-not-allowed"
                                 )}
-                                onClick={(e) => !isImplemented && e.preventDefault()}
+                                onClick={(e) => handleLinkClick(e, item.href, isImplemented)}
                             >
                                 <item.icon className="h-4 w-4" />
                                 {item.label}
@@ -96,6 +110,7 @@ export function AdminSidebar({ isMobile = false }: { isMobile?: boolean }) {
                 <Link
                     href="/shop"
                     className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    onClick={(e) => handleLinkClick(e, "/shop", true)}
                 >
                     <Store className="h-4 w-4" />
                     Ir a la tienda
