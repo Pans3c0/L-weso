@@ -4,7 +4,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { ReferralCode } from './types';
 
-const codesFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'referral-codes.json');
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const codesFilePath = path.join(dbDirectory, 'referral-codes.json');
 
 
 /**
@@ -14,6 +15,7 @@ const codesFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'referral-codes.
  */
 export async function getReferralCodes(): Promise<ReferralCode[]> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.ensureFile(codesFilePath);
     const data = await fs.readJson(codesFilePath, { throws: false });
     return data || [];
@@ -29,6 +31,7 @@ export async function getReferralCodes(): Promise<ReferralCode[]> {
  */
 async function saveReferralCodes(codes: ReferralCode[]): Promise<void> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.outputJson(codesFilePath, codes, { spaces: 2 });
   } catch (e) {
     console.error("Failed to save referral codes.", e);

@@ -4,8 +4,9 @@ import type { Customer, CustomerSellerRelation } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const customersFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'customers.json');
-const relationsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'customer-seller-relations.json');
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const customersFilePath = path.join(dbDirectory, 'customers.json');
+const relationsFilePath = path.join(dbDirectory, 'customer-seller-relations.json');
 
 
 /**
@@ -13,6 +14,7 @@ const relationsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'customer-se
  */
 export async function getCustomerSellerRelations(): Promise<CustomerSellerRelation[]> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.ensureFile(relationsFilePath);
     const data = await fs.readJson(relationsFilePath, { throws: false });
     return data || [];
@@ -26,6 +28,7 @@ export async function getCustomerSellerRelations(): Promise<CustomerSellerRelati
  * Saves all customer-seller relations.
  */
 async function saveCustomerSellerRelations(relations: CustomerSellerRelation[]): Promise<void> {
+  await fs.ensureDir(dbDirectory);
   await fs.outputJson(relationsFilePath, relations, { spaces: 2 });
 }
 
@@ -37,6 +40,7 @@ async function saveCustomerSellerRelations(relations: CustomerSellerRelation[]):
  */
 export async function getAllCustomers(sellerId?: string): Promise<Customer[]> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.ensureFile(customersFilePath);
     const allCustomers: Customer[] = await fs.readJson(customersFilePath, { throws: false }) || [];
     
@@ -60,6 +64,7 @@ export async function getAllCustomers(sellerId?: string): Promise<Customer[]> {
  */
 export async function saveCustomers(updatedCustomers: Customer[]): Promise<void> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.outputJson(customersFilePath, updatedCustomers, { spaces: 2 });
   } catch (e) {
     console.error("Failed to save customers to file.", e);

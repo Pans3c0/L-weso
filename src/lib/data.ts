@@ -4,7 +4,8 @@ import type { Product } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const productsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'products.json');
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const productsFilePath = path.join(dbDirectory, 'products.json');
 
 
 /**
@@ -14,6 +15,7 @@ const productsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'products.jso
  */
 export async function getAllProducts(sellerId?: string): Promise<Product[]> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.ensureFile(productsFilePath);
     const data: Product[] = await fs.readJson(productsFilePath, { throws: false }) || [];
     
@@ -52,6 +54,7 @@ export async function saveProduct(productToSave: Omit<Product, 'id'> & { id?: st
   }
 
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.outputJson(productsFilePath, allProducts, { spaces: 2 });
     return finalProduct;
   } catch (e) {
@@ -68,6 +71,7 @@ export async function deleteProduct(productId: string): Promise<void> {
     const products = await getAllProducts();
     const updatedProducts = products.filter(p => p.id !== productId);
     try {
+        await fs.ensureDir(dbDirectory);
         await fs.outputJson(productsFilePath, updatedProducts, { spaces: 2 });
     } catch (e) {
         console.error("Failed to delete product from file.", e);

@@ -5,7 +5,9 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { PushSubscription } from 'web-push';
 
-const subscriptionsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'subscriptions.json');
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const subscriptionsFilePath = path.join(dbDirectory, 'subscriptions.json');
+
 
 type SubscriptionData = {
     subscription: PushSubscription;
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
  */
 async function getSubscriptions(): Promise<Record<string, PushSubscription>> {
     try {
+        await fs.ensureDir(dbDirectory);
         await fs.ensureFile(subscriptionsFilePath);
         const data = await fs.readJson(subscriptionsFilePath, { throws: false });
         return data || {};
@@ -53,6 +56,7 @@ async function getSubscriptions(): Promise<Record<string, PushSubscription>> {
  */
 async function saveSubscriptions(subscriptions: Record<string, PushSubscription>): Promise<void> {
     try {
+        await fs.ensureDir(dbDirectory);
         await fs.outputJson(subscriptionsFilePath, subscriptions, { spaces: 2 });
     } catch (e) {
         console.error("Failed to save subscriptions.", e);

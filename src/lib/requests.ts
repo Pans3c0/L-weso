@@ -4,7 +4,8 @@ import type { PurchaseRequest } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const requestsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'requests.json');
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const requestsFilePath = path.join(dbDirectory, 'requests.json');
 
 /**
  * Retrieves purchase requests, optionally filtered by seller.
@@ -13,6 +14,7 @@ const requestsFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'requests.jso
  */
 export async function getPurchaseRequests(sellerId?: string): Promise<PurchaseRequest[]> {
     try {
+        await fs.ensureDir(dbDirectory);
         await fs.ensureFile(requestsFilePath);
         const allRequests: PurchaseRequest[] = await fs.readJson(requestsFilePath, { throws: false }) || [];
         
@@ -40,6 +42,7 @@ export async function getPurchaseRequestById(requestId: string): Promise<Purchas
  */
 export async function savePurchaseRequests(requests: PurchaseRequest[]): Promise<void> {
     try {
+        await fs.ensureDir(dbDirectory);
         await fs.outputJson(requestsFilePath, requests, { spaces: 2 });
     } catch (e) {
         console.error("Failed to save requests to file.", e);

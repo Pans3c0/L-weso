@@ -47,15 +47,16 @@ export async function saveProductAction(
     }
     
     let finalImageUrl: string | undefined = existingImageUrl || undefined;
-    const uploadDir = path.join('/', 'public', 'images');
+    const uploadDir = path.join(process.cwd(), 'public', 'images');
+
 
     // Handle new image upload
     if (imageFile && imageFile.size > 0) {
         // Delete old image if a new one is uploaded
         if (existingImageUrl) {
             try {
-                // Construct the path inside the container
-                const oldImagePath = path.join(uploadDir, path.basename(existingImageUrl));
+                // Construct the path inside the container/filesystem
+                const oldImagePath = path.join(process.cwd(), 'public', existingImageUrl);
                  if (await fs.pathExists(oldImagePath)) {
                     await fs.unlink(oldImagePath);
                 }

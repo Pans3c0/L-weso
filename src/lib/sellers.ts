@@ -4,7 +4,8 @@ import type { Seller } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const sellersFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'sellers.json');
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const sellersFilePath = path.join(dbDirectory, 'sellers.json');
 
 /**
  * Retrieves all sellers from the data source.
@@ -13,6 +14,7 @@ const sellersFilePath = path.join('/', 'app', 'src', 'lib', 'db', 'sellers.json'
  */
 export async function getAllSellers(): Promise<Seller[]> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.ensureFile(sellersFilePath);
     const data = await fs.readJson(sellersFilePath, { throws: false });
     return data || [];
@@ -28,6 +30,7 @@ export async function getAllSellers(): Promise<Seller[]> {
  */
 export async function saveSellers(updatedSellers: Seller[]): Promise<void> {
   try {
+    await fs.ensureDir(dbDirectory);
     await fs.outputJson(sellersFilePath, updatedSellers, { spaces: 2 });
   } catch (e) {
     console.error("Failed to save sellers to file.", e);
