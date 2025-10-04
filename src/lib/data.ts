@@ -29,15 +29,51 @@ export async function getAllProducts(sellerId?: string): Promise<Product[]> {
 }
 
 /**
- * Saves a list of products to the data source.
- * This function handles both adding and updating products.
- * @param productsToSave - The array of products to be saved.
- * @returns A promise that resolves when the file has been written.
+ * Saves a single product (adds or updates) to the data source.
+ * @param productToSave - The product to be saved. If it has an ID, it updates; otherwise, it adds.
+ * @returns A promise that resolves to the saved product.
  */
-export async function saveProducts(productsToSave: Product[]): Promise<void> {
+export async function saveProduct(productToSave: Omit<Product, 'id'> & { id?: string }): Promise<Product> {
+  const allProducts = await getAllProducts();
+  
+  let finalProduct: Product;
+
+  if (productToSave.id) {
+    // Update existing product
+    const index = allProducts.findIndex(p => p.id === productToSave.id);
+    if (index > -1) {
+      finalProduct = { ...allProducts[index], ...productToSave } as Product;
+      allProducts[index] = finalProduct;
+    } else {
+      // If ID is provided but not found, treat as new (should not happen in normal flow)
+      finalProduct = { ...productToSave, id: `prod_${Date.now()}` } as Product;
+      allProducts.push(finalProduct);
+    }
+  } else {
+    // Add new product
+    finalProduct = { ...productToSave, id: `prod_${Date.now()}` } as Product;
+    allProducts.push(finalProduct);
+  }
+
   try {
-    await fs.outputJson(productsFilePath, productsToSave, { spaces: 2 });
+    await fs.outputJson(productsFilePath, allProducts, { spaces: 2 });
+    return finalProduct;
   } catch (e) {
     console.error("Failed to save products to file.", e);
+    throw new Error("Failed to save product.");
   }
+}
+
+/**
+ * Deletes a product from the data source.
+ * @param productId - The ID of the product to delete.
+ */
+export async function deleteProduct(productId: string): Promise<void> {
+    const products = await getAllProducts();
+    const updatedProducts = products.filter(p => p.id !== productId);
+    try {
+        await fs.outputJson(productsFilePath, updatedProducts, { spaces: 2 });
+    } catch (e) {
+        console.error("Failed to delete product from file.", e);
+    }
 }

@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from 'zod';
-import { getAllProducts, saveProducts } from '@/lib/data';
+import { saveProduct, deleteProduct } from '@/lib/data';
 import type { Product } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs-extra';
@@ -19,46 +19,37 @@ const ProductSchema = z.object({
 });
 
 
-export async function saveProductAction(product: Omit<Product, 'id' | 'keywords'> & { id?: string }) {
-  const parsedProduct = ProductSchema.safeParse(product);
+export async function saveProductAction(productData: Omit<Product, 'id'> & { id?: string }) {
+  const parsedProduct = ProductSchema.safeParse(productData);
   if (!parsedProduct.success) {
       console.error(parsedProduct.error);
       return { success: false, error: "Invalid product data." };
   }
   
-  const allProducts = await getAllProducts();
-  let updatedProducts;
+  try {
+    const savedProduct = await saveProduct(parsedProduct.data);
+    revalidatePath('/admin/products');
+    revalidatePath('/'); 
 
-  const productToSave = {
-    ...parsedProduct.data,
-    sellerId: product.sellerId,
-  };
-
-  if (product.id) {
-    updatedProducts = allProducts.map(p => (p.id === product.id ? (productToSave as Product) : p));
-  } else {
-    const newProduct: Product = { ...productToSave, id: `prod_${Date.now()}` };
-    updatedProducts = [...allProducts, newProduct];
+    return { success: true, product: savedProduct };
+  } catch (error) {
+    console.error("Error in saveProductAction:", error);
+    return { success: false, error: "Failed to save product on server." };
   }
-
-  await saveProducts(updatedProducts);
-
-  revalidatePath('/admin/products');
-  revalidatePath('/'); 
-
-  return { success: true, product: productToSave };
 }
 
 
 export async function deleteProductAction(productId: string) {
-    const products = await getAllProducts();
-    const updatedProducts = products.filter(p => p.id !== productId);
-    await saveProducts(updatedProducts);
+    try {
+        await deleteProduct(productId);
+        revalidatePath('/admin/products');
+        revalidatePath('/');
 
-    revalidatePath('/admin/products');
-    revalidatePath('/');
-
-    return { success: true };
+        return { success: true };
+    } catch(error) {
+        console.error("Error in deleteProductAction:", error);
+        return { success: false, error: "Failed to delete product." };
+    }
 }
 
 
