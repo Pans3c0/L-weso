@@ -48,27 +48,33 @@ export async function saveProductAction(
     
     let finalImageUrl: string | undefined = existingImageUrl || undefined;
 
+    // Handle new image upload
     if (imageFile && imageFile.size > 0) {
+        // Delete old image if a new one is uploaded
         if (existingImageUrl) {
             try {
+                // Construct the path relative to the public directory
                 const oldImagePath = path.join(process.cwd(), 'public', existingImageUrl);
                 if (await fs.pathExists(oldImagePath)) {
                     await fs.unlink(oldImagePath);
                 }
             } catch (error) {
                 console.error('Failed to delete old image:', error);
+                // Don't block the update if deleting the old image fails
             }
         }
         
         const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
         const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-        const uploadDir = path.join(process.cwd(), 'public/images');
+        // Use path.resolve to get an absolute path to the public directory
+        const uploadDir = path.resolve(process.cwd(), 'public/images');
         
         try {
+            // Ensure the directory exists before writing
             await fs.ensureDir(uploadDir);
             const filePath = path.join(uploadDir, fileName);
             await fs.writeFile(filePath, fileBuffer);
-            finalImageUrl = `/images/${fileName}`; 
+            finalImageUrl = `/images/${fileName}`; // The URL path remains the same
         } catch (error) {
             console.error('Fallo al guardar la imagen:', error);
             return { success: false, error: 'No se pudo guardar la imagen en el servidor.' };
@@ -78,13 +84,13 @@ export async function saveProductAction(
     try {
         const productToSave: Omit<Product, 'id'> & { id?: string } = {
             ...parsedProduct.data,
-            imageUrl: finalImageUrl || '',
+            imageUrl: finalImageUrl || '', // Ensure imageUrl is not undefined
         };
 
         const savedProduct = await saveProduct(productToSave);
         
         revalidatePath('/admin/products');
-        revalidatePath('/'); 
+        revalidatePath('/shop'); 
 
         return { success: true, product: savedProduct };
     } catch (error) {
@@ -98,7 +104,7 @@ export async function deleteProductAction(productId: string) {
     try {
         await deleteProduct(productId);
         revalidatePath('/admin/products');
-        revalidatePath('/');
+        revalidatePath('/shop');
 
         return { success: true };
     } catch(error) {
