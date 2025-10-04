@@ -10,7 +10,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/types';
-import { uploadImageAction } from '@/app/(admin)/admin/products/actions';
 import { Loader2, Upload } from 'lucide-react';
 
 const productSchema = z.object({
@@ -19,14 +18,13 @@ const productSchema = z.object({
   pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
   stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
   imageUrl: z.string().optional(),
-  imageHint: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product;
-  onSave: (data: Omit<Product, 'id' | 'sellerId' | 'keywords'> & {imageUrl?: string}) => void;
+  onSave: (data: FormData) => void;
   onCancel: () => void;
 }
 
@@ -44,7 +42,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       pricePerGram: product?.pricePerGram || 0,
       stockInGrams: product?.stockInGrams || 0,
       imageUrl: product?.imageUrl || '',
-      imageHint: product?.imageHint || '',
     },
   });
 
@@ -55,7 +52,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       pricePerGram: product?.pricePerGram || 0,
       stockInGrams: product?.stockInGrams || 0,
       imageUrl: product?.imageUrl || '',
-      imageHint: product?.imageHint || '',
     });
     setImagePreview(product?.imageUrl || null);
     setImageFile(null);
@@ -64,20 +60,20 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
-    let finalImageUrl = product?.imageUrl || '';
+    
+    const formData = new FormData();
+    formData.append('id', product?.id || '');
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('pricePerGram', String(data.pricePerGram));
+    formData.append('stockInGrams', String(data.stockInGrams));
+    formData.append('imageUrl', data.imageUrl || '');
 
     if (imageFile) {
-        const formData = new FormData();
-        formData.append('file', imageFile);
-        const uploadResult = await uploadImageAction(formData);
-        if (uploadResult.success && uploadResult.imageUrl) {
-            finalImageUrl = uploadResult.imageUrl;
-        } else {
-            console.error('Image upload failed:', uploadResult.error);
-        }
+        formData.append('imageFile', imageFile);
     }
-
-    await onSave({ ...data, imageUrl: finalImageUrl });
+    
+    await onSave(formData);
     setIsSaving(false);
   };
   

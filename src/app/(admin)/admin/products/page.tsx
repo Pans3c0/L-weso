@@ -71,22 +71,26 @@ export default function AdminProductsPage() {
     }
   }, [fetchProducts, session?.sellerId]);
 
-  const handleProductSave = async (productData: Omit<Product, 'id'>) => {
+  const handleProductSave = async (formData: FormData) => {
     if (!session?.sellerId) {
         toast({ title: 'Error', description: 'No se pudo identificar al vendedor.', variant: 'destructive' });
         return;
     }
-    const productToSave = {
-        ...productData,
-        sellerId: session.sellerId,
-        id: editingProduct?.id, // Pass existing id if editing
-    };
     
-    await saveProductAction(productToSave);
-    await fetchProducts(); 
-    setIsSheetOpen(false);
-    setEditingProduct(undefined);
-    toast({ title: 'Producto guardado', description: `El producto "${productData.name}" ha sido guardado.` });
+    // Add sellerId to the form data
+    formData.append('sellerId', session.sellerId);
+    
+    const result = await saveProductAction(formData);
+
+    if (result.success) {
+      await fetchProducts(); 
+      setIsSheetOpen(false);
+      setEditingProduct(undefined);
+      const productName = formData.get('name') as string;
+      toast({ title: 'Producto guardado', description: `El producto "${productName}" ha sido guardado.` });
+    } else {
+       toast({ title: 'Error al guardar', description: result.error, variant: 'destructive' });
+    }
   };
   
   const handleDelete = async (productId: string) => {

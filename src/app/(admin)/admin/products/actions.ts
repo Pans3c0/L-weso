@@ -7,27 +7,82 @@ import { revalidatePath } from 'next/cache';
 import fs from 'fs-extra';
 import path from 'path';
 
+// Helper function to handle image upload, not exported as an action
+async function uploadImage(file: File): Promise<{ success: boolean; imageUrl?: string; error?: string }> {
+  if (!file) {
+    return { success: false, error: 'No se ha proporcionado ningún archivo.' };
+  }
+
+  const fileBuffer = Buffer.from(await file.arrayBuffer());
+  const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+  const uploadDir = path.join(process.cwd(), 'public/images');
+  
+  try {
+    await fs.ensureDir(uploadDir);
+    const filePath = path.join(uploadDir, fileName);
+
+    await fs.writeFile(filePath, fileBuffer);
+    const imageUrl = `/images/${fileName}`;
+    return { success: true, imageUrl };
+  } catch (error) {
+    console.error('Fallo al guardar la imagen:', error);
+    return { success: false, error: 'No se pudo guardar la imagen en el servidor.' };
+  }
+}
+
 const ProductSchema = z.object({
     id: z.string().optional(),
     sellerId: z.string().min(1, "Seller ID is required."),
-    name: z.string(),
-    description: z.string(),
-    pricePerGram: z.number(),
-    stockInGrams: z.number(),
+    name: z.string().min(3, 'El nombre es obligatorio'),
+    description: z.string().min(10, 'La descripción es obligatoria'),
+    pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
+    stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
     imageUrl: z.string().optional(),
-    imageHint: z.string().optional().nullable(),
 });
 
 
-export async function saveProductAction(productData: Omit<Product, 'id'> & { id?: string }) {
+export async function saveProductAction(formData: FormData) {
+  const rawData = Object.fromEntries(formData.entries());
+
+  const productData = {
+    ...rawData,
+    id: rawData.id === 'undefined' ? undefined : rawData.id,
+  };
+  
   const parsedProduct = ProductSchema.safeParse(productData);
+
   if (!parsedProduct.success) {
-      console.error(parsedProduct.error);
+      console.error(parsedProduct.error.flatten().fieldErrors);
       return { success: false, error: "Invalid product data." };
   }
   
+  const { id, sellerId, name, description, pricePerGram, stockInGrams } = parsedProduct.data;
+  let imageUrl = parsedProduct.data.imageUrl;
+  
+  const imageFile = formData.get('imageFile') as File | null;
+
+  if (imageFile && imageFile.size > 0) {
+    const uploadResult = await uploadImage(imageFile);
+    if (uploadResult.success && uploadResult.imageUrl) {
+      imageUrl = uploadResult.imageUrl;
+    } else {
+      return { success: false, error: uploadResult.error || 'Failed to upload image.' };
+    }
+  }
+
   try {
-    const savedProduct = await saveProduct(parsedProduct.data);
+    const productToSave: Omit<Product, 'id'> & { id?: string } = {
+        id,
+        sellerId,
+        name,
+        description,
+        pricePerGram,
+        stockInGrams,
+        imageUrl
+    }
+
+    const savedProduct = await saveProduct(productToSave);
+    
     revalidatePath('/admin/products');
     revalidatePath('/'); 
 
@@ -50,41 +105,4 @@ export async function deleteProductAction(productId: string) {
         console.error("Error in deleteProductAction:", error);
         return { success: false, error: "Failed to delete product." };
     }
-}
-
-
-export async function uploadImageAction(formData: FormData) {
-  const file = formData.get('file') as File;
-  if (!file) {
-    return { success: false, error: 'No se ha proporcionado ningún archivo.' };
-  }
-
-  // Validar tipo de archivo
-  const allowedTypes = ['image/jpeg', 'image/png'];
-  if (!allowedTypes.includes(file.type)) {
-      return { success: false, error: 'Formato de archivo no válido. Solo se permiten JPEG y PNG.' };
-  }
-  
-  // Validar tamaño del archivo (e.g., 5MB)
-  const maxSizeInBytes = 5 * 1024 * 1024;
-  if (file.size > maxSizeInBytes) {
-      return { success: false, error: 'El archivo es demasiado grande. El máximo es 5MB.'};
-  }
-
-  const fileBuffer = Buffer.from(await file.arrayBuffer());
-  const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-  const uploadDir = path.join(process.cwd(), 'public/images');
-  
-  try {
-    // Asegurarse de que el directorio existe, si no, lo crea.
-    await fs.ensureDir(uploadDir);
-    const filePath = path.join(uploadDir, fileName);
-
-    await fs.writeFile(filePath, fileBuffer);
-    const imageUrl = `/images/${fileName}`; // Ruta relativa para usar en <img> src
-    return { success: true, imageUrl };
-  } catch (error) {
-    console.error('Fallo al guardar la imagen:', error);
-    return { success: false, error: 'No se pudo guardar la imagen en el servidor.' };
-  }
 }
