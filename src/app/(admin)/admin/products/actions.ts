@@ -54,8 +54,9 @@ export async function saveProductAction(
 
     // Handle image upload only if a new file is provided
     if (imageFile && imageFile.size > 0) {
-        if (imageFile.size > 5 * 1024 * 1024) { // 5MB limit
-            return { success: false, error: 'El archivo es demasiado grande (máx 5MB).' };
+        // This size limit is now more of a safeguard, the real limit is in next.config.js
+        if (imageFile.size > 10 * 1024 * 1024) { // 10MB limit
+            return { success: false, error: 'El archivo es demasiado grande (máx 10MB).' };
         }
         
         const fileBuffer = Buffer.from(await imageFile.arrayBuffer());

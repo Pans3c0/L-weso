@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
     allowedDevOrigins: [
       '*.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev',
     ],
+    // Increase the body size limit for Server Actions to allow larger file uploads.
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
   },
 };
 
