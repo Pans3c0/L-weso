@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { PanelLeft, Wrench, User, LogOut, BellPlus, Info, Bell } from 'lucide-react';
 import { AdminSidebar } from './admin-sidebar';
 import { useSession } from '@/hooks/use-session';
@@ -83,7 +83,10 @@ export function AdminHeader() {
             </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0 w-full max-w-sm">
-            <AdminSidebar isMobile />
+             <SheetHeader className="sr-only">
+                <SheetTitle>Menú de Navegación</SheetTitle>
+              </SheetHeader>
+              <AdminSidebar isMobile />
             </SheetContent>
         </Sheet>
         <div className="w-full flex-1">
