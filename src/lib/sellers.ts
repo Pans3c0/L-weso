@@ -4,7 +4,7 @@ import type { Seller } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const dbDirectory = '/app/src/lib/db';
 const sellersFilePath = path.join(dbDirectory, 'sellers.json');
 
 /**

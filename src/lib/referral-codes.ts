@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { ReferralCode } from './types';
 
-const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const dbDirectory = '/app/src/lib/db';
 const codesFilePath = path.join(dbDirectory, 'referral-codes.json');
 
 

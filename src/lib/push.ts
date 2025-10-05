@@ -5,7 +5,7 @@ import webpush from 'web-push';
 import path from 'path';
 import fs from 'fs-extra';
 
-const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const dbDirectory = '/app/src/lib/db';
 const subscriptionsFilePath = path.join(dbDirectory, 'subscriptions.json');
 
 // VAPID keys should be stored in environment variables

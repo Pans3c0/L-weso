@@ -5,7 +5,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { PushSubscription } from 'web-push';
 
-const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
+const dbDirectory = '/app/src/lib/db';
 const subscriptionsFilePath = path.join(dbDirectory, 'subscriptions.json');
 
 
