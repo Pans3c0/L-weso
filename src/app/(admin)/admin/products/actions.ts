@@ -49,7 +49,7 @@ export async function saveProductAction(
     }
     
     // Si se proporcionó una nueva URL de imagen y existía una antigua, eliminamos la antigua
-    if (newImageUrl && existingImageUrl) {
+    if (newImageUrl && existingImageUrl && existingImageUrl.startsWith('/images/')) {
         try {
             const oldImageName = path.basename(existingImageUrl);
             const oldImagePath = path.join(process.cwd(), 'public', 'images', oldImageName);
@@ -82,7 +82,7 @@ export async function deleteProductAction(productId: string) {
     try {
         const product = await getProductById(productId);
 
-        if (product && product.imageUrl) {
+        if (product && product.imageUrl && product.imageUrl.startsWith('/images/')) {
             try {
                 const imageName = path.basename(product.imageUrl);
                 const imagePath = path.join(process.cwd(), 'public', 'images', imageName);

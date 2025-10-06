@@ -13,6 +13,8 @@ import type { Product } from '@/lib/types';
 import { Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveProductAction } from '@/app/(admin)/admin/products/actions';
+import { useSession } from '@/hooks/use-session';
+
 
 const productSchema = z.object({
   name: z.string().min(3, 'El nombre es obligatorio'),
@@ -31,6 +33,7 @@ interface ProductFormProps {
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const { toast } = useToast();
+  const { session } = useSession();
   const [isSaving, setIsSaving] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string | null>(product?.imageUrl || null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -63,6 +66,11 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
     let newImageUrl: string | null = null;
+    if (!session?.sellerId) {
+      toast({ title: 'Error', description: 'No se pudo identificar al vendedor.', variant: 'destructive' });
+      setIsSaving(false);
+      return;
+    }
 
     // 1. Si hay una nueva imagen, súbela primero a la ruta API
     if (imageFile) {
@@ -108,6 +116,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     } else {
       productFormData.append('id', 'undefined');
     }
+    productFormData.append('sellerId', session.sellerId);
+
     
     if (product?.imageUrl) {
         productFormData.append('existingImageUrl', product.imageUrl);
