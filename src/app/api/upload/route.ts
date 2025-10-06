@@ -3,18 +3,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs-extra';
-import { URL } from 'url';
 
-// CONFIGURACIÓN CLAVE:
-// Aumenta el límite de tamaño del cuerpo de la petición para esta ruta API.
-// Esta es la forma garantizada de aumentar el límite para la subida de archivos.
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-};
+// La configuración del límite de tamaño del cuerpo de la petición ahora se gestiona
+// de forma centralizada y correcta en next.config.js.
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,17 +28,14 @@ export async function POST(request: NextRequest) {
     // Guardar el archivo
     await fs.writeFile(filePath, fileBuffer);
 
-    // Construir la URL pública
-    // En producción, NEXT_PUBLIC_BASE_URL debería ser la URL de tu dominio (ej: https://tudominio.com)
-    // En desarrollo, será http://localhost:9002
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 9002}`;
-    const publicUrl = new URL(`/images/${fileName}`, baseUrl).toString();
+    // Construir y devolver la URL pública relativa. Es más robusto que construir una URL absoluta.
+    const publicUrl = `/images/${fileName}`;
 
     return NextResponse.json({ success: true, url: publicUrl });
 
   } catch (error: any) {
-    // Manejar el error de límite de tamaño específico
-    if (error.type === 'entity.too.large') {
+    // Manejar el error de límite de tamaño específico que puede ocurrir
+    if (error.type === 'entity.too.large' || (error.message && error.message.includes('body exceeded'))) {
         return NextResponse.json(
             { success: false, error: `El archivo es demasiado grande. El límite es de 10 MB.` },
             { status: 413 } // 413 Payload Too Large

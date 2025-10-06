@@ -7,6 +7,9 @@ import { revalidatePath } from 'next/cache';
 import fs from 'fs-extra';
 import path from 'path';
 
+// La configuración del límite de tamaño del body se ha movido a next.config.js
+// y a la ruta API /api/upload para un control más efectivo.
+// Eliminar 'export const config' de aquí es intencional.
 
 const ProductFormSchema = z.object({
     id: z.string().optional(),
@@ -46,11 +49,13 @@ export async function saveProductAction(
       return { success: false, error: "Invalid product data." };
     }
     
-    // Si se subió una nueva imagen y existía una antigua, eliminamos la antigua
+    // Si se proporcionó una nueva URL de imagen y existía una antigua, eliminamos la antigua
     if (newImageUrl && existingImageUrl) {
         try {
-            const oldImageName = path.basename(new URL(existingImageUrl, 'http://dummybase').pathname);
+            // Extraer el nombre del archivo de la URL relativa (ej: de '/images/foto.jpg' a 'foto.jpg')
+            const oldImageName = path.basename(existingImageUrl);
             const oldImagePath = path.join(process.cwd(), 'public', 'images', oldImageName);
+            
             if (await fs.pathExists(oldImagePath)) {
                 await fs.unlink(oldImagePath);
                 console.log(`Successfully deleted old image: ${oldImagePath}`);
@@ -82,7 +87,7 @@ export async function deleteProductAction(productId: string) {
         // Primero, elimina la imagen asociada si existe
         if (product && product.imageUrl) {
             try {
-                const imageName = path.basename(new URL(product.imageUrl, 'http://dummybase').pathname);
+                const imageName = path.basename(product.imageUrl);
                 const imagePath = path.join(process.cwd(), 'public', 'images', imageName);
                  if (await fs.pathExists(imagePath)) {
                     await fs.unlink(imagePath);
