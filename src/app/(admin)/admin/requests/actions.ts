@@ -55,11 +55,19 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
 
     await updateRequest(updated);
     
-    // Send a push notification to the customer if this is a new confirmation
-    if (!isEditing) {
+    // --- NOTIFICATION LOGIC ---
+    if (isEditing) {
+      // Send a push notification to the customer that their order was updated
+      await sendPushNotification(request.customerId, {
+        title: 'Tu pedido ha sido actualizado',
+        body: `El vendedor ha modificado los detalles de tu pedido #${request.id.slice(-6)}.`,
+        url: '/notifications'
+      });
+    } else {
+       // Send a push notification to the customer for a new confirmation
        await sendPushNotification(request.customerId, {
-        title: '¡Coño, se gano un sorteaso!',
-        body: `Tan ready esos ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(request.total)} \n Elimina la noti.`,
+        title: '¡Tu pedido ha sido confirmado!',
+        body: `El vendedor ha confirmado tu pedido por ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(request.total)}.`,
         url: '/notifications'
       });
     }
@@ -117,8 +125,8 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
     
     // Notify the seller about the customer's delay
     await sendPushNotification(request.sellerId, {
-      title: 'Retraso notificado por un cliente',
-      body: `El cliente ${request.customerName} ha notificado un retraso para el pedido #${request.id.slice(-6)}.`,
+      title: 'Retraso notificado por cliente',
+      body: `Cliente: ${request.customerName}, Pedido: #${request.id.slice(-6)}.`,
       url: `/admin/orders`
     });
 
