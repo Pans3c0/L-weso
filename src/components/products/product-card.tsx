@@ -27,6 +27,14 @@ export function ProductCard({ product }: { product: Product }) {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
   };
   
+  const getImageUrl = (url: string) => {
+    if (!url) return '/images/placeholder.svg';
+    if (url.startsWith('/images/')) {
+      return `/api${url}`;
+    }
+    return url;
+  }
+  
   const placeholderImageUrl = '/images/placeholder.svg';
 
   return (
@@ -34,7 +42,7 @@ export function ProductCard({ product }: { product: Product }) {
       <CardHeader className="p-0">
         <div className="aspect-[3/2] relative w-full">
           <Image
-            src={product.imageUrl || placeholderImageUrl}
+            src={getImageUrl(product.imageUrl)}
             alt={product.name}
             fill
             className="object-cover"

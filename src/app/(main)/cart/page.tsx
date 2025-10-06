@@ -25,7 +25,14 @@ export default function CartPage() {
   };
   
   const canFulfillOrder = cartItems.every(item => item.quantityInGrams <= item.product.stockInGrams);
-  const placeholderImageUrl = '/images/placeholder.svg';
+  
+  const getImageUrl = (url: string) => {
+    if (!url) return '/images/placeholder.svg';
+    if (url.startsWith('/images/')) {
+      return `/api${url}`;
+    }
+    return url;
+  }
 
   const handleSubmitRequest = async () => {
     if (!session) {
@@ -115,7 +122,7 @@ export default function CartPage() {
                     {cartItems.map(item => (
                       <TableRow key={item.product.id}>
                         <TableCell className="hidden md:table-cell">
-                          <Image src={item.product.imageUrl || placeholderImageUrl} alt={item.product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={item.product.imageHint} />
+                          <Image src={getImageUrl(item.product.imageUrl)} alt={item.product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={item.product.imageHint} />
                         </TableCell>
                         <TableCell className="font-medium">{item.product.name}</TableCell>
                         <TableCell>

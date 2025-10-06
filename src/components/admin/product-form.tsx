@@ -35,9 +35,34 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const { toast } = useToast();
   const { session } = useSession();
   const [isSaving, setIsSaving] = React.useState(false);
-  const [imagePreview, setImagePreview] = React.useState<string | null>(product?.imageUrl || null);
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
+
+  const getImageUrl = (url: string) => {
+    if (!url) return null;
+    // If it's a local image, serve it through the API route
+    if (url.startsWith('/images/')) {
+      return `/api${url}`;
+    }
+    // Otherwise, it's an external URL (e.g., from seeding)
+    return url;
+  };
+
+  React.useEffect(() => {
+    form.reset({
+      name: product?.name || '',
+      description: product?.description || '',
+      pricePerGram: product?.pricePerGram || 0,
+      stockInGrams: product?.stockInGrams || 0,
+    });
+    setImagePreview(product?.imageUrl ? getImageUrl(product.imageUrl) : null);
+    setImageFile(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, form]);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -48,20 +73,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       stockInGrams: product?.stockInGrams || 0,
     },
   });
-
-  React.useEffect(() => {
-    form.reset({
-      name: product?.name || '',
-      description: product?.description || '',
-      pricePerGram: product?.pricePerGram || 0,
-      stockInGrams: product?.stockInGrams || 0,
-    });
-    setImagePreview(product?.imageUrl || null);
-    setImageFile(null);
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-    }
-  }, [product, form]);
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);

@@ -168,7 +168,14 @@ function RequestItem({
   getStatusIcon: (status: PurchaseRequest['status']) => React.ReactNode;
   onConfirmClick?: () => void;
 }) {
-  const placeholderImageUrl = 'https://placehold.co/64x64/F5F5F5/696969?text=?';
+  const getImageUrl = (url: string) => {
+    if (!url) return 'https://placehold.co/64x64/F5F5F5/696969?text=?';
+    if (url.startsWith('/images/')) {
+      return `/api${url}`;
+    }
+    return url;
+  }
+
   return (
     <AccordionItem value={request.id}>
       <AccordionTrigger>
@@ -196,7 +203,7 @@ function RequestItem({
               <li key={item.product.id} className="flex items-center justify-between">
                 <div className="flex items-center">
                   <Image
-                    src={item.product.imageUrl || placeholderImageUrl}
+                    src={getImageUrl(item.product.imageUrl)}
                     alt={item.product.name}
                     width={40}
                     height={40}

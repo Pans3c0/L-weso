@@ -104,6 +104,14 @@ export default function AdminProductsPage() {
     return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount);
   };
 
+  const getImageUrl = (url: string) => {
+    if (!url) return 'https://placehold.co/64x64/F5F5F5/696969?text=?';
+    if (url.startsWith('/images/')) {
+      return `/api${url}`;
+    }
+    return url;
+  }
+
   return (
     <Sheet open={isSheetOpen} onOpenChange={(isOpen) => {
       setIsSheetOpen(isOpen);
@@ -167,7 +175,7 @@ export default function AdminProductsPage() {
                         alt={product.name}
                         className="aspect-square rounded-md object-cover"
                         height="64"
-                        src={product.imageUrl || 'https://placehold.co/64x64/F5F5F5/696969?text=?'}
+                        src={getImageUrl(product.imageUrl)}
                         width="64"
                         data-ai-hint={product.imageHint}
                       />
