@@ -18,23 +18,5 @@
     "stockInGrams": 40,
     "imageUrl": "/images/mfl.png",
     "imageHint": "marroco "
-  },
-  {
-    "id": "prod_1759542623272",
-    "sellerId": "seller_1",
-    "name": "Gguuug",
-    "description": "Gjjb. Hhjhh hujnn",
-    "pricePerGram": 5,
-    "stockInGrams": 20,
-    "imageUrl": "/images/1759542623259-49847.jpg"
-  },
-  {
-    "sellerId": "seller_1",
-    "name": "sadasd",
-    "description": "dasds asda dasda",
-    "pricePerGram": 5,
-    "stockInGrams": 20,
-    "imageUrl": "/images/upload-1759790872951-12577357.jpg",
-    "id": "prod_1759790873172"
   }
 ]

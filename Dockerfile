@@ -25,7 +25,7 @@ WORKDIR /app
 COPY package.json .
 
 # 2. Instala *solo* las dependencias de producción en la etapa RUNNER
-RUN npm install --only=production
+RUN npm install ---omit=dev
 
 # 3. Copia los archivos necesarios desde la etapa BUILDER:
 # - El core de la aplicación compilada
