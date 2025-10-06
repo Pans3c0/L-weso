@@ -7,6 +7,7 @@ import { SessionProvider } from '@/hooks/use-session';
 export const metadata: Metadata = {
   title: 'L-weso',
   description: 'Tu barrio de confianza.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({

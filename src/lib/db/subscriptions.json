@@ -1,10 +1,10 @@
 {
   "seller_1": {
-    "endpoint": "https://fcm.googleapis.com/fcm/send/cQG1MOZfy10:APA91bFoF7GAfxK0JCW2ASH3GaY_BkLtnYmz2fT1SZ2Nu1i8_WwCO30_ZGJbml8U0a34s_0JhEZM8nGrXJLq5gpFf4OXcv0c6DPAO_rmvVo0hGvEbVwMxF7TKu2L21vK6u1BemCRv-SW",
+    "endpoint": "https://fcm.googleapis.com/fcm/send/fHA9ftH4w2c:APA91bGwpJGJ9zEtDw13SIaKVK-SggGt8GputrpZlTIvtghb4KF3aTBWAa55iv95NirFaWZpxZdvNoryGmEBeR0kgs3WKyVIMNacJhV34ODX9Ayjcsknu4W4_xYllyi65OdOEsPGh1EK",
     "expirationTime": null,
     "keys": {
-      "p256dh": "BIuwJ807fmtvkrIwiutwVGnLLibOH6NA-j2ABiIrEHdzT-MKc76eR564DaQiJi8y9VixoetLFyrjp-A3uscvtYM",
-      "auth": "kWZitU7xa2t6Od0kmYgnnw"
+      "p256dh": "BFEOnhtscu5eQhRsmy1aFOHD0yxyu3K3WeZlD9qg0ue_Z2MqIF5rG9myRcfw4swd65LIjASjNFSKp5bBk0z3ghE",
+      "auth": "EUhMPH1T6btVsV4_WCGlmQ"
     }
   }
 }
