@@ -18,9 +18,9 @@ const nextConfig = {
       },
     ],
   },
-  // La configuración de serverActions en next.config.js es inconsistente entre versiones
-  // y en este caso no está funcionando. Se elimina para evitar confusión.
-  // El límite se configura directamente en la ruta API de subida.
+  // The body size limit is now handled by client-side compression,
+  // so we don't need to fight with server configurations anymore.
+  // This keeps the config clean and avoids environment-specific issues.
   
   allowedDevOrigins: [
     '*.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev',

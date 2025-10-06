@@ -9,17 +9,22 @@ const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
 const subscriptionsFilePath = path.join(dbDirectory, 'subscriptions.json');
 
 // VAPID keys should be stored in environment variables
-// Ensure the public key is URL-safe Base64 by removing any '=' padding.
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.replace(/=/g, '');
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 
+let vapidKeysLoaded = false;
 if (vapidPublicKey && vapidPrivateKey) {
-    console.log('VAPID keys loaded successfully. Push notifications are configured.');
-    webpush.setVapidDetails(
-        'mailto:example@your-domain.com', // Replace with your contact email
-        vapidPublicKey,
-        vapidPrivateKey
-    );
+    try {
+        webpush.setVapidDetails(
+            'mailto:example@your-domain.com', // Replace with your contact email
+            vapidPublicKey,
+            vapidPrivateKey
+        );
+        vapidKeysLoaded = true;
+        console.log('VAPID keys loaded successfully. Push notifications are configured.');
+    } catch (error) {
+        console.error("Error setting VAPID details, likely invalid keys:", error);
+    }
 } else {
     console.warn('VAPID keys not found in environment variables. Push notifications will be disabled.');
 }
@@ -59,8 +64,8 @@ async function saveSubscriptions(subscriptions: Record<string, PushSubscription>
  * @param payload - The data to send in the notification.
  */
 export async function sendPushNotification(userId: string, payload: { title: string; body: string; url?: string; }) {
-  if (!vapidPublicKey || !vapidPrivateKey) {
-      console.log('VAPID keys not configured, skipping push notification.');
+  if (!vapidKeysLoaded) {
+      console.log('VAPID keys not configured or failed to load, skipping push notification.');
       return;
   }
   
@@ -82,12 +87,14 @@ export async function sendPushNotification(userId: string, payload: { title: str
     // If the subscription is expired or invalid, the push service will return an error.
     // We should handle this by removing the invalid subscription.
     if (error.statusCode === 404 || error.statusCode === 410) {
-      console.log('Subscription has expired or is no longer valid. Removing it.');
+      console.log(`Subscription for user ${userId} has expired or is no longer valid. Removing it.`);
       const subscriptions = await getSubscriptions();
-      delete subscriptions[userId];
-      await saveSubscriptions(subscriptions);
+      if (subscriptions[userId]) {
+        delete subscriptions[userId];
+        await saveSubscriptions(subscriptions);
+      }
     } else {
-      console.error('Error sending push notification:', error);
+      console.error(`Error sending push notification to ${userId}:`, error.body || error.message);
     }
   }
 }

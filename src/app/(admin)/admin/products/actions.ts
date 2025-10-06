@@ -30,7 +30,7 @@ export async function saveProductAction(data: z.infer<typeof ProductFormSchema>)
     let finalImageUrl = newImageUrl || existingImageUrl;
     
     // Si se subió una nueva imagen y existía una antigua, elimina la antigua.
-    // Asegurarse de que la imagen antigua sea una ruta local.
+    // Solo intenta eliminar si la URL antigua es una ruta de imagen local.
     if (newImageUrl && existingImageUrl && existingImageUrl.startsWith('/images/')) {
         try {
             const oldImageName = path.basename(existingImageUrl);
@@ -42,6 +42,7 @@ export async function saveProductAction(data: z.infer<typeof ProductFormSchema>)
             }
         } catch (deleteError) {
             console.error('Failed to delete old image:', deleteError);
+            // No detenemos el proceso si falla la eliminación, solo lo registramos.
         }
     }
 
@@ -67,6 +68,7 @@ export async function deleteProductAction(productId: string) {
     try {
         const product = await getProductById(productId);
 
+        // Solo intenta eliminar si el producto existe y la URL es una ruta de imagen local.
         if (product && product.imageUrl && product.imageUrl.startsWith('/images/')) {
             try {
                 const imageName = path.basename(product.imageUrl);
@@ -76,6 +78,7 @@ export async function deleteProductAction(productId: string) {
                 }
             } catch (error) {
                  console.error('Failed to delete product image during deletion:', error);
+                 // No detenemos el proceso si falla la eliminación de la imagen.
             }
         }
 

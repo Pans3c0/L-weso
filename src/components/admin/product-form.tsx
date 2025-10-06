@@ -14,6 +14,7 @@ import { Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveProductAction } from '@/app/(admin)/admin/products/actions';
 import { useSession } from '@/hooks/use-session';
+import imageCompression from 'browser-image-compression';
 
 const productSchema = z.object({
   name: z.string().min(3, 'El nombre es obligatorio'),
@@ -115,13 +116,41 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     setIsSaving(false);
   };
   
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
-        toast({
+    if (!file) return;
+
+    // Options for compression
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      initialQuality: 0.8
+    }
+
+    try {
+      toast({ title: 'Comprimiendo imagen...', description: 'Por favor, espera un momento.' });
+      const compressedFile = await imageCompression(file, options);
+      
+      setImageFile(compressedFile);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(compressedFile);
+
+    } catch (error) {
+      console.error('Error comprimiendo la imagen:', error);
+      toast({
+        title: 'Error de Compresión',
+        description: 'No se pudo procesar la imagen. Intenta con otra.',
+        variant: 'destructive',
+      });
+      // Fallback to original file if compression fails, but check size
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit on server
+         toast({
           title: 'Archivo demasiado grande',
-          description: 'El tamaño de la imagen no puede superar los 10 MB.',
+          description: 'La imagen no se pudo comprimir y supera los 2 MB.',
           variant: 'destructive',
         });
         return;
@@ -151,7 +180,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                     )}
                 </div>
                 <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
-                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSaving}>
                     <Upload className="mr-2 h-4 w-4" />
                     {imagePreview ? 'Cambiar Imagen' : 'Subir Imagen'}
                 </Button>
