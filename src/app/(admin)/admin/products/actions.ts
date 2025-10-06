@@ -1,20 +1,11 @@
 'use server';
 
 import { z } from 'zod';
-import { saveProduct, deleteProduct } from '@/lib/data';
+import { saveProduct, deleteProduct, getProductById } from '@/lib/data';
 import type { Product } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import fs from 'fs-extra';
 import path from 'path';
-
-// Aumenta el límite de tamaño del cuerpo de la petición para esta Server Action.
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
-};
 
 
 const ProductFormSchema = z.object({
@@ -24,27 +15,26 @@ const ProductFormSchema = z.object({
     description: z.string().min(10, 'La descripción es obligatoria'),
     pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
     stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
+    imageUrl: z.string().optional(), // La URL de la imagen ahora es un campo de texto
 });
 
 export async function saveProductAction(
   formData: FormData
 ) {
-    const imageFile = formData.get('imageFile') as File | null;
+    const id = formData.get('id') as string | undefined;
     const existingImageUrl = formData.get('existingImageUrl') as string | null;
+    const newImageUrl = formData.get('imageUrl') as string | null;
 
     const productData = {
-        id: formData.get('id') as string | undefined,
+        id: id === 'undefined' ? undefined : id,
         sellerId: formData.get('sellerId') as string,
         name: formData.get('name') as string,
         description: formData.get('description') as string,
         pricePerGram: formData.get('pricePerGram') as string,
         stockInGrams: formData.get('stockInGrams') as string,
+        imageUrl: newImageUrl || existingImageUrl || '',
     };
     
-    if (productData.id === 'undefined' || productData.id === '') {
-        productData.id = undefined;
-    }
-
     const parsedProduct = ProductFormSchema.safeParse({
         ...productData,
         pricePerGram: Number(productData.pricePerGram),
@@ -56,48 +46,23 @@ export async function saveProductAction(
       return { success: false, error: "Invalid product data." };
     }
     
-    let finalImageUrl: string | undefined = existingImageUrl || undefined;
-    
-    // Handle new image upload
-    if (imageFile && imageFile.size > 0) {
-        // Delete old image if a new one is uploaded and an old one exists
-        if (existingImageUrl) {
-            try {
-                // existingImageUrl is a URL like '/images/foo.jpg', we need the file path
-                const oldImageName = path.basename(existingImageUrl);
-                const oldImagePath = path.join(process.cwd(), 'public', 'images', oldImageName);
-                
-                if (await fs.pathExists(oldImagePath)) {
-                    await fs.unlink(oldImagePath);
-                }
-            } catch (error) {
-                console.error('Failed to delete old image:', error);
-                // Continue even if deletion fails
-            }
-        }
-        
-        const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
-        const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'images');
-        
+    // Si se subió una nueva imagen y existía una antigua, eliminamos la antigua
+    if (newImageUrl && existingImageUrl) {
         try {
-            await fs.ensureDir(uploadDir);
-            const filePath = path.join(uploadDir, fileName);
-            await fs.writeFile(filePath, fileBuffer);
-            finalImageUrl = `/images/${fileName}`; 
+            const oldImageName = path.basename(new URL(existingImageUrl, 'http://dummybase').pathname);
+            const oldImagePath = path.join(process.cwd(), 'public', 'images', oldImageName);
+            if (await fs.pathExists(oldImagePath)) {
+                await fs.unlink(oldImagePath);
+                console.log(`Successfully deleted old image: ${oldImagePath}`);
+            }
         } catch (error) {
-            console.error('Fallo al guardar la imagen:', error);
-            return { success: false, error: 'No se pudo guardar la imagen en el servidor.' };
+            console.error('Failed to delete old image:', error);
+            // No detenemos el proceso, solo lo registramos
         }
     }
 
     try {
-        const productToSave: Omit<Product, 'id'> & { id?: string } = {
-            ...parsedProduct.data,
-            imageUrl: finalImageUrl || '',
-        };
-
-        const savedProduct = await saveProduct(productToSave);
+        const savedProduct = await saveProduct(parsedProduct.data);
         
         revalidatePath('/admin/products');
         revalidatePath('/shop'); 
@@ -112,7 +77,24 @@ export async function saveProductAction(
 
 export async function deleteProductAction(productId: string) {
     try {
+        const product = await getProductById(productId);
+
+        // Primero, elimina la imagen asociada si existe
+        if (product && product.imageUrl) {
+            try {
+                const imageName = path.basename(new URL(product.imageUrl, 'http://dummybase').pathname);
+                const imagePath = path.join(process.cwd(), 'public', 'images', imageName);
+                 if (await fs.pathExists(imagePath)) {
+                    await fs.unlink(imagePath);
+                }
+            } catch (error) {
+                 console.error('Failed to delete product image during deletion:', error);
+            }
+        }
+
+        // Luego, elimina el producto de la base de datos
         await deleteProduct(productId);
+
         revalidatePath('/admin/products');
         revalidatePath('/shop');
 

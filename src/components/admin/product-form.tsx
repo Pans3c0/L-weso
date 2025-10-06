@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/types';
 import { Loader2, Upload } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const productSchema = z.object({
   name: z.string().min(3, 'El nombre es obligatorio'),
@@ -28,11 +29,11 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
+  const { toast } = useToast();
   const [isSaving, setIsSaving] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string | null>(product?.imageUrl || null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [existingImageUrl, setExistingImageUrl] = React.useState<string | null>(product?.imageUrl || null);
-
+  const [imageFile, setImageFile] = React.useState<File | null>(null);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -51,37 +52,65 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       pricePerGram: product?.pricePerGram || 0,
       stockInGrams: product?.stockInGrams || 0,
     });
-    const url = product?.imageUrl || null;
-    setImagePreview(url);
-    setExistingImageUrl(url);
+    setImagePreview(product?.imageUrl || null);
+    setImageFile(null); // Reset file on product change
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
   }, [product, form]);
 
-
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
+    let newImageUrl: string | null = null;
+
+    // 1. Si hay una nueva imagen, súbela primero
+    if (imageFile) {
+      try {
+        const imageFormData = new FormData();
+        imageFormData.append('imageFile', imageFile);
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: imageFormData,
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || 'Error al subir la imagen.');
+        }
+        newImageUrl = result.url;
+      } catch (error) {
+        toast({
+          title: 'Error de subida',
+          description: error instanceof Error ? error.message : 'No se pudo subir la imagen.',
+          variant: 'destructive',
+        });
+        setIsSaving(false);
+        return;
+      }
+    }
+
+    // 2. Prepara los datos del formulario para la Server Action
     const formData = new FormData();
-    
     Object.entries(data).forEach(([key, value]) => {
       formData.append(key, String(value));
     });
 
     if (product?.id) {
-        formData.append('id', product.id);
+      formData.append('id', product.id);
     } else {
-        formData.append('id', 'undefined');
+      formData.append('id', 'undefined');
     }
 
-    if (existingImageUrl) {
-        formData.append('existingImageUrl', existingImageUrl);
+    // Pasa tanto la URL de la imagen antigua como la nueva (si existe)
+    if (product?.imageUrl) {
+        formData.append('existingImageUrl', product.imageUrl);
+    }
+    if (newImageUrl) {
+        formData.append('imageUrl', newImageUrl);
     }
 
-    if (fileInputRef.current?.files?.[0]) {
-      formData.append('imageFile', fileInputRef.current.files[0]);
-    }
-    
+    // 3. Llama a la Server Action para guardar los datos del producto
     await onSave(formData);
     setIsSaving(false);
   };
@@ -89,6 +118,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -112,7 +142,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                         <span className="text-muted-foreground text-sm">Vista previa</span>
                     )}
                 </div>
-                <input type="file" name="imageFile" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
+                <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" />
                     {imagePreview ? 'Cambiar Imagen' : 'Subir Imagen'}

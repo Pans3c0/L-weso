@@ -18,13 +18,10 @@ const nextConfig = {
       },
     ],
   },
-  // La configuración para el límite de tamaño del cuerpo de las Server Actions
-  // debe estar dentro del objeto `experimental` para ser reconocida por esta versión de Next.js.
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
+  // La configuración de serverActions en next.config.js es inconsistente entre versiones
+  // y en este caso no está funcionando. Se elimina para evitar confusión.
+  // El límite se configura directamente en la ruta API de subida.
+  
   // Esta es la forma correcta de permitir orígenes de desarrollo.
   // Ya no está en `experimental`.
   allowedDevOrigins: [

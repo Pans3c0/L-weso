@@ -27,6 +27,16 @@ export async function getAllProducts(sellerId?: string): Promise<Product[]> {
 }
 
 /**
+ * Retrieves a single product by its ID.
+ * @param productId - The ID of the product to retrieve.
+ * @returns A promise that resolves to the Product object or null if not found.
+ */
+export async function getProductById(productId: string): Promise<Product | null> {
+  const allProducts = await getAllProducts();
+  return allProducts.find(p => p.id === productId) || null;
+}
+
+/**
  * Saves a single product (adds or updates) to the data source.
  * @param productToSave - The product to be saved. If it has an ID, it updates; otherwise, it adds.
  * @returns A promise that resolves to the saved product.
