@@ -70,27 +70,40 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       return;
     }
 
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
-    });
+    let newImageUrl: string | undefined = undefined;
 
-    if (product?.id) {
-      formData.append('id', product.id);
-    } else {
-      formData.append('id', 'undefined');
-    }
-    formData.append('sellerId', session.sellerId);
-    
-    if (product?.imageUrl) {
-        formData.append('existingImageUrl', product.imageUrl);
-    }
-
+    // 1. Si hay un nuevo archivo de imagen, súbelo primero
     if (imageFile) {
-      formData.append('imageFile', imageFile);
+      try {
+        const imageFormData = new FormData();
+        imageFormData.append('imageFile', imageFile);
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: imageFormData,
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || 'Error al subir la imagen');
+        }
+        newImageUrl = result.url;
+      } catch (uploadError) {
+        toast({ title: 'Error de subida', description: (uploadError as Error).message, variant: 'destructive' });
+        setIsSaving(false);
+        return;
+      }
     }
 
-    const result = await saveProductAction(formData);
+    // 2. Llama a la Server Action con los datos del formulario y la URL de la nueva imagen
+    const result = await saveProductAction({
+      ...data,
+      id: product?.id,
+      sellerId: session.sellerId,
+      newImageUrl: newImageUrl,
+      existingImageUrl: product?.imageUrl,
+    });
 
     if (result.success) {
       toast({ title: 'Producto guardado', description: `El producto ha sido guardado.` });

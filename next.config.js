@@ -18,13 +18,10 @@ const nextConfig = {
       },
     ],
   },
-  // La configuración de serverActions debe estar dentro de 'experimental'
-  // para que sea reconocida por la versión de Next.js en el entorno de build.
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
+  // La configuración de serverActions en next.config.js es inconsistente entre versiones
+  // y en este caso no está funcionando. Se elimina para evitar confusión.
+  // El límite se configura directamente en la ruta API de subida.
+  
   allowedDevOrigins: [
     '*.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev',
   ],

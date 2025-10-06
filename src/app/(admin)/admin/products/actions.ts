@@ -13,49 +13,25 @@ const ProductFormSchema = z.object({
     description: z.string().min(10, 'La descripción es obligatoria'),
     pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
     stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
+    newImageUrl: z.string().optional(), // La nueva URL de la imagen subida
+    existingImageUrl: z.string().optional(), // La URL de la imagen existente si se está editando
 });
 
-export async function saveProductAction(formData: FormData) {
-    const id = formData.get('id') as string | undefined;
-    const existingImageUrl = formData.get('existingImageUrl') as string | null;
-    const imageFile = formData.get('imageFile') as File | null;
-
-    const parsedProduct = ProductFormSchema.safeParse({
-        id: id === 'undefined' ? undefined : id,
-        sellerId: formData.get('sellerId') as string,
-        name: formData.get('name') as string,
-        description: formData.get('description') as string,
-        pricePerGram: Number(formData.get('pricePerGram')),
-        stockInGrams: Number(formData.get('stockInGrams')),
-    });
+export async function saveProductAction(data: z.infer<typeof ProductFormSchema>) {
+    const parsedProduct = ProductFormSchema.safeParse(data);
     
     if (!parsedProduct.success) {
       console.error(parsedProduct.error.flatten().fieldErrors);
       return { success: false, error: "Invalid product data." };
     }
 
-    let finalImageUrl = existingImageUrl;
+    const { newImageUrl, existingImageUrl, ...productData } = parsedProduct.data;
 
-    // 1. Si hay una nueva imagen, súbela y obtén la nueva URL
-    if (imageFile && imageFile.size > 0) {
-        try {
-            const uploadDir = path.join(process.cwd(), 'public', 'images');
-            await fs.ensureDir(uploadDir);
-
-            const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
-            const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-            const filePath = path.join(uploadDir, fileName);
-
-            await fs.writeFile(filePath, fileBuffer);
-            finalImageUrl = `/images/${fileName}`; // URL pública relativa
-        } catch (uploadError) {
-            console.error('Error al subir la imagen:', uploadError);
-            return { success: false, error: 'No se pudo subir la imagen.' };
-        }
-    }
+    let finalImageUrl = newImageUrl || existingImageUrl;
     
-    // 2. Si se subió una nueva imagen y existía una antigua, elimina la antigua
-    if (finalImageUrl !== existingImageUrl && existingImageUrl && existingImageUrl.startsWith('/images/')) {
+    // Si se subió una nueva imagen y existía una antigua, elimina la antigua.
+    // Asegurarse de que la imagen antigua sea una ruta local.
+    if (newImageUrl && existingImageUrl && existingImageUrl.startsWith('/images/')) {
         try {
             const oldImageName = path.basename(existingImageUrl);
             const oldImagePath = path.join(process.cwd(), 'public', 'images', oldImageName);
@@ -66,17 +42,15 @@ export async function saveProductAction(formData: FormData) {
             }
         } catch (deleteError) {
             console.error('Failed to delete old image:', deleteError);
-            // No detenemos el proceso, solo lo registramos
         }
     }
 
-    // 3. Guarda el producto en la base de datos con la URL de imagen final
     try {
-        const productDataWithImage = {
-            ...parsedProduct.data,
-            imageUrl: finalImageUrl || '', // Asegura que siempre haya un valor
+        const productToSave = {
+            ...productData,
+            imageUrl: finalImageUrl || '',
         };
-        const savedProduct = await saveProduct(productDataWithImage);
+        const savedProduct = await saveProduct(productToSave);
         
         revalidatePath('/admin/products');
         revalidatePath('/shop'); 
