@@ -7,6 +7,16 @@ import { revalidatePath } from 'next/cache';
 import fs from 'fs-extra';
 import path from 'path';
 
+// Aumenta el límite de tamaño del cuerpo de la petición para esta Server Action.
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
+
+
 const ProductFormSchema = z.object({
     id: z.string().optional(),
     sellerId: z.string().min(1, "Seller ID is required."),
