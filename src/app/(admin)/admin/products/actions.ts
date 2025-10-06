@@ -49,22 +49,19 @@ export async function saveProductAction(
     let finalImageUrl: string | undefined = existingImageUrl || undefined;
     const uploadDir = path.join(process.cwd(), 'public', 'images');
 
-
     // Handle new image upload
     if (imageFile && imageFile.size > 0) {
         // Delete old image if a new one is uploaded and an old one exists
         if (existingImageUrl) {
             try {
-                // existingImageUrl is like "/images/foo.jpg". We need to get "foo.jpg".
                 const oldImageName = path.basename(existingImageUrl);
-                const oldImagePath = path.join(uploadDir, oldImageName);
+                const oldImagePath = path.join(process.cwd(), 'public', oldImageName);
                 
                 if (await fs.pathExists(oldImagePath)) {
                     await fs.unlink(oldImagePath);
                 }
             } catch (error) {
                 console.error('Failed to delete old image:', error);
-                // Don't block the update if deleting the old image fails
             }
         }
         
@@ -85,7 +82,7 @@ export async function saveProductAction(
     try {
         const productToSave: Omit<Product, 'id'> & { id?: string } = {
             ...parsedProduct.data,
-            imageUrl: finalImageUrl || '', // Ensure imageUrl is not undefined
+            imageUrl: finalImageUrl || '',
         };
 
         const savedProduct = await saveProduct(productToSave);
