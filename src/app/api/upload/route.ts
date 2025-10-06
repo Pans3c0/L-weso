@@ -1,5 +1,3 @@
-'use server';
-
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs-extra';
@@ -24,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No se ha enviado ningún archivo.' }, { status: 400 });
     }
 
-    // Directorio de subida (funciona tanto en desarrollo como en producción Docker)
+    // Directorio de subida
     const uploadDir = path.join(process.cwd(), 'public', 'images');
     await fs.ensureDir(uploadDir);
 
@@ -36,20 +34,18 @@ export async function POST(request: NextRequest) {
     // Guardar el archivo
     await fs.writeFile(filePath, fileBuffer);
 
-    // Construir y devolver la URL pública relativa. Es más robusto que construir una URL absoluta.
+    // Construir y devolver la URL pública relativa
     const publicUrl = `/images/${fileName}`;
 
     return NextResponse.json({ success: true, url: publicUrl });
 
   } catch (error: any) {
-    // Manejar el error de límite de tamaño específico que puede ocurrir
     if (error.type === 'entity.too.large' || (error.message && error.message.includes('body exceeded'))) {
         return NextResponse.json(
             { success: false, error: `El archivo es demasiado grande. El límite es de 10 MB.` },
-            { status: 413 } // 413 Payload Too Large
+            { status: 413 }
         );
     }
-
     console.error('Error al subir la imagen:', error);
     return NextResponse.json(
         { success: false, error: 'Error interno del servidor al subir la imagen.' },
