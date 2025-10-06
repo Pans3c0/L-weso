@@ -5,12 +5,11 @@ import fs from 'fs-extra';
 import path from 'path';
 
 // This API route handles the image upload.
-// The client will compress the image before sending it, so we don't need a large body size limit here.
-// However, to be safe, we set a reasonable limit.
+// The client compresses the image before sending it, so we don't need a large body size limit here.
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '2mb', // A bit over 1MB to be safe after compression and encoding
+      sizeLimit: '2mb', // Keep a safe limit just in case
     },
   },
 };
@@ -24,22 +23,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'No se proporcionó ningún archivo.' }, { status: 400 });
     }
     
-    // The size check is now less critical due to client-side compression, but good to have.
-    if (imageFile.size > 2 * 1024 * 1024) { // 2MB
-        return NextResponse.json({ success: false, error: 'El archivo excede el límite de 2 MB.' }, { status: 413 });
-    }
-
     const uploadDir = path.join(process.cwd(), 'public', 'images');
     await fs.ensureDir(uploadDir);
 
     const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
-    // Create a unique filename to avoid collisions
-    const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
+
+    // --- FIX: Robust Unique Filename Generation ---
+    // Get the original file extension safely
+    const fileExtension = path.extname(imageFile.name) || '.jpg'; // Fallback to .jpg
+    // Generate a unique suffix using timestamp and a random number
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+    // Combine to create the new filename
+    const fileName = `upload-${uniqueSuffix}${fileExtension}`;
     const filePath = path.join(uploadDir, fileName);
+    // --- END FIX ---
 
     await fs.writeFile(filePath, fileBuffer);
     
-    // Return the relative URL, which is the most robust way
     const newImageUrl = `/images/${fileName}`;
 
     return NextResponse.json({ success: true, url: newImageUrl });
