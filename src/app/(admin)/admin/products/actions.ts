@@ -52,12 +52,14 @@ export async function saveProductAction(
 
     // Handle new image upload
     if (imageFile && imageFile.size > 0) {
-        // Delete old image if a new one is uploaded
+        // Delete old image if a new one is uploaded and an old one exists
         if (existingImageUrl) {
             try {
-                // Construct the path inside the container/filesystem
-                const oldImagePath = path.join(process.cwd(), 'public', existingImageUrl);
-                 if (await fs.pathExists(oldImagePath)) {
+                // existingImageUrl is like "/images/foo.jpg". We need to get "foo.jpg".
+                const oldImageName = path.basename(existingImageUrl);
+                const oldImagePath = path.join(uploadDir, oldImageName);
+                
+                if (await fs.pathExists(oldImagePath)) {
                     await fs.unlink(oldImagePath);
                 }
             } catch (error) {
