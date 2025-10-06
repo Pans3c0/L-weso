@@ -47,26 +47,28 @@ export async function saveProductAction(
     }
     
     let finalImageUrl: string | undefined = existingImageUrl || undefined;
-    const uploadDir = path.join(process.cwd(), 'public', 'images');
-
+    
     // Handle new image upload
     if (imageFile && imageFile.size > 0) {
         // Delete old image if a new one is uploaded and an old one exists
         if (existingImageUrl) {
             try {
+                // existingImageUrl is a URL like '/images/foo.jpg', we need the file path
                 const oldImageName = path.basename(existingImageUrl);
-                const oldImagePath = path.join(process.cwd(), 'public', oldImageName);
+                const oldImagePath = path.join(process.cwd(), 'public', 'images', oldImageName);
                 
                 if (await fs.pathExists(oldImagePath)) {
                     await fs.unlink(oldImagePath);
                 }
             } catch (error) {
                 console.error('Failed to delete old image:', error);
+                // Continue even if deletion fails
             }
         }
         
         const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
         const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
+        const uploadDir = path.join(process.cwd(), 'public', 'images');
         
         try {
             await fs.ensureDir(uploadDir);

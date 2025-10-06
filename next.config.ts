@@ -18,11 +18,8 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    // Increase the body size limit for Server Actions to allow larger file uploads.
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
+  serverActions: {
+    bodySizeLimit: '10mb',
   },
   // This is needed to allow the Next.js dev server to accept requests from the
   // Firebase Studio preview URL.
