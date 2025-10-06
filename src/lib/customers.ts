@@ -4,7 +4,7 @@ import type { Customer, CustomerSellerRelation } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const dbDirectory = '/app/src/lib/db';
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
 const customersFilePath = path.join(dbDirectory, 'customers.json');
 const relationsFilePath = path.join(dbDirectory, 'customer-seller-relations.json');
 

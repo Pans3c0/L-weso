@@ -47,7 +47,7 @@ export async function saveProductAction(
     }
     
     let finalImageUrl: string | undefined = existingImageUrl || undefined;
-    const uploadDir = '/public/images';
+    const uploadDir = path.join(process.cwd(), 'public', 'images');
 
 
     // Handle new image upload

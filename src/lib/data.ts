@@ -4,7 +4,7 @@ import type { Product } from '@/lib/types';
 import path from 'path';
 import fs from 'fs-extra';
 
-const dbDirectory = '/app/src/lib/db';
+const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
 const productsFilePath = path.join(dbDirectory, 'products.json');
 
 
