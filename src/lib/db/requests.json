@@ -1,2 +1,50 @@
-
-[]
+[
+  {
+    "id": "req_1759793448476",
+    "sellerId": "seller_1",
+    "customerId": "customer_123",
+    "customerName": "Juan Pérez",
+    "items": [
+      {
+        "product": {
+          "id": "prod_1",
+          "sellerId": "seller_1",
+          "name": "Apple Jax",
+          "description": "Rubio, made in Spain.",
+          "pricePerGram": 5,
+          "stockInGrams": 50,
+          "imageUrl": "/images/appleJax.png",
+          "imageHint": "Apple"
+        },
+        "quantityInGrams": 2
+      }
+    ],
+    "total": 10,
+    "status": "pending",
+    "createdAt": "2025-10-06T23:30:48.476Z"
+  },
+  {
+    "id": "req_1759793266429",
+    "sellerId": "seller_1",
+    "customerId": "customer_123",
+    "customerName": "Juan Pérez",
+    "items": [
+      {
+        "product": {
+          "id": "prod_1",
+          "sellerId": "seller_1",
+          "name": "Apple Jax",
+          "description": "Rubio, made in Spain.",
+          "pricePerGram": 5,
+          "stockInGrams": 50,
+          "imageUrl": "/images/appleJax.png",
+          "imageHint": "Apple"
+        },
+        "quantityInGrams": 2
+      }
+    ],
+    "total": 10,
+    "status": "pending",
+    "createdAt": "2025-10-06T23:27:46.429Z"
+  }
+]
