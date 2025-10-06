@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { Product } from '@/lib/types';
 import { Loader2, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { saveProductAction } from '@/app/(admin)/admin/products/actions';
 
 const productSchema = z.object({
   name: z.string().min(3, 'El nombre es obligatorio'),
@@ -24,7 +25,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product;
-  onSave: (data: FormData) => Promise<void>;
+  onSave: () => Promise<void>; // onSave ahora no necesita argumentos
   onCancel: () => void;
 }
 
@@ -61,27 +62,67 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
+    let newImageUrl: string | null = null;
+
+    // 1. Si hay una nueva imagen, súbela primero a la ruta API
+    if (imageFile) {
+        const imageFormData = new FormData();
+        imageFormData.append('imageFile', imageFile);
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: imageFormData,
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || 'Error en la subida del servidor');
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            newImageUrl = result.url;
+        } catch (error) {
+            console.error('Error al subir la imagen:', error);
+            toast({
+                title: 'Error de subida',
+                description: error instanceof Error ? error.message : 'No se pudo subir la imagen.',
+                variant: 'destructive',
+            });
+            setIsSaving(false);
+            return;
+        }
+    }
     
-    const formData = new FormData();
+    // 2. Prepara los datos del producto para la Server Action
+    const productFormData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      formData.append(key, String(value));
+      productFormData.append(key, String(value));
     });
 
     if (product?.id) {
-      formData.append('id', product.id);
+      productFormData.append('id', product.id);
     } else {
-      formData.append('id', 'undefined');
+      productFormData.append('id', 'undefined');
     }
     
     if (product?.imageUrl) {
-        formData.append('existingImageUrl', product.imageUrl);
+        productFormData.append('existingImageUrl', product.imageUrl);
     }
 
-    if (imageFile) {
-        formData.append('imageFile', imageFile);
+    // 3. Llama a la Server Action para guardar los datos del producto
+    const result = await saveProductAction(productFormData, newImageUrl);
+
+    if (result.success) {
+      toast({ title: 'Producto guardado', description: `El producto ha sido guardado.` });
+      await onSave(); // Llama a la función onSave del padre para refrescar y cerrar
+    } else {
+       toast({ title: 'Error al guardar', description: result.error, variant: 'destructive' });
     }
 
-    await onSave(formData);
     setIsSaving(false);
   };
   

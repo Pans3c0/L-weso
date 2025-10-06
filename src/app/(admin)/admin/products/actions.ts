@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import fs from 'fs-extra';
 import path from 'path';
 
+// Este Schema ahora no incluye la imagen, ya que se maneja por separado.
 const ProductFormSchema = z.object({
     id: z.string().optional(),
     sellerId: z.string().min(1, "Seller ID is required."),
@@ -13,37 +14,18 @@ const ProductFormSchema = z.object({
     description: z.string().min(10, 'La descripción es obligatoria'),
     pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
     stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
-    imageUrl: z.string().optional(),
+    imageUrl: z.string().optional(), // La URL de la imagen es ahora un campo de texto
 });
 
+// La acción ahora recibe la URL de la imagen nueva como un argumento separado.
 export async function saveProductAction(
-  formData: FormData
+  formData: FormData,
+  newImageUrl: string | null
 ) {
     const id = formData.get('id') as string | undefined;
-    const imageFile = formData.get('imageFile') as File | null;
     const existingImageUrl = formData.get('existingImageUrl') as string | null;
-    let newImageUrl: string | null = null;
-    
-    // 1. Si hay una nueva imagen, súbela primero
-    if (imageFile && imageFile.size > 0) {
-      try {
-        const uploadDir = path.join(process.cwd(), 'public', 'images');
-        await fs.ensureDir(uploadDir);
 
-        const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
-        const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
-        const filePath = path.join(uploadDir, fileName);
-
-        await fs.writeFile(filePath, fileBuffer);
-        newImageUrl = `/images/${fileName}`;
-
-      } catch (error) {
-        console.error('Error al subir la imagen:', error);
-        return { success: false, error: 'No se pudo subir la imagen.' };
-      }
-    }
-
-    // 2. Prepara los datos del producto
+    // Prepara los datos del producto
     const productData = {
         id: id === 'undefined' ? undefined : id,
         sellerId: formData.get('sellerId') as string,
@@ -51,6 +33,7 @@ export async function saveProductAction(
         description: formData.get('description') as string,
         pricePerGram: formData.get('pricePerGram') as string,
         stockInGrams: formData.get('stockInGrams') as string,
+        // La URL final es la nueva si existe, si no, la que ya estaba.
         imageUrl: newImageUrl || existingImageUrl || '',
     };
     
@@ -65,7 +48,7 @@ export async function saveProductAction(
       return { success: false, error: "Invalid product data." };
     }
     
-    // 3. Si se proporcionó una nueva URL de imagen y existía una antigua, eliminamos la antigua
+    // Si se proporcionó una nueva URL de imagen y existía una antigua, eliminamos la antigua
     if (newImageUrl && existingImageUrl) {
         try {
             const oldImageName = path.basename(existingImageUrl);
@@ -80,7 +63,7 @@ export async function saveProductAction(
         }
     }
 
-    // 4. Guarda el producto en la base de datos
+    // Guarda el producto en la base de datos
     try {
         const savedProduct = await saveProduct(parsedProduct.data);
         

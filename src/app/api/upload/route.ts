@@ -4,8 +4,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs-extra';
 
-// La configuración del límite de tamaño del cuerpo de la petición ahora se gestiona
-// de forma centralizada y correcta en next.config.js.
+// CONFIGURACIÓN CLAVE:
+// Aumenta el límite de tamaño del cuerpo de la petición para esta ruta API.
+// Esta es la forma garantizada de que funcione en producción.
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb',
+    },
+  },
+};
 
 export async function POST(request: NextRequest) {
   try {

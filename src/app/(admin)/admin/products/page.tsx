@@ -24,7 +24,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import type { Product } from '@/lib/types';
 import { ProductForm } from '@/components/admin/product-form';
-import { saveProductAction, deleteProductAction } from './actions';
+import { deleteProductAction } from './actions';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from '@/hooks/use-session';
 import {
@@ -71,29 +71,18 @@ export default function AdminProductsPage() {
     }
   }, [fetchProducts, session?.sellerId]);
 
-  const handleProductSave = async (
-    formData: FormData,
-  ) => {
+  // Esta función se pasa al formulario y se llama cuando el guardado es exitoso.
+  const handleSaveSuccess = async () => {
+    await fetchProducts(); 
+    setIsSheetOpen(false);
+    setEditingProduct(undefined);
+  };
+  
+  const handleDelete = async (productId: string) => {
     if (!session?.sellerId) {
         toast({ title: 'Error', description: 'No se pudo identificar al vendedor.', variant: 'destructive' });
         return;
     }
-    
-    formData.set('sellerId', session.sellerId);
-    
-    const result = await saveProductAction(formData);
-
-    if (result.success) {
-      await fetchProducts(); 
-      setIsSheetOpen(false);
-      setEditingProduct(undefined);
-      toast({ title: 'Producto guardado', description: `El producto ha sido guardado.` });
-    } else {
-       toast({ title: 'Error al guardar', description: result.error, variant: 'destructive' });
-    }
-  };
-  
-  const handleDelete = async (productId: string) => {
     setIsDeleting(true);
     await deleteProductAction(productId);
     await fetchProducts();
@@ -246,7 +235,7 @@ export default function AdminProductsPage() {
         </SheetHeader>
         <ProductForm 
             product={editingProduct} 
-            onSave={handleProductSave}
+            onSave={handleSaveSuccess} // Pasamos la función de éxito
             onCancel={() => {
                 setIsSheetOpen(false);
                 setEditingProduct(undefined);
