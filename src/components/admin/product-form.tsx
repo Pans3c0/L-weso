@@ -49,6 +49,16 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     return url;
   };
 
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: product?.name || '',
+      description: product?.description || '',
+      pricePerGram: product?.pricePerGram || 0,
+      stockInGrams: product?.stockInGrams || 0,
+    },
+  });
+
   React.useEffect(() => {
     form.reset({
       name: product?.name || '',
@@ -63,16 +73,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product, form]);
-
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: product?.name || '',
-      description: product?.description || '',
-      pricePerGram: product?.pricePerGram || 0,
-      stockInGrams: product?.stockInGrams || 0,
-    },
-  });
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
