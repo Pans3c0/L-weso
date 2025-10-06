@@ -53,7 +53,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       stockInGrams: product?.stockInGrams || 0,
     });
     setImagePreview(product?.imageUrl || null);
-    setImageFile(null); // Reset file on product change
+    setImageFile(null);
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
     }
@@ -61,36 +61,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
-    let newImageUrl: string | null = null;
-
-    // 1. Si hay una nueva imagen, súbela primero
-    if (imageFile) {
-      try {
-        const imageFormData = new FormData();
-        imageFormData.append('imageFile', imageFile);
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: imageFormData,
-        });
-
-        const result = await response.json();
-        if (!response.ok || !result.success) {
-          throw new Error(result.error || 'Error al subir la imagen.');
-        }
-        newImageUrl = result.url;
-      } catch (error) {
-        toast({
-          title: 'Error de subida',
-          description: error instanceof Error ? error.message : 'No se pudo subir la imagen.',
-          variant: 'destructive',
-        });
-        setIsSaving(false);
-        return;
-      }
-    }
-
-    // 2. Prepara los datos del formulario para la Server Action
+    
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       formData.append(key, String(value));
@@ -101,16 +72,15 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     } else {
       formData.append('id', 'undefined');
     }
-
-    // Pasa tanto la URL de la imagen antigua como la nueva (si existe)
+    
     if (product?.imageUrl) {
         formData.append('existingImageUrl', product.imageUrl);
     }
-    if (newImageUrl) {
-        formData.append('imageUrl', newImageUrl);
+
+    if (imageFile) {
+        formData.append('imageFile', imageFile);
     }
 
-    // 3. Llama a la Server Action para guardar los datos del producto
     await onSave(formData);
     setIsSaving(false);
   };
@@ -118,6 +88,14 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast({
+          title: 'Archivo demasiado grande',
+          description: 'El tamaño de la imagen no puede superar los 10 MB.',
+          variant: 'destructive',
+        });
+        return;
+      }
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
