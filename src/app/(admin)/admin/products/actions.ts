@@ -6,7 +6,6 @@ import { revalidatePath } from 'next/cache';
 import fs from 'fs-extra';
 import path from 'path';
 
-// Este Schema ahora no incluye la imagen, ya que se maneja por separado.
 const ProductFormSchema = z.object({
     id: z.string().optional(),
     sellerId: z.string().min(1, "Seller ID is required."),
@@ -14,42 +13,49 @@ const ProductFormSchema = z.object({
     description: z.string().min(10, 'La descripción es obligatoria'),
     pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
     stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
-    imageUrl: z.string().optional(), // La URL de la imagen es ahora un campo de texto
 });
 
-// La acción ahora recibe la URL de la imagen nueva como un argumento separado.
-export async function saveProductAction(
-  formData: FormData,
-  newImageUrl: string | null
-) {
+export async function saveProductAction(formData: FormData) {
     const id = formData.get('id') as string | undefined;
     const existingImageUrl = formData.get('existingImageUrl') as string | null;
+    const imageFile = formData.get('imageFile') as File | null;
 
-    // Prepara los datos del producto
-    const productData = {
+    const parsedProduct = ProductFormSchema.safeParse({
         id: id === 'undefined' ? undefined : id,
         sellerId: formData.get('sellerId') as string,
         name: formData.get('name') as string,
         description: formData.get('description') as string,
-        pricePerGram: formData.get('pricePerGram') as string,
-        stockInGrams: formData.get('stockInGrams') as string,
-        // La URL final es la nueva si existe, si no, la que ya estaba.
-        imageUrl: newImageUrl || existingImageUrl || '',
-    };
-    
-    const parsedProduct = ProductFormSchema.safeParse({
-        ...productData,
-        pricePerGram: Number(productData.pricePerGram),
-        stockInGrams: Number(productData.stockInGrams),
+        pricePerGram: Number(formData.get('pricePerGram')),
+        stockInGrams: Number(formData.get('stockInGrams')),
     });
     
     if (!parsedProduct.success) {
       console.error(parsedProduct.error.flatten().fieldErrors);
       return { success: false, error: "Invalid product data." };
     }
+
+    let finalImageUrl = existingImageUrl;
+
+    // 1. Si hay una nueva imagen, súbela y obtén la nueva URL
+    if (imageFile && imageFile.size > 0) {
+        try {
+            const uploadDir = path.join(process.cwd(), 'public', 'images');
+            await fs.ensureDir(uploadDir);
+
+            const fileBuffer = Buffer.from(await imageFile.arrayBuffer());
+            const fileName = `${Date.now()}-${imageFile.name.replace(/\s/g, '_')}`;
+            const filePath = path.join(uploadDir, fileName);
+
+            await fs.writeFile(filePath, fileBuffer);
+            finalImageUrl = `/images/${fileName}`; // URL pública relativa
+        } catch (uploadError) {
+            console.error('Error al subir la imagen:', uploadError);
+            return { success: false, error: 'No se pudo subir la imagen.' };
+        }
+    }
     
-    // Si se proporcionó una nueva URL de imagen y existía una antigua, eliminamos la antigua
-    if (newImageUrl && existingImageUrl && existingImageUrl.startsWith('/images/')) {
+    // 2. Si se subió una nueva imagen y existía una antigua, elimina la antigua
+    if (finalImageUrl !== existingImageUrl && existingImageUrl && existingImageUrl.startsWith('/images/')) {
         try {
             const oldImageName = path.basename(existingImageUrl);
             const oldImagePath = path.join(process.cwd(), 'public', 'images', oldImageName);
@@ -58,21 +64,26 @@ export async function saveProductAction(
                 await fs.unlink(oldImagePath);
                 console.log(`Successfully deleted old image: ${oldImagePath}`);
             }
-        } catch (error) {
-            console.error('Failed to delete old image:', error);
+        } catch (deleteError) {
+            console.error('Failed to delete old image:', deleteError);
+            // No detenemos el proceso, solo lo registramos
         }
     }
 
-    // Guarda el producto en la base de datos
+    // 3. Guarda el producto en la base de datos con la URL de imagen final
     try {
-        const savedProduct = await saveProduct(parsedProduct.data);
+        const productDataWithImage = {
+            ...parsedProduct.data,
+            imageUrl: finalImageUrl || '', // Asegura que siempre haya un valor
+        };
+        const savedProduct = await saveProduct(productDataWithImage);
         
         revalidatePath('/admin/products');
         revalidatePath('/shop'); 
 
         return { success: true, product: savedProduct };
-    } catch (error) {
-        console.error("Error in saveProductAction:", error);
+    } catch (dbError) {
+        console.error("Error in saveProductAction (database):", dbError);
         return { success: false, error: "Failed to save product on server." };
     }
 }

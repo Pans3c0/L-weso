@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { saveProductAction } from '@/app/(admin)/admin/products/actions';
 import { useSession } from '@/hooks/use-session';
 
-
 const productSchema = z.object({
   name: z.string().min(3, 'El nombre es obligatorio'),
   description: z.string().min(10, 'La descripción es obligatoria'),
@@ -27,7 +26,7 @@ type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product;
-  onSave: () => Promise<void>; // onSave ahora no necesita argumentos
+  onSave: () => Promise<void>;
   onCancel: () => void;
 }
 
@@ -65,70 +64,37 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
-    let newImageUrl: string | null = null;
     if (!session?.sellerId) {
       toast({ title: 'Error', description: 'No se pudo identificar al vendedor.', variant: 'destructive' });
       setIsSaving(false);
       return;
     }
 
-    // 1. Si hay una nueva imagen, súbela primero a la ruta API
-    if (imageFile) {
-        const imageFormData = new FormData();
-        imageFormData.append('imageFile', imageFile);
-
-        try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                body: imageFormData,
-            });
-
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.error || 'Error en la subida del servidor');
-            }
-
-            const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.error);
-            }
-            newImageUrl = result.url;
-        } catch (error) {
-            console.error('Error al subir la imagen:', error);
-            toast({
-                title: 'Error de subida',
-                description: error instanceof Error ? error.message : 'No se pudo subir la imagen.',
-                variant: 'destructive',
-            });
-            setIsSaving(false);
-            return;
-        }
-    }
-    
-    // 2. Prepara los datos del producto para la Server Action
-    const productFormData = new FormData();
+    const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
-      productFormData.append(key, String(value));
+      formData.append(key, String(value));
     });
 
     if (product?.id) {
-      productFormData.append('id', product.id);
+      formData.append('id', product.id);
     } else {
-      productFormData.append('id', 'undefined');
+      formData.append('id', 'undefined');
     }
-    productFormData.append('sellerId', session.sellerId);
-
+    formData.append('sellerId', session.sellerId);
     
     if (product?.imageUrl) {
-        productFormData.append('existingImageUrl', product.imageUrl);
+        formData.append('existingImageUrl', product.imageUrl);
     }
 
-    // 3. Llama a la Server Action para guardar los datos del producto
-    const result = await saveProductAction(productFormData, newImageUrl);
+    if (imageFile) {
+      formData.append('imageFile', imageFile);
+    }
+
+    const result = await saveProductAction(formData);
 
     if (result.success) {
       toast({ title: 'Producto guardado', description: `El producto ha sido guardado.` });
-      await onSave(); // Llama a la función onSave del padre para refrescar y cerrar
+      await onSave();
     } else {
        toast({ title: 'Error al guardar', description: result.error, variant: 'destructive' });
     }
@@ -180,7 +146,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           </FormControl>
           <FormMessage />
         </FormItem>
-
 
         <FormField
           control={form.control}
