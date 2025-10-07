@@ -4,8 +4,6 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { Product, PurchaseRequest, Customer, Seller, ReferralCode, CustomerSellerRelation } from '@/lib/types';
 import type { PushSubscription } from 'web-push';
-import imageCompression from 'browser-image-compression';
-
 
 const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
 
@@ -24,8 +22,8 @@ async function readDbFile<T>(filePath: string): Promise<T> {
     try {
         await fs.ensureFile(filePath);
         const data = await fs.readJson(filePath, { throws: false });
-        // Provide a default value based on the expected structure (array vs object)
         if (data === null || data === undefined) {
+             // For subscription, default to object, for others, default to array
             return filePath.endsWith('subscriptions.json') ? {} as T : [] as T;
         }
         return data;
@@ -42,6 +40,7 @@ async function writeDbFile<T>(filePath: string, data: T): Promise<void> {
         await fs.outputJson(filePath, data, { spaces: 2 });
     } catch (e) {
         console.error(`Failed to write file: ${filePath}`, e);
+        throw new Error(`Failed to write to ${path.basename(filePath)}`);
     }
 }
 
@@ -62,7 +61,6 @@ export const saveProduct = async (data: {
     const { imageFile, existingImageUrl, ...productData } = data;
     let newImageUrl: string | undefined = undefined;
 
-    // Handle image upload if a new file is provided
     if (imageFile && imageFile.size > 0) {
         try {
             const uploadDir = path.join(process.cwd(), 'public', 'images');
@@ -113,11 +111,12 @@ export const saveProduct = async (data: {
 };
 
 export const deleteProduct = async (id: string) => {
-    const product = await getProductById(id);
-    if (product && product.imageUrl && product.imageUrl.startsWith('/images/')) {
+    const products = await getAllProducts();
+    const productToDelete = products.find(p => p.id === id);
+
+    if (productToDelete && productToDelete.imageUrl && productToDelete.imageUrl.startsWith('/images/')) {
         try {
-            const imageName = path.basename(product.imageUrl);
-            const imagePath = path.join(process.cwd(), 'public', 'images', imageName);
+            const imagePath = path.join(process.cwd(), 'public', productToDelete.imageUrl);
              if (await fs.pathExists(imagePath)) {
                 await fs.unlink(imagePath);
             }
@@ -125,12 +124,13 @@ export const deleteProduct = async (id: string) => {
              console.error('Failed to delete product image during deletion:', error);
         }
     }
-    const products = await getAllProducts();
-    await writeDbFile(Paths.products, products.filter(p => p.id !== id));
+    
+    const updatedProducts = products.filter(p => p.id !== id);
+    await writeDbFile(Paths.products, updatedProducts);
 }
 
 // Purchase Requests
-export const getPurchaseRequests = async (sellerId?: string) => readDbFile<PurchaseRequest[]>(Paths.requests).then(data => sellerId ? data.filter(req => req.sellerId === sellerId) : data);
+export const getPurchaseRequests = async () => readDbFile<PurchaseRequest[]>(Paths.requests);
 export const getPurchaseRequestById = async (id: string) => (await getPurchaseRequests()).find(r => r.id === id) || null;
 export const savePurchaseRequests = async (requests: PurchaseRequest[]) => writeDbFile(Paths.requests, requests);
 export const updateRequest = async (updatedRequest: PurchaseRequest) => {
