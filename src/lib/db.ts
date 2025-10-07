@@ -18,18 +18,14 @@ const Paths = {
 };
 
 // Generic function to read a JSON file
-async function readDbFile<T>(filePath: string): Promise<T> {
+async function readDbFile<T>(filePath: string, defaultData: T): Promise<T> {
     try {
         await fs.ensureFile(filePath);
         const data = await fs.readJson(filePath, { throws: false });
-        if (data === null || data === undefined) {
-             // For subscription, default to object, for others, default to array
-            return filePath.endsWith('subscriptions.json') ? {} as T : [] as T;
-        }
-        return data;
+        return data === null || data === undefined ? defaultData : data;
     } catch (e) {
         console.error(`Could not read file: ${filePath}`, e);
-        return filePath.endsWith('subscriptions.json') ? {} as T : [] as T;
+        return defaultData;
     }
 }
 
@@ -45,7 +41,10 @@ async function writeDbFile<T>(filePath: string, data: T): Promise<void> {
 }
 
 // Products
-export const getAllProducts = async (sellerId?: string) => readDbFile<Product[]>(Paths.products).then(data => sellerId ? data.filter(p => p.sellerId === sellerId) : data);
+export const getAllProducts = async (sellerId?: string) => {
+    const products = await readDbFile<Product[]>(Paths.products, []);
+    return sellerId ? products.filter(p => p.sellerId === sellerId) : products;
+}
 export const getProductById = async (id: string) => (await getAllProducts()).find(p => p.id === id) || null;
 
 export const saveProduct = async (data: {
@@ -114,7 +113,7 @@ export const deleteProduct = async (id: string) => {
     const products = await getAllProducts();
     const productToDelete = products.find(p => p.id === id);
 
-    if (productToDelete && productToDelete.imageUrl && productToDelete.imageUrl.startsWith('/images/')) {
+    if (productToDelete?.imageUrl?.startsWith('/images/')) {
         try {
             const imagePath = path.join(process.cwd(), 'public', productToDelete.imageUrl);
              if (await fs.pathExists(imagePath)) {
@@ -130,7 +129,7 @@ export const deleteProduct = async (id: string) => {
 }
 
 // Purchase Requests
-export const getPurchaseRequests = async () => readDbFile<PurchaseRequest[]>(Paths.requests);
+export const getPurchaseRequests = async () => readDbFile<PurchaseRequest[]>(Paths.requests, []);
 export const getPurchaseRequestById = async (id: string) => (await getPurchaseRequests()).find(r => r.id === id) || null;
 export const savePurchaseRequests = async (requests: PurchaseRequest[]) => writeDbFile(Paths.requests, requests);
 export const updateRequest = async (updatedRequest: PurchaseRequest) => {
@@ -144,7 +143,7 @@ export const updateRequest = async (updatedRequest: PurchaseRequest) => {
 
 // Customers
 export const getAllCustomers = async (sellerId?: string): Promise<Customer[]> => {
-    const allCustomers = await readDbFile<Customer[]>(Paths.customers);
+    const allCustomers = await readDbFile<Customer[]>(Paths.customers, []);
     if (sellerId) {
         const relations = await getCustomerSellerRelations();
         const customerIds = relations.filter(r => r.sellerId === sellerId).map(r => r.customerId);
@@ -156,11 +155,11 @@ export const getCustomerById = async (id: string) => (await getAllCustomers()).f
 export const saveCustomers = async (customers: Customer[]) => writeDbFile(Paths.customers, customers);
 
 // Sellers
-export const getAllSellers = async () => readDbFile<Seller[]>(Paths.sellers);
+export const getAllSellers = async () => readDbFile<Seller[]>(Paths.sellers, []);
 export const saveSellers = async (sellers: Seller[]) => writeDbFile(Paths.sellers, sellers);
 
 // Referral Codes
-export const getReferralCodes = async () => readDbFile<ReferralCode[]>(Paths.referralCodes);
+export const getReferralCodes = async () => readDbFile<ReferralCode[]>(Paths.referralCodes, []);
 export const findReferralCode = async (code: string) => (await getReferralCodes()).find(c => c.code === code) || null;
 export const addReferralCode = async (code: ReferralCode) => {
     const codes = await getReferralCodes();
@@ -173,7 +172,7 @@ export const removeReferralCode = async (code: string) => {
 };
 
 // Customer-Seller Relations
-export const getCustomerSellerRelations = async () => readDbFile<CustomerSellerRelation[]>(Paths.relations);
+export const getCustomerSellerRelations = async () => readDbFile<CustomerSellerRelation[]>(Paths.relations, []);
 export const associateCustomerWithSeller = async (customerId: string, sellerId: string) => {
     const relations = await getCustomerSellerRelations();
     if (!relations.some(r => r.customerId === customerId && r.sellerId === sellerId)) {
@@ -183,7 +182,7 @@ export const associateCustomerWithSeller = async (customerId: string, sellerId: 
 };
 
 // Subscriptions
-export const getSubscriptions = async () => readDbFile<Record<string, PushSubscription>>(Paths.subscriptions);
+export const getSubscriptions = async () => readDbFile<Record<string, PushSubscription>>(Paths.subscriptions, {});
 
 export const saveSubscription = async (userId: string, subscription: PushSubscription | undefined) => {
     const subscriptions = await getSubscriptions();
