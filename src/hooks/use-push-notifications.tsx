@@ -84,11 +84,6 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
      }
 
     try {
-        const registration = await navigator.serviceWorker.ready;
-        
-        // Force an update of the service worker registration
-        await registration.update();
-        
         const consent = await Notification.requestPermission();
         setUserConsent(consent);
 
@@ -100,6 +95,7 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             return;
         }
 
+        const registration = await navigator.serviceWorker.ready;
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
         if (!vapidPublicKey) {
           throw new Error('VAPID public key is not defined');
