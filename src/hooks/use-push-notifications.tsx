@@ -49,8 +49,6 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
   }, [registerServiceWorker]);
 
   useEffect(() => {
-    // Push notifications require a secure context (HTTPS or localhost).
-    // Also check for browser support for Service Worker and Push Manager.
     if (!window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         setIsUnsupported(true);
         return;
@@ -88,6 +86,9 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
     try {
         const registration = await navigator.serviceWorker.ready;
         
+        // Force an update of the service worker registration
+        await registration.update();
+        
         const consent = await Notification.requestPermission();
         setUserConsent(consent);
 
@@ -108,7 +109,7 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             userVisibleOnly: true,
             applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         });
-
+        
         await fetch('/api/save-subscription', {
             method: 'POST',
             headers: {
@@ -123,7 +124,6 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             description: 'Te avisaremos sobre eventos importantes. Enviando una prueba...',
         });
 
-        // Send a welcome notification to test the service
         await sendTestNotificationAction(userId);
 
     } catch (error) {
