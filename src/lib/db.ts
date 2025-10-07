@@ -184,6 +184,7 @@ export const associateCustomerWithSeller = async (customerId: string, sellerId: 
 
 // Subscriptions
 export const getSubscriptions = async () => readDbFile<Record<string, PushSubscription>>(Paths.subscriptions);
+
 export const saveSubscription = async (userId: string, subscription: PushSubscription | undefined) => {
     const subscriptions = await getSubscriptions();
     if (subscription) {
