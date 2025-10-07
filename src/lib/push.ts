@@ -2,37 +2,47 @@
 
 import webPush from 'web-push';
 import { getSubscriptions, saveSubscription } from './db';
+import { getVapidKeys } from './db';
 
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-
-let vapidKeysLoaded = false;
-if (vapidPublicKey && vapidPrivateKey) {
+// This function will be called when the server starts.
+async function initializeVapid() {
     try {
-        webPush.setVapidDetails(
-            'mailto:example@your-domain.com',
-            vapidPublicKey,
-            vapidPrivateKey
-        );
-        vapidKeysLoaded = true;
-        console.log('VAPID keys loaded successfully. Push notifications are configured.');
+        const { publicKey, privateKey } = await getVapidKeys();
+
+        if (publicKey && privateKey) {
+            webPush.setVapidDetails(
+                'mailto:example@your-domain.com',
+                publicKey,
+                privateKey
+            );
+            console.log('VAPID keys loaded and configured successfully.');
+            return true;
+        } else {
+            console.warn('VAPID keys are not yet generated. They will be created on the first subscription.');
+            return false;
+        }
     } catch (error) {
-        console.error("Error setting VAPID details, likely invalid keys:", error);
+        console.error("Error setting VAPID details:", error);
+        return false;
     }
-} else {
-    console.warn('VAPID keys not found in environment variables. Push notifications will be disabled.');
 }
 
+// Initialize VAPID details on server startup.
+let vapidKeysLoaded = initializeVapid();
 
 export async function sendPushNotification(userId: string, payload: { title: string; body: string; url?: string; }) {
-  if (!vapidKeysLoaded) {
-      console.log('VAPID keys not configured or failed to load, skipping push notification.');
-      return;
+  // Re-check if keys are loaded, in case they were generated after server start
+  if (!webPush.getVapidDetails()) {
+      const keysLoaded = await initializeVapid();
+      if (!keysLoaded) {
+          console.log('VAPID keys not configured, skipping push notification.');
+          return;
+      }
   }
   
   try {
-    const subscriptions = await getSubscriptions();
-    const subscription = subscriptions[userId];
+    const subscriptionsData = await getSubscriptions();
+    const subscription = subscriptionsData.subscriptions[userId];
 
     if (subscription) {
       const notificationPayload = JSON.stringify(payload);
@@ -45,7 +55,9 @@ export async function sendPushNotification(userId: string, payload: { title: str
   } catch (error: any) {
     if (error.statusCode === 404 || error.statusCode === 410) {
       console.log(`Subscription for user ${userId} has expired or is no longer valid. Removing it.`);
-      await saveSubscription(userId, undefined);
+      // Pass the existing data to avoid race conditions
+      const currentData = await getSubscriptions();
+      await saveSubscription(userId, undefined, currentData);
     } else {
       console.error(`Error sending push notification to ${userId}:`, error.body || error.message);
     }

@@ -33,20 +33,18 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isUnsupported, setIsUnsupported] = useState(false);
   const [userConsent, setUserConsent] = useState<NotificationPermission>('default');
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
+  
+  // Effect to check support and current subscription status on mount
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         setIsUnsupported(true);
         return;
     }
     
-    // Set initial consent state
     setUserConsent(Notification.permission);
 
-    // Register service worker as soon as possible
     navigator.serviceWorker.register('/service-worker.js').then(registration => {
-      console.log('Service Worker registered successfully.');
+      console.log('Service Worker registered.');
       return registration.pushManager.getSubscription();
     }).then(subscription => {
       setIsSubscribed(!!subscription);
@@ -60,30 +58,31 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
   const subscribeUser = useCallback(async (userId: string) => {
     try {
         const registration = await navigator.serviceWorker.ready;
-        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!vapidPublicKey) {
-          throw new Error('VAPID public key is not defined');
+        
+        // Fetch the VAPID public key from our new API route
+        const vapidPublicKeyResponse = await fetch('/api/vapid-public-key');
+        if (!vapidPublicKeyResponse.ok) {
+            throw new Error('Failed to fetch VAPID public key from server.');
+        }
+        const { publicKey } = await vapidPublicKeyResponse.json();
+
+        if (!publicKey) {
+             throw new Error('VAPID public key is missing from server response.');
         }
 
-        let subscription = await registration.pushManager.getSubscription();
-        if (!subscription) {
-            subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-            });
-        }
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey),
+        });
         
         const response = await fetch('/api/save-subscription', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ subscription, userId }),
         });
         
         if (!response.ok) {
-            const res = await response.json();
-            throw new Error(res.message || 'Failed to save subscription on server.');
+            throw new Error('Failed to save subscription on server.');
         }
 
         setIsSubscribed(true);
@@ -93,55 +92,47 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
         });
 
         await sendTestNotificationAction(userId);
+
     } catch (error) {
         console.error('Failed to subscribe user:', error);
         toast({
             title: 'Error de suscripción',
-            description: error instanceof Error ? error.message : 'No se pudieron activar las notificaciones. Inténtalo de nuevo.',
+            description: error instanceof Error ? error.message : 'No se pudieron activar las notificaciones.',
             variant: 'destructive',
         });
-        // Reset state
-        setUserConsent('default');
-        setCurrentUserId(null);
+        setIsSubscribed(false);
     }
   }, [toast]);
   
-  // This effect runs when the user grants permission
-  useEffect(() => {
-    if (userConsent === 'granted' && currentUserId) {
-      subscribeUser(currentUserId);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userConsent, currentUserId]);
-
 
   const requestPermission = useCallback(async (userId: string) => {
      if (isUnsupported) {
         toast({ title: 'No Soportado', description: 'Las notificaciones no son soportadas en este navegador.'});
         return;
      }
-
+     
      if (userConsent === 'denied') {
         toast({
-            title: 'Permiso de notificaciones bloqueado',
-            description: 'Debes permitir las notificaciones en la configuración de tu navegador para activar esta función.',
+            title: 'Permiso bloqueado',
+            description: 'Debes permitir las notificaciones en la configuración de tu navegador.',
             variant: 'destructive',
         });
         return;
      }
 
-    setCurrentUserId(userId);
     const consent = await Notification.requestPermission();
-    setUserConsent(consent); // This will trigger the useEffect above if 'granted'
+    setUserConsent(consent);
     
-    if (consent !== 'granted') {
+    if (consent === 'granted') {
+      await subscribeUser(userId);
+    } else {
         toast({
             title: 'Permiso denegado',
             description: 'No podremos enviarte notificaciones.',
         });
     }
 
-  }, [isUnsupported, userConsent, toast]);
+  }, [isUnsupported, userConsent, toast, subscribeUser]);
 
   const contextValue = {
     isSubscribed,

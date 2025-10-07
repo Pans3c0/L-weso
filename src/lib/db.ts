@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import type { Product, PurchaseRequest, Customer, Seller, ReferralCode, CustomerSellerRelation } from '@/lib/types';
 import type { PushSubscription } from 'web-push';
+import webPush from 'web-push';
 
 const dbDirectory = path.join(process.cwd(), 'src', 'lib', 'db');
 
@@ -16,6 +17,14 @@ const Paths = {
     relations: path.join(dbDirectory, 'customer-seller-relations.json'),
     subscriptions: path.join(dbDirectory, 'subscriptions.json'),
 };
+
+interface SubscriptionsData {
+    vapidKeys?: {
+        publicKey: string;
+        privateKey: string;
+    };
+    subscriptions: Record<string, PushSubscription>;
+}
 
 // Generic function to read a JSON file
 async function readDbFile<T>(filePath: string, defaultData: T): Promise<T> {
@@ -182,14 +191,39 @@ export const associateCustomerWithSeller = async (customerId: string, sellerId: 
 };
 
 // Subscriptions
-export const getSubscriptions = async () => readDbFile<Record<string, PushSubscription>>(Paths.subscriptions, {});
+export const getSubscriptions = async (): Promise<SubscriptionsData> => {
+    return await readDbFile<SubscriptionsData>(Paths.subscriptions, { subscriptions: {} });
+};
 
-export const saveSubscription = async (userId: string, subscription: PushSubscription | undefined) => {
-    const subscriptions = await getSubscriptions();
-    if (subscription) {
-        subscriptions[userId] = subscription;
-    } else {
-        delete subscriptions[userId];
+export const getVapidKeys = async () => {
+    let data = await getSubscriptions();
+    if (!data.vapidKeys) {
+        console.log("VAPID keys not found, generating new ones...");
+        const vapidKeys = webPush.generateVAPIDKeys();
+        data.vapidKeys = vapidKeys;
+        await writeDbFile(Paths.subscriptions, data);
+        console.log("New VAPID keys generated and saved.");
     }
-    await writeDbFile(Paths.subscriptions, subscriptions);
+    return data.vapidKeys;
+};
+
+
+export const saveSubscription = async (userId: string, subscription: PushSubscription | undefined, existingData?: SubscriptionsData) => {
+    // If existingData is not passed, fetch it to prevent race conditions.
+    const data = existingData || await getSubscriptions();
+    
+    // Ensure VAPID keys exist before saving a subscription.
+    if (!data.vapidKeys) {
+        const vapidKeys = webPush.generateVAPIDKeys();
+        data.vapidKeys = vapidKeys;
+        console.log("Generated VAPID keys while saving a subscription.");
+    }
+
+    if (subscription) {
+        data.subscriptions[userId] = subscription;
+    } else {
+        delete data.subscriptions[userId];
+    }
+
+    await writeDbFile(Paths.subscriptions, data);
 };

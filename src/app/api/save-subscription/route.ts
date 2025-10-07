@@ -1,7 +1,7 @@
 'use server';
 
 import { NextResponse } from 'next/server';
-import { saveSubscription } from '@/lib/db';
+import { saveSubscription, getSubscriptions } from '@/lib/db';
 import type { PushSubscription } from 'web-push';
 
 type SubscriptionData = {
@@ -17,8 +17,10 @@ export async function POST(request: Request) {
         if (!subscription || !userId) {
             return new NextResponse('Invalid subscription data', { status: 400 });
         }
-
-        await saveSubscription(userId, subscription);
+        
+        // Fetch existing data to prevent race conditions
+        const existingData = await getSubscriptions();
+        await saveSubscription(userId, subscription, existingData);
 
         return NextResponse.json({ success: true, message: 'Subscription saved.' });
 
