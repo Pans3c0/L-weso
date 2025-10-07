@@ -8,7 +8,7 @@ interface PushNotificationsContextType {
   isSubscribed: boolean;
   isUnsupported: boolean;
   userConsent: NotificationPermission;
-  requestPermission: (userId: string) => void;
+  requestPermission: (userId: string) => Promise<void>;
 }
 
 const PushNotificationsContext = createContext<PushNotificationsContextType | undefined>(undefined);
@@ -33,56 +33,32 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isUnsupported, setIsUnsupported] = useState(false);
   const [userConsent, setUserConsent] = useState<NotificationPermission>('default');
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         setIsUnsupported(true);
         return;
     }
-
+    
     // Set initial consent state
     setUserConsent(Notification.permission);
 
-    // Register service worker
+    // Register service worker as soon as possible
     navigator.serviceWorker.register('/service-worker.js').then(registration => {
       console.log('Service Worker registered successfully.');
-      // Check for existing subscription
-      registration.pushManager.getSubscription().then(subscription => {
-        setIsSubscribed(!!subscription);
-      });
+      return registration.pushManager.getSubscription();
+    }).then(subscription => {
+      setIsSubscribed(!!subscription);
     }).catch(error => {
       console.error("Service Worker registration failed:", error);
-      setIsUnsupported(true); // Treat registration failure as unsupported
+      setIsUnsupported(true);
     });
+
   }, []);
-
-  const requestPermission = useCallback(async (userId: string) => {
-     if (isUnsupported || !userId) {
-        console.log('Push notifications unsupported or no user ID.');
-        return;
-     }
-
-     if (userConsent === 'denied') {
-        toast({
-            title: 'Permiso de notificaciones bloqueado',
-            description: 'Debes permitir las notificaciones en la configuración de tu navegador para activar esta función.',
-            variant: 'destructive',
-        });
-        return;
-     }
-
+  
+  const subscribeUser = useCallback(async (userId: string) => {
     try {
-        const consent = await Notification.requestPermission();
-        setUserConsent(consent);
-
-        if (consent !== 'granted') {
-            toast({
-                title: 'Permiso denegado',
-                description: 'No podremos enviarte notificaciones.',
-            });
-            return;
-        }
-
         const registration = await navigator.serviceWorker.ready;
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
         if (!vapidPublicKey) {
@@ -97,13 +73,18 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
             });
         }
         
-        await fetch('/api/save-subscription', {
+        const response = await fetch('/api/save-subscription', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ subscription, userId }),
         });
+        
+        if (!response.ok) {
+            const res = await response.json();
+            throw new Error(res.message || 'Failed to save subscription on server.');
+        }
 
         setIsSubscribed(true);
         toast({
@@ -112,15 +93,54 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
         });
 
         await sendTestNotificationAction(userId);
-
     } catch (error) {
-        console.error('Failed to subscribe to push notifications', error);
+        console.error('Failed to subscribe user:', error);
         toast({
             title: 'Error de suscripción',
-            description: 'No se pudieron activar las notificaciones. Inténtalo de nuevo.',
+            description: error instanceof Error ? error.message : 'No se pudieron activar las notificaciones. Inténtalo de nuevo.',
             variant: 'destructive',
         });
+        // Reset state
+        setUserConsent('default');
+        setCurrentUserId(null);
     }
+  }, [toast]);
+  
+  // This effect runs when the user grants permission
+  useEffect(() => {
+    if (userConsent === 'granted' && currentUserId) {
+      subscribeUser(currentUserId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userConsent, currentUserId]);
+
+
+  const requestPermission = useCallback(async (userId: string) => {
+     if (isUnsupported) {
+        toast({ title: 'No Soportado', description: 'Las notificaciones no son soportadas en este navegador.'});
+        return;
+     }
+
+     if (userConsent === 'denied') {
+        toast({
+            title: 'Permiso de notificaciones bloqueado',
+            description: 'Debes permitir las notificaciones en la configuración de tu navegador para activar esta función.',
+            variant: 'destructive',
+        });
+        return;
+     }
+
+    setCurrentUserId(userId);
+    const consent = await Notification.requestPermission();
+    setUserConsent(consent); // This will trigger the useEffect above if 'granted'
+    
+    if (consent !== 'granted') {
+        toast({
+            title: 'Permiso denegado',
+            description: 'No podremos enviarte notificaciones.',
+        });
+    }
+
   }, [isUnsupported, userConsent, toast]);
 
   const contextValue = {
