@@ -1,6 +1,6 @@
 'use server';
 
-import web-push from 'web-push';
+import webPush from 'web-push';
 import { getSubscriptions, saveSubscription } from './db';
 
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -9,7 +9,7 @@ const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
 let vapidKeysLoaded = false;
 if (vapidPublicKey && vapidPrivateKey) {
     try {
-        web-push.setVapidDetails(
+        webPush.setVapidDetails(
             'mailto:example@your-domain.com',
             vapidPublicKey,
             vapidPrivateKey
@@ -37,7 +37,7 @@ export async function sendPushNotification(userId: string, payload: { title: str
     if (subscription) {
       const notificationPayload = JSON.stringify(payload);
       
-      await web-push.sendNotification(subscription, notificationPayload);
+      await webPush.sendNotification(subscription, notificationPayload);
 
     } else {
       console.log(`No push subscription found for user ${userId}.`);

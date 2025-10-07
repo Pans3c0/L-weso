@@ -18,9 +18,6 @@ const nextConfig = {
       },
     ],
   },
-  serverActions: {
-    bodySizeLimit: '10mb',
-  },
   allowedDevOrigins: [
     '*.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev',
     '*.ngrok-free.app',
