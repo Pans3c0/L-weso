@@ -34,45 +34,33 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
   const [isUnsupported, setIsUnsupported] = useState(false);
   const [userConsent, setUserConsent] = useState<NotificationPermission>('default');
 
-  const registerServiceWorker = useCallback(async () => {
-    try {
-      await navigator.serviceWorker.register('/service-worker.js');
-    } catch (error) {
-      console.error("Service Worker registration failed:", error);
-    }
-  }, []);
-
   useEffect(() => {
-    if ('serviceWorker' in navigator && window.isSecureContext) {
-      registerServiceWorker();
-    }
-  }, [registerServiceWorker]);
-
-  useEffect(() => {
-    if (!window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (typeof window === 'undefined' || !window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window)) {
         setIsUnsupported(true);
         return;
     }
 
+    // Set initial consent state
     setUserConsent(Notification.permission);
-    
-    const checkSubscription = async () => {
-        try {
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            setIsSubscribed(!!subscription);
-        } catch (error) {
-            console.error("Error checking for push subscription:", error);
-            setIsSubscribed(false);
-        }
-    };
 
-    navigator.serviceWorker.ready.then(checkSubscription);
-
+    // Register service worker
+    navigator.serviceWorker.register('/service-worker.js').then(registration => {
+      console.log('Service Worker registered successfully.');
+      // Check for existing subscription
+      registration.pushManager.getSubscription().then(subscription => {
+        setIsSubscribed(!!subscription);
+      });
+    }).catch(error => {
+      console.error("Service Worker registration failed:", error);
+      setIsUnsupported(true); // Treat registration failure as unsupported
+    });
   }, []);
 
   const requestPermission = useCallback(async (userId: string) => {
-     if (isUnsupported || !userId) return;
+     if (isUnsupported || !userId) {
+        console.log('Push notifications unsupported or no user ID.');
+        return;
+     }
 
      if (userConsent === 'denied') {
         toast({
@@ -101,10 +89,13 @@ export function PushNotificationsProvider({ children }: { children: ReactNode })
           throw new Error('VAPID public key is not defined');
         }
 
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        });
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+            });
+        }
         
         await fetch('/api/save-subscription', {
             method: 'POST',
