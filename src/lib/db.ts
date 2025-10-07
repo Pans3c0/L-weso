@@ -1,3 +1,4 @@
+
 'use server';
 
 import path from 'path';
@@ -208,9 +209,8 @@ export const getVapidKeys = async () => {
 };
 
 
-export const saveSubscription = async (userId: string, subscription: PushSubscription | undefined, existingData?: SubscriptionsData) => {
-    // If existingData is not passed, fetch it to prevent race conditions.
-    const data = existingData || await getSubscriptions();
+export const saveSubscription = async (userId: string, subscription: PushSubscription | undefined) => {
+    const data = await getSubscriptions();
     
     // Ensure VAPID keys exist before saving a subscription.
     if (!data.vapidKeys) {

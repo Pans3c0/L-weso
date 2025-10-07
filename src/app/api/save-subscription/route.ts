@@ -1,7 +1,8 @@
+
 'use server';
 
 import { NextResponse } from 'next/server';
-import { saveSubscription, getSubscriptions } from '@/lib/db';
+import { saveSubscription, getVapidKeys } from '@/lib/db';
 import type { PushSubscription } from 'web-push';
 
 type SubscriptionData = {
@@ -18,9 +19,7 @@ export async function POST(request: Request) {
             return new NextResponse('Invalid subscription data', { status: 400 });
         }
         
-        // Fetch existing data to prevent race conditions
-        const existingData = await getSubscriptions();
-        await saveSubscription(userId, subscription, existingData);
+        await saveSubscription(userId, subscription);
 
         return NextResponse.json({ success: true, message: 'Subscription saved.' });
 
@@ -28,4 +27,18 @@ export async function POST(request: Request) {
         console.error('Error saving push subscription:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }
+}
+
+export async function GET() {
+  try {
+    const { publicKey } = await getVapidKeys();
+    if (!publicKey) {
+      // This should theoretically not happen anymore because getVapidKeys ensures they are created.
+      return new NextResponse('VAPID public key not found on server.', { status: 500 });
+    }
+    return NextResponse.json({ publicKey });
+  } catch (error) {
+    console.error('API Error fetching VAPID public key:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
 }

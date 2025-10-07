@@ -1,8 +1,8 @@
+
 'use server';
 
 import webPush from 'web-push';
-import { getSubscriptions, saveSubscription } from './db';
-import { getVapidKeys } from './db';
+import { getSubscriptions, saveSubscription, getVapidKeys } from './db';
 
 // This function will be called when the server starts.
 async function initializeVapid() {
@@ -18,6 +18,8 @@ async function initializeVapid() {
             console.log('VAPID keys loaded and configured successfully.');
             return true;
         } else {
+            // This case should ideally not happen with the new getVapidKeys logic,
+            // but it's good to have a fallback log.
             console.warn('VAPID keys are not yet generated. They will be created on the first subscription.');
             return false;
         }
@@ -32,7 +34,7 @@ let vapidKeysLoaded = initializeVapid();
 
 export async function sendPushNotification(userId: string, payload: { title: string; body: string; url?: string; }) {
   // Re-check if keys are loaded, in case they were generated after server start
-  if (!webPush.getVapidDetails()) {
+  if (!webPush.getVapidDetails()?.publicKey) {
       const keysLoaded = await initializeVapid();
       if (!keysLoaded) {
           console.log('VAPID keys not configured, skipping push notification.');
@@ -48,6 +50,7 @@ export async function sendPushNotification(userId: string, payload: { title: str
       const notificationPayload = JSON.stringify(payload);
       
       await webPush.sendNotification(subscription, notificationPayload);
+      console.log(`Push notification sent to ${userId}.`);
 
     } else {
       console.log(`No push subscription found for user ${userId}.`);
@@ -55,9 +58,7 @@ export async function sendPushNotification(userId: string, payload: { title: str
   } catch (error: any) {
     if (error.statusCode === 404 || error.statusCode === 410) {
       console.log(`Subscription for user ${userId} has expired or is no longer valid. Removing it.`);
-      // Pass the existing data to avoid race conditions
-      const currentData = await getSubscriptions();
-      await saveSubscription(userId, undefined, currentData);
+      await saveSubscription(userId, undefined);
     } else {
       console.error(`Error sending push notification to ${userId}:`, error.body || error.message);
     }
