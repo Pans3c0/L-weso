@@ -1,7 +1,6 @@
 'use server';
 
-import { getCustomerSellerRelations } from "@/lib/customers";
-import { getAllSellers } from "@/lib/sellers";
+import { getCustomerSellerRelations, getAllSellers } from "@/lib/db";
 import type { CustomerSellerRelation, Seller } from "@/lib/types";
 
 export async function getSellersAction(): Promise<Seller[]> {

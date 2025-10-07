@@ -1,10 +1,9 @@
 'use server';
 
 import { z } from 'zod';
-import { getPurchaseRequests, savePurchaseRequests } from '@/lib/requests';
+import { getPurchaseRequests, savePurchaseRequests, getCustomerById } from '@/lib/db';
 import type { CartItem, PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-import { getAllCustomers } from '@/lib/customers';
 import { sendPushNotification } from '@/lib/push';
 
 const ProductSchema = z.object({
@@ -16,7 +15,6 @@ const ProductSchema = z.object({
   stockInGrams: z.number(),
   imageUrl: z.string().optional().nullable(),
   imageHint: z.string().optional().nullable(),
-  keywords: z.string().optional(),
 });
 
 const CartItemSchema = z.object({
@@ -41,15 +39,13 @@ export async function submitPurchaseRequestAction(input: {
 
   const { customerId, items } = parsedInput.data;
 
-  // All items in a single cart must belong to the same seller.
   const sellerId = items[0]?.product.sellerId;
   if (!sellerId || !items.every(item => item.product.sellerId === sellerId)) {
     return { error: 'Todos los artículos del carrito deben pertenecer al mismo vendedor.' };
   }
 
   try {
-    const customers = await getAllCustomers();
-    const customer = customers.find(c => c.id === customerId);
+    const customer = await getCustomerById(customerId);
     if (!customer) {
       return { error: 'Cliente no encontrado.' };
     }
@@ -58,7 +54,7 @@ export async function submitPurchaseRequestAction(input: {
 
     const newRequest: PurchaseRequest = {
       id: `req_${Date.now()}`,
-      sellerId: sellerId, // Link request to the seller
+      sellerId: sellerId,
       customerId,
       customerName: customer.name,
       items,
@@ -71,7 +67,6 @@ export async function submitPurchaseRequestAction(input: {
     allRequests.unshift(newRequest);
     await savePurchaseRequests(allRequests);
     
-    // Notificacion al vendedor
     await sendPushNotification(sellerId, {
       title: '¡Nueva solicitud de compra!',
       body: `Has recibido una nueva solicitud de ${customer.name} por un total de ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(total)}.`,

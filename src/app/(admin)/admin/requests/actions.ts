@@ -1,28 +1,18 @@
 'use server';
 
 import { z } from 'zod';
-import { getPurchaseRequestById, updateRequest } from '@/lib/requests';
+import { getPurchaseRequestById, updateRequest } from '@/lib/db';
 import type { PurchaseRequest } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { sendPushNotification } from '@/lib/push';
 
-/**
- * Schema for validating the input for the confirmation action.
- */
 const ConfirmRequestSchema = z.object({
   requestId: z.string(),
   confirmationDate: z.string().datetime(),
   sellerNote: z.string().optional(),
-  isEditing: z.boolean().optional(), // Add isEditing flag
+  isEditing: z.boolean().optional(),
 });
 
-/**
- * Server Action: Confirms a pending purchase request or updates a confirmed one.
- * This action finds the request, updates its status/details,
- * and saves the new state. It also revalidates relevant paths.
- * @param input - The details for the confirmation, including request ID, date, and an optional note.
- * @returns A success object with the updated request or an error object.
- */
 export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestSchema>) {
   const parsedInput = ConfirmRequestSchema.safeParse(input);
   if (!parsedInput.success) {
@@ -37,45 +27,39 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
       return { error: 'Solicitud no encontrada.' };
     }
 
-    // Allow updates only on pending requests OR if we are explicitly editing a confirmed one
-    if (request.status !== 'pending' && !isEditing) {
+    if (!isEditing && request.status !== 'pending') {
       return { error: 'Esta solicitud ya ha sido procesada.' };
     }
      if (isEditing && request.status !== 'confirmed') {
       return { error: 'Solo se pueden editar pedidos que ya están confirmados.' };
     }
 
-
     const updated: PurchaseRequest = {
       ...request,
-      status: 'confirmed', // Keep status as confirmed
+      status: 'confirmed',
       confirmationDate,
       sellerNote,
     };
 
     await updateRequest(updated);
     
-    // --- NOTIFICATION LOGIC ---
     if (isEditing) {
-      // Send a push notification to the customer that their order was updated
       await sendPushNotification(request.customerId, {
         title: 'Tu pedido ha sido actualizado',
         body: `El vendedor ha modificado los detalles de tu pedido #${request.id.slice(-6)}.`,
         url: '/notifications'
       });
     } else {
-       // Send a push notification to the customer for a new confirmation
        await sendPushNotification(request.customerId, {
         title: '¡Tu pedido ha sido confirmado!',
-        body: `El vendedor ha confirmado tu pedido por ${new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(request.total)}.`,
+        body: `Tu pedido #${request.id.slice(-6)} ha sido confirmado.`,
         url: '/notifications'
       });
     }
 
-    // Revalidate paths to update UI across the app
     revalidatePath('/admin/requests');
     revalidatePath('/admin/orders');
-    revalidatePath('/notifications'); // For the customer
+    revalidatePath('/notifications');
 
     return { success: true, updatedRequest: updated };
   } catch (error) {
@@ -84,20 +68,11 @@ export async function confirmRequestAction(input: z.infer<typeof ConfirmRequestS
   }
 }
 
-/**
- * Schema for validating the input for the delay notification action.
- */
 const NotifyDelaySchema = z.object({
   requestId: z.string(),
   customerNote: z.string().min(1, "La nota no puede estar vacía."),
 });
 
-/**
- * Server Action: Allows a customer to notify the seller about a delay.
- * This action adds a `customerNote` to a confirmed request.
- * @param input - Contains the request ID and the note from the customer.
- * @returns A success object with the updated request or an error object.
- */
 export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>) {
   const parsedInput = NotifyDelaySchema.safeParse(input);
   if (!parsedInput.success) {
@@ -123,14 +98,13 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
 
     await updateRequest(updated);
     
-    // Notify the seller about the customer's delay
+    // Notify seller about the delay
     await sendPushNotification(request.sellerId, {
       title: 'Retraso notificado por cliente',
-      body: `Cliente: ${request.customerName}, Pedido: #${request.id.slice(-6)}.`,
+      body: `Cliente: ${request.customerName} ha notificado un retraso para el pedido #${request.id.slice(-6)}.`,
       url: `/admin/orders`
     });
 
-    // Revalidate paths to ensure UI is up-to-date for both admin and customer.
     revalidatePath('/admin/orders');
     revalidatePath('/notifications');
 
@@ -141,11 +115,6 @@ export async function notifyDelayAction(input: z.infer<typeof NotifyDelaySchema>
   }
 }
 
-/**
- * Server Action: Sends a test notification to a specific user.
- * @param userId - The ID of the user to send the notification to.
- * @returns A success or error object.
- */
 export async function sendTestNotificationAction(userId: string) {
     try {
         await sendPushNotification(userId, {
@@ -160,17 +129,11 @@ export async function sendTestNotificationAction(userId: string) {
     }
 }
 
-
 const EmergencyNotificationSchema = z.object({
   senderId: z.string(),
   senderName: z.string(),
 });
 
-/**
- * Server Action: Sends an emergency notification to the master admin.
- * @param input - The sender's details.
- * @returns A success or error object.
- */
 export async function sendEmergencyNotificationAction(input: z.infer<typeof EmergencyNotificationSchema>) {
   const parsedInput = EmergencyNotificationSchema.safeParse(input);
   if (!parsedInput.success) {
@@ -178,13 +141,13 @@ export async function sendEmergencyNotificationAction(input: z.infer<typeof Emer
   }
 
   const { senderName } = parsedInput.data;
-  const masterAdminId = 'seller_1'; // Hardcoded master admin ID
+  const masterAdminId = 'seller_1';
 
   try {
     await sendPushNotification(masterAdminId, {
       title: "¡ALERTA DE EMERGENCIA RECIBIDA!",
       body: `Activada por ${senderName}. Ponte en contacto con el usuario de inmediato.`,
-      url: "/admin/dashboard" // Or a specific emergency dashboard
+      url: "/admin/dashboard"
     });
     return { success: true };
   } catch (error) {

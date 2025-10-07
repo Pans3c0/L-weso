@@ -52,7 +52,6 @@ export default function AdminProductsPage() {
     if (!session?.sellerId) return;
     setIsLoading(true);
     try {
-      // Fetch products only for the logged-in seller
       const res = await fetch(`/api/products?sellerId=${session.sellerId}`);
       if (!res.ok) throw new Error('Failed to fetch products');
       const data = await res.json();
@@ -71,7 +70,6 @@ export default function AdminProductsPage() {
     }
   }, [fetchProducts, session?.sellerId]);
 
-  // Esta función se pasa al formulario y se llama cuando el guardado es exitoso.
   const handleSaveSuccess = async () => {
     await fetchProducts(); 
     setIsSheetOpen(false);
@@ -106,6 +104,7 @@ export default function AdminProductsPage() {
 
   const getImageUrl = (url: string) => {
     if (!url) return 'https://placehold.co/64x64/F5F5F5/696969?text=?';
+    // Use the dynamic API route for all local images
     if (url.startsWith('/images/')) {
       return `/api${url}`;
     }
@@ -243,7 +242,7 @@ export default function AdminProductsPage() {
         </SheetHeader>
         <ProductForm 
             product={editingProduct} 
-            onSave={handleSaveSuccess} // Pasamos la función de éxito
+            onSave={handleSaveSuccess}
             onCancel={() => {
                 setIsSheetOpen(false);
                 setEditingProduct(undefined);

@@ -4,12 +4,12 @@ import {
     addReferralCode,
     findReferralCode,
     removeReferralCode,
-    getReferralCodes
-} from '@/lib/referral-codes';
+    getReferralCodes,
+    associateCustomerWithSeller
+} from '@/lib/db';
 import type { ReferralCode } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { associateCustomerWithSeller } from '@/lib/customers';
 
 const GenerateCodeSchema = z.object({
     sellerId: z.string().min(1, "Seller ID is required"),
@@ -27,7 +27,6 @@ export async function generateReferralCodeAction(input: { sellerId: string }): P
     const { sellerId } = parsedInput.data;
 
     try {
-        // Generate a random 6-character alphanumeric code
         const newCodeString = `REF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
         const newCode: ReferralCode = {
             code: newCodeString,
@@ -35,8 +34,6 @@ export async function generateReferralCodeAction(input: { sellerId: string }): P
         };
 
         await addReferralCode(newCode);
-
-        // Revalidate the referrals admin page to show the new code
         revalidatePath('/admin/referrals');
 
         return { success: true, newCode: newCodeString };
@@ -52,7 +49,6 @@ export async function generateReferralCodeAction(input: { sellerId: string }): P
  * @returns An array of strings representing the active codes for that seller.
  */
 export async function getReferralCodesForSeller(sellerId: string): Promise<string[]> {
-    // The logic to find a code's owner is handled by findReferralCode.
     const allCodes = await getReferralCodes();
     return allCodes
         .filter(c => c.sellerId === sellerId)
@@ -83,7 +79,7 @@ export async function associateCustomerWithSellerAction(input: z.infer<typeof As
         await associateCustomerWithSeller(customerId, codeDetails.sellerId);
         await removeReferralCode(referralCode);
         
-        revalidatePath('/shop'); // Revalidate shop page to update seller list for customer
+        revalidatePath('/shop');
 
         return { success: true, newSellerId: codeDetails.sellerId };
 

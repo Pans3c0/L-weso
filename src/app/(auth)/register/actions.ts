@@ -1,8 +1,13 @@
 'use server';
 
 import { z } from 'zod';
-import { getAllCustomers, saveCustomers, associateCustomerWithSeller } from '@/lib/customers';
-import { findReferralCode, removeReferralCode } from '@/lib/referral-codes';
+import { 
+    getAllCustomers, 
+    saveCustomers, 
+    associateCustomerWithSeller, 
+    findReferralCode, 
+    removeReferralCode 
+} from '@/lib/db';
 import type { Customer } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
 
@@ -13,12 +18,6 @@ const RegisterCustomerSchema = z.object({
   password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
 });
 
-/**
- * Server Action: Registers a new customer using a single-use referral code.
- * This function validates the referral code, finds the associated seller,
- * creates a new customer linked to that seller, saves them,
- * and then invalidates the referral code.
- */
 export async function registerCustomerAction(input: z.infer<typeof RegisterCustomerSchema>) {
   const parsedInput = RegisterCustomerSchema.safeParse(input);
   if (!parsedInput.success) {
@@ -27,7 +26,6 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
 
   const { name, username, referralCode, password } = parsedInput.data;
 
-  // Find the referral code and its associated seller
   const validCode = await findReferralCode(referralCode);
   if (!validCode) {
     return { error: 'El código de referencia no es válido o ya ha sido utilizado.' };
@@ -36,7 +34,6 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
   try {
     const allCustomers = await getAllCustomers();
 
-    // Check if username is already taken
     if (allCustomers.some(c => c.username === username)) {
         return { error: 'El nombre de usuario ya está en uso.' };
     }
@@ -45,16 +42,14 @@ export async function registerCustomerAction(input: z.infer<typeof RegisterCusto
       id: `customer_${Date.now()}`,
       name,
       username,
-      password, // In a real app, hash this password
+      password,
     };
     
-    const updatedCustomers = [...allCustomers, newCustomer];
-    await saveCustomers(updatedCustomers);
+    allCustomers.push(newCustomer);
+    await saveCustomers(allCustomers);
     
-    // Create the initial association between the new customer and the seller
     await associateCustomerWithSeller(newCustomer.id, validCode.sellerId);
     
-    // Invalidate the referral code so it cannot be used again
     await removeReferralCode(referralCode);
 
     revalidatePath('/admin/customers');

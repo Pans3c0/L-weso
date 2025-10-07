@@ -18,10 +18,9 @@ const nextConfig = {
       },
     ],
   },
-  // The body size limit is now handled by client-side compression,
-  // so we don't need to fight with server configurations anymore.
-  // This keeps the config clean and avoids environment-specific issues.
-  
+  serverActions: {
+    bodySizeLimit: '10mb',
+  },
   allowedDevOrigins: [
     '*.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev',
     '*.ngrok-free.app',

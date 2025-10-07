@@ -1,6 +1,6 @@
 'use server';
 import { NextResponse, NextRequest } from 'next/server';
-import { getAllCustomers } from '@/lib/customers';
+import { getAllCustomers } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

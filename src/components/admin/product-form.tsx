@@ -21,6 +21,7 @@ const productSchema = z.object({
   description: z.string().min(10, 'La descripción es obligatoria'),
   pricePerGram: z.coerce.number().positive('El precio debe ser un número positivo'),
   stockInGrams: z.coerce.number().int().nonnegative('El stock debe ser un número entero no negativo'),
+  imageFile: z.any().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -37,16 +38,10 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const [imageFile, setImageFile] = React.useState<File | null>(null);
 
-  const getImageUrl = (url: string) => {
+  const getImageUrl = (url: string | null | undefined) => {
     if (!url) return null;
-    // If it's a local image, serve it through the API route
-    if (url.startsWith('/images/')) {
-      return `/api${url}`;
-    }
-    // Otherwise, it's an external URL (e.g., from seeding)
-    return url;
+    return url.startsWith('/images/') ? `/api${url}` : url;
   };
 
   const form = useForm<ProductFormValues>({
@@ -56,23 +51,35 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       description: product?.description || '',
       pricePerGram: product?.pricePerGram || 0,
       stockInGrams: product?.stockInGrams || 0,
+      imageFile: undefined,
     },
   });
 
   React.useEffect(() => {
-    form.reset({
-      name: product?.name || '',
-      description: product?.description || '',
-      pricePerGram: product?.pricePerGram || 0,
-      stockInGrams: product?.stockInGrams || 0,
-    });
-    setImagePreview(product?.imageUrl ? getImageUrl(product.imageUrl) : null);
-    setImageFile(null);
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    if (product) {
+        form.reset({
+            name: product.name,
+            description: product.description,
+            pricePerGram: product.pricePerGram,
+            stockInGrams: product.stockInGrams,
+            imageFile: undefined,
+        });
+        setImagePreview(getImageUrl(product.imageUrl));
+    } else {
+        form.reset({
+            name: '',
+            description: '',
+            pricePerGram: 0,
+            stockInGrams: 0,
+            imageFile: undefined,
+        });
+        setImagePreview(null);
+    }
+     if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, form]);
+  }, [product]);
 
   const onSubmit = async (data: ProductFormValues) => {
     setIsSaving(true);
@@ -82,40 +89,24 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       return;
     }
 
-    let newImageUrl: string | undefined = undefined;
-
-    // 1. Si hay un nuevo archivo de imagen, súbelo primero
-    if (imageFile) {
-      try {
-        const imageFormData = new FormData();
-        imageFormData.append('imageFile', imageFile);
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: imageFormData,
-        });
-
-        const result = await response.json();
-
-        if (!response.ok || !result.success) {
-          throw new Error(result.error || 'Error al subir la imagen');
-        }
-        newImageUrl = result.url;
-      } catch (uploadError) {
-        toast({ title: 'Error de subida', description: (uploadError as Error).message, variant: 'destructive' });
-        setIsSaving(false);
-        return;
-      }
+    const formData = new FormData();
+    formData.append('sellerId', session.sellerId);
+    if (product?.id) {
+        formData.append('id', product.id);
+    }
+    if (product?.imageUrl) {
+        formData.append('existingImageUrl', product.imageUrl);
+    }
+    formData.append('name', data.name);
+    formData.append('description', data.description);
+    formData.append('pricePerGram', String(data.pricePerGram));
+    formData.append('stockInGrams', String(data.stockInGrams));
+    
+    if (data.imageFile && data.imageFile instanceof File) {
+        formData.append('imageFile', data.imageFile);
     }
 
-    // 2. Llama a la Server Action con los datos del formulario y la URL de la nueva imagen
-    const result = await saveProductAction({
-      ...data,
-      id: product?.id,
-      sellerId: session.sellerId,
-      newImageUrl: newImageUrl,
-      existingImageUrl: product?.imageUrl,
-    });
+    const result = await saveProductAction(formData);
 
     if (result.success) {
       toast({ title: 'Producto guardado', description: `El producto ha sido guardado.` });
@@ -131,47 +122,27 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Options for compression
     const options = {
       maxSizeMB: 1,
-      maxWidthOrHeight: 1920,
+      maxWidthOrHeight: 1024,
       useWebWorker: true,
-      initialQuality: 0.8
-    }
+    };
 
     try {
-      toast({ title: 'Comprimiendo imagen...', description: 'Por favor, espera un momento.' });
       const compressedFile = await imageCompression(file, options);
-      
-      setImageFile(compressedFile);
+      form.setValue('imageFile', compressedFile);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(compressedFile);
-
     } catch (error) {
-      console.error('Error comprimiendo la imagen:', error);
       toast({
-        title: 'Error de Compresión',
-        description: 'No se pudo procesar la imagen. Intenta con otra.',
+        title: 'Error de compresión',
+        description: 'No se pudo procesar la imagen.',
         variant: 'destructive',
       });
-      // Fallback to original file if compression fails, but check size
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit on server
-         toast({
-          title: 'Archivo demasiado grande',
-          description: 'La imagen no se pudo comprimir y supera los 2 MB.',
-          variant: 'destructive',
-        });
-        return;
-      }
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      console.error(error);
     }
   };
 
@@ -190,7 +161,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                         <span className="text-muted-foreground text-sm">Vista previa</span>
                     )}
                 </div>
-                <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
+                <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/png, image/jpeg, image/webp" className="hidden" />
                 <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSaving}>
                     <Upload className="mr-2 h-4 w-4" />
                     {imagePreview ? 'Cambiar Imagen' : 'Subir Imagen'}
